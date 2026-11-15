@@ -9,7 +9,7 @@ local TIME_SCALE = 0.66
 local TRANSITION_MS = 200
 
 local font, palette, fontChecked
-local currentRank, changedAt
+local currentRank, changedAt, readySince
 
 function StyleHUD.bounds()
     local width, height = Isaac.GetScreenWidth(), Isaac.GetScreenHeight()
@@ -53,30 +53,42 @@ local function center(text, x, y, scale, tint)
     end
 end
 
-local function readyEdges(width, height, now)
-    local pulse = 1 + 0.15 * math.sin(now * 0.005)
-    for _, band in ipairs({{14, 0.04}, {8, 0.08}, {3, 0.125}}) do
-        local thickness = band[1]
-        local edge = thickness / 2
-        local orange = KColor(1, 0.40, 0.12, pulse * band[2])
-        local red = KColor(0.98, 0.17, 0.09, pulse * band[2])
-        Isaac.DrawLine(Vector(0, edge), Vector(width, edge), orange, red, thickness)
-        Isaac.DrawLine(Vector(0, height - edge), Vector(width, height - edge), red, orange, thickness)
-        Isaac.DrawLine(Vector(edge, 0), Vector(edge, height), orange, red, thickness)
-        Isaac.DrawLine(Vector(width - edge, 0), Vector(width - edge, height), red, orange, thickness)
+local function renderReady(width, height, elapsed)
+    local opening = math.max(0, 1 - elapsed / 420) ^ 2
+    local pulse = (1 + math.cos(elapsed * 2 * math.pi / 1300)) / 2
+    local gold = KColor(1, 0.74 + 0.17 * pulse, 0.33, 1)
+    local crimson = KColor(0.94, 0.20, 0.21, 0.86)
+    -- Peripheral motion stays in the margins, away from the character and enemy shots.
+    local mid = height * 0.5
+    for _, side in ipairs({-1, 1}) do
+        local edge = side == 1 and width or 0
+        local tip = edge - side * (6 + 9 * opening + 1.5 * pulse)
+        local spread = 18 + 10 * opening
+        Isaac.DrawLine(Vector(edge, mid - spread), Vector(tip, mid), crimson, gold, 3)
+        Isaac.DrawLine(Vector(tip, mid), Vector(edge, mid + spread), gold, crimson, 3)
     end
+    local half = math.min(38, math.floor(width / 4))
+    local x, y = math.floor(width / 2), math.floor(8 + 5 * opening)
+    fill(x - half, y, half * 2, 17, palette.panel)
+    fill(x - half, y + 16, half * 2, 2, gold)
+    center(font and 'R ГОТОВА' or 'R READY', x, y + 1, 0.95, RANK_COLORS[7])
 end
 
 function StyleHUD.render(_, status, externalStyleHud)
     if not status then
-        currentRank, changedAt = nil, nil
+        currentRank, changedAt, readySince = nil, nil, nil
         return
     end
-    if externalStyleHud then return end
     local now = Isaac.GetTime()
-    local width, height = Isaac.GetScreenWidth(), Isaac.GetScreenHeight()
-    if status.ready then readyEdges(width, height, now) end
     setup()
+    if status.ready then
+        readySince = readySince or now
+        renderReady(Isaac.GetScreenWidth(), Isaac.GetScreenHeight(), now - readySince)
+    else
+        readySince = nil
+    end
+    -- The companion owns the lower rank panel, but the cast prompt belongs to the game.
+    if externalStyleHud then return end
 
     local rank = math.floor(math.max(0, math.min(6, status.rank or 0)))
     if rank ~= currentRank then

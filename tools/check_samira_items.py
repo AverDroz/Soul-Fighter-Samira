@@ -578,5 +578,33 @@ close(fireplace.hits[1], 12, 'native Q also scales object damage')
 assert(#accepted == 2 and rolls == 1, 'object damage may not trigger Style')
 assert(Style.status(clock).rank == 2, 'foreign, secondary and object damage must leave style unchanged')
 
+-- These are the two independent save slots used by the native Hourglass.
+-- Exercise callbacks in both orders relative to POST_NEW_ROOM, including
+-- a backtracked room whose old first-combat reset claim must be forgotten.
+start({})
+local remaining = {q=0,w=0,e=0,r=0}
+local restored, appliedAt
+Items.bindCombat({
+    reset=function(keep) assert(keep) end,
+    exportCooldowns=function() return {q=remaining.q,w=remaining.w,e=remaining.e,r=remaining.r} end,
+    restoreCooldowns=function(saved, f) restored,appliedAt=saved,f end,
+})
+assert(Items.claimCombatRoomReset())
+clock=1002; fire('MC_POST_GLOWING_HOURGLASS_SAVE',0)
+enter(2); assert(Items.claimCombatRoomReset())
+remaining={q=21,w=525,e=0,r=0}
+clock=1541; fire('MC_POST_GLOWING_HOURGLASS_SAVE',1)
+fire('MC_PRE_GAME_EXIT',true)
+fire('MC_POST_GAME_STARTED',true); step()
+fire('MC_PRE_GLOWING_HOURGLASS_LOAD',0)
+enter(1); fire('MC_POST_GLOWING_HOURGLASS_LOAD',0)
+clock=1002; Items.applyCooldownCheckpoint(clock)
+assert(appliedAt==1002 and restored.w==0 and restored.r==0 and not Items.claimCombatRoomReset())
+enter(2); assert(Items.claimCombatRoomReset(), 'discarded visit consumed first-fight reset')
+fire('MC_PRE_GLOWING_HOURGLASS_LOAD',1); fire('MC_POST_GLOWING_HOURGLASS_LOAD',1)
+enter(2); clock=1541; Items.applyCooldownCheckpoint(clock)
+assert(appliedAt==1541 and restored.w==525 and restored.q==21 and not Items.claimCombatRoomReset())
+appliedAt=nil; Items.applyCooldownCheckpoint(1542); assert(appliedAt==nil, 'checkpoint applied twice')
+
 print('Passed 46 item stat checks, native weapon damage and Style, combat scenarios, and persistence.')
 ''')

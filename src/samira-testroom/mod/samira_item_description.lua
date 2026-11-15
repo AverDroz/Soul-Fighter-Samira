@@ -16,10 +16,10 @@ local fields = {
     {'iframes_pct', 'Кадры неуязвимости', '%'},
 }
 
-local function statText(item)
+function Description.statText(stats)
     local parts = {}
     for _, field in ipairs(fields) do
-        local value = item.stats[field[1]]
+        local value = stats[field[1]]
         if value ~= nil then
             local number = (value == 0 and '0' or ('%+g'):format(value)):gsub('%.', ',')
             parts[#parts + 1] = field[2] .. ' ' .. number .. (field[3] or '')
@@ -43,7 +43,7 @@ function Description.wrap(font, value, maxWidth)
 end
 
 function Description.lines(font, item, maxWidth)
-    local stats = Description.wrap(font, statText(item), maxWidth)
+    local stats = Description.wrap(font, Description.statText(item.stats), maxWidth)
     local passive = item.descriptionRu or ''
     local attributes = item.stats
     if ((attributes.lifesteal_chance_pct or 0) > 0 or (attributes.omnivamp_chance_pct or 0) > 0)

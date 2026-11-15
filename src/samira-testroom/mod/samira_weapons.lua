@@ -9,6 +9,7 @@ local armPulse
 local restorePulse
 local releasedWeapon
 local releasedAt, releasedCount
+local qTearSpeed = 4 / 3
 
 local function same(a, b)
     return a and b and GetPtrHash(a) == GetPtrHash(b)
@@ -73,7 +74,7 @@ function Weapons.update(p, _, aim, enabled, point)
     direction, aimPoint, allow = aim, point, enabled
 end
 
-function Weapons.requestQ(p, aim, clock, point)
+function Weapons.requestQ(p, aim, clock, point, releaseAt)
     local weapon = weaponOf(p)
     if request or not weapon or not aim or aim:Length() <= .001 then return false end
     local pulse
@@ -87,7 +88,9 @@ function Weapons.requestQ(p, aim, clock, point)
         end
         restorePulse(pulse)
     end
-    request = {player = p, heading = aim:Normalized(), clock = clock, pulse = pulse, point = point}
+    request = {player = p, heading = aim:Normalized(), clock = clock, pulse = pulse, point = point,
+        releaseAt = releaseAt or clock}
+    currentHeld, lastHeld, frame = nil, nil, nil
     return true
 end
 
@@ -97,7 +100,8 @@ function Weapons.isChargeWeapon(p)
 end
 
 function Weapons.trackCursor(p, point)
-    if request and same(request.player, p) and not request.pulse then
+    if request and same(request.player, p) and not request.pulse and game:GetFrameCount() > request.releaseAt
+        and Weapons.isChargeWeapon(p) then
         local delta = point - p.Position
         if delta:Length() > .001 then request.heading = delta:Normalized() end
         request.point = point
@@ -124,6 +128,7 @@ local function beginFrame(p)
     if not weapon then return end
     local clock = game:GetFrameCount()
     if request and not same(request.player, p) then request = nil end
+    if request and clock < request.releaseAt then return end
     local maxCharge, charge = weapon:GetMaxCharge(), weapon:GetCharge()
     if request and clock - request.clock > math.max(240, math.ceil(maxCharge * 2) + 30) then
         stopCharge(p)
@@ -233,7 +238,8 @@ local function rotateOutput(batch, entity)
     if not batch.turn or not entity:Exists() then return end
     local data = entity:GetData()
     local previous = data.SamiraAim
-    if math.abs(batch.turn) < .001 and not previous and entity.Type ~= EntityType.ENTITY_LASER then return end
+    local speed = entity.Type == EntityType.ENTITY_TEAR and batch.context.kind == 'q' and qTearSpeed or 1
+    if speed == 1 and math.abs(batch.turn) < .001 and not previous and entity.Type ~= EntityType.ENTITY_LASER then return end
     if previous and previous.context == batch.context then return end
     local state = {context = batch.context}
     data.SamiraAim = state
@@ -245,16 +251,16 @@ local function rotateOutput(batch, entity)
                 and same(entity.SpawnerEntity, batch.player) then
                 local nativeMove = batch.player:GetTearMovementInheritance(batch.nativeHeading)
                 local aimedMove = batch.player:GetTearMovementInheritance(batch.heading)
-                velocity = (velocity - nativeMove):Rotated(turn) + aimedMove
+                velocity = (velocity - nativeMove):Rotated(turn) * speed + aimedMove
             else
-                velocity = velocity:Rotated(turn)
+                velocity = velocity:Rotated(turn) * speed
             end
             entity.Velocity = velocity
         end
         if kind == EntityType.ENTITY_TEAR then
             local tear = entity:ToTear()
             if tear.ContinueVelocity and tear.ContinueVelocity:Length() > .001 then
-                tear.ContinueVelocity = tear.ContinueVelocity:Rotated(turn)
+                tear.ContinueVelocity = tear.ContinueVelocity:Rotated(turn) * speed
             end
         end
     elseif kind == EntityType.ENTITY_LASER then

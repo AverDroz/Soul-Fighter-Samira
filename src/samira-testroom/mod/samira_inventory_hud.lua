@@ -81,7 +81,7 @@ local function draw(message, x, y, color)
     font:DrawStringScaledUTF8(message, x, y, TEXT_SCALE, TEXT_SCALE, color, 0, false)
 end
 
-local function tooltip(item, bounds, dropHintVisible)
+local function tooltip(item, bounds, dropHintVisible, full)
     local layout = tooltipLayouts[item]
     if not layout then
         local width = (bounds.width - 12) / TEXT_SCALE
@@ -89,19 +89,43 @@ local function tooltip(item, bounds, dropHintVisible)
         local stats, body = Description.lines(font, item, width)
         layout = {
             height = (#title + #stats + #body) * LINE_HEIGHT + 9,
+            compactHeight = (#title + #stats) * LINE_HEIGHT + 9,
             groups = {{title, colors.selected}, {stats, colors.stats}, {body, colors.white}},
         }
         tooltipLayouts[item] = layout
     end
-    local y = bounds.y - layout.height - 5 - (dropHintVisible and 16 or 0)
-    fill(bounds.x, y, bounds.width, layout.height, colors.paper)
+    local height = full and layout.height or layout.compactHeight
+    local y = bounds.y - height - 5 - (dropHintVisible and 16 or 0)
+    fill(bounds.x, y, bounds.width, height, colors.paper)
     y = y + 4
-    for _, group in ipairs(layout.groups) do
+    for index = 1, full and 3 or 2 do
+        local group = layout.groups[index]
         for _, line in ipairs(group[1]) do
             draw(line, bounds.x + 6, y, group[2])
             y = y + LINE_HEIGHT
         end
     end
+end
+
+function InventoryHUD.statsSummary(player)
+    if not player then return 'Доступно в забеге за Самиру.' end
+    local slots, totals, rows = inventory.slots(player), {}, {}
+    for index = 1, SLOT_COUNT do
+        local item = slots[index]
+        if item then
+            for key, value in pairs(item.stats) do
+                totals[key] = (totals[key] or 0) + value
+            end
+            local stats = Description.statText(item.stats)
+            rows[index] = ('%d. %s'):format(index, item.name)
+            if stats ~= '' then rows[index] = rows[index] .. '\n' .. stats end
+        else
+            rows[index] = ('%d. Пусто'):format(index)
+        end
+    end
+    local total = Description.statText(totals)
+    return 'Постоянные бонусы шести слотов до лимитов\n' .. (total ~= '' and total or 'Нет бонусов')
+        .. '\n\n' .. table.concat(rows, '\n\n')
 end
 
 function InventoryHUD.render(player)
@@ -125,7 +149,11 @@ function InventoryHUD.render(player)
     end
     if not font then return end
     local dropHintVisible = slots[selected] ~= nil
-    if hover and slots[hover] then tooltip(slots[hover], bounds, dropHintVisible) end
+    if hover and slots[hover] then
+        tooltip(slots[hover], bounds, dropHintVisible, true)
+    elseif dropHintVisible then
+        tooltip(slots[selected], bounds, true, false)
+    end
     if dropHintVisible then
         local hint = 'X · выбросить выбранное'
         local width = math.ceil(font:GetStringWidthUTF8(hint) * TEXT_SCALE) + 12

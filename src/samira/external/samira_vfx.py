@@ -141,7 +141,6 @@ class SoulFighterVFX:
     def reset(self):
         self.client.reset()
         self.projectile_birth = {}
-        self.melee_q_anchors = {}
 
     def begin(self, state):
         self.clock = time.monotonic()
@@ -151,13 +150,6 @@ class SoulFighterVFX:
         self.client.begin(self.screen, self.axis, self.clock)
         self.canvas.begin(self.screen)
         self.events = self.visual.get("events") or []
-        melee_casts = [event for event in self.events if event["kind"] == "qmelee" and event["age"] < .65]
-        self.melee_q_anchors = {
-            event["id"]: self.melee_q_anchors[event["id"]]
-            for event in melee_casts if event["id"] in self.melee_q_anchors
-        }
-        if state.get("kind") == "QMelee" and melee_casts and melee_casts[-1]["age"] < 13 / 30:
-            self.melee_q_anchors[melee_casts[-1]["id"]] = state["position"]
         skills = self.visual.get("skills")
         if skills is None:
             skill = self.visual.get("skill")
@@ -249,14 +241,14 @@ class SoulFighterVFX:
                                        (-face[1], face[0]), add=True)
                     self.canvas.flush()
             elif kind == "qmelee" and age < .65:
-                self.melee_q(age, self.melee_q_anchors.get(key, point), face, radius, key)
+                self.melee_q(age, point, face, radius, key)
             elif kind == "melee" and age < .65:
                 # The basic attack swipe uses the reverse local forward axis.
                 name = "BA_Melee_One"
                 self.draw(name, age, point, (-face[0], -face[1]),
                           self.radius_scale(name, radius), key, opacity=.85)
             elif kind == "w" and age < .55 and ("w" in self.skills or "r" not in self.skills):
-                point = actor if "w" in self.skills else point
+                # Each cut hits once at its event position. The separate W zone follows the actor.
                 self.draw("W_CircleCut", age, point, face, self.radius_scale("W_CircleCut", radius), key)
             elif kind == "e" and age < .65:
                 head = actor if dash else target or point

@@ -86,7 +86,7 @@ function room:CheckLine(a,b,mode)
 end
 
 local function makeEntity(kind,x,y,index)
-    local e = {Type=kind,Variant=0,HitPoints=10,Position=Vector(x,y),Size=8,Index=index,InitSeed=index,
+    local e = {Type=kind,Variant=0,HitPoints=10,Velocity=Vector.Zero,Position=Vector(x,y),Size=8,Index=index,InitSeed=index,
         damage={},data={},Scale=1,SpriteScale=Vector(1,1)}
     function e:Exists() return not self.removed end
     function e:IsDead() return self.dead==true end
@@ -171,6 +171,7 @@ local noItems = {
     init=function() end, bindCombat=function() end, bindWeapons=function() end,
     bindKills=function(module) kills=module end, update=function() end,
     claimCombatRoomReset=function() return false end,
+    applyCooldownCheckpoint=function() end,
     newAttack=function() return nil end, onCast=function() end,
     cooldown=function(_,_,base) return base end,
     attackInterval=function(_,base) return base end,
@@ -188,6 +189,7 @@ noItems.withContext = function(context, fn)
 end
 noItems.tagTear = function(_,tear,context) tear:GetData().ItemContext=context end
 function include(name)
+    if name == 'samira_controls_settings' then return {init=function() end} end
     if name == 'samira_items' then return noItems end
     if name == 'samira_items_room' then return {init=function() end, render=function() end} end
     if name == 'samira_inventory' then return {init=function() end, update=function() end} end
@@ -209,6 +211,9 @@ function include(name)
     end
     if name == 'samira_testroom_combat' then
         combat=assert(load(sourceFiles[name], '@'..name..'.lua'))()
+        -- Legacy movement assertions exercise the untouched native-control option.
+        combat.setInertia(true)
+        combat.setWalkSpeed(100)
         -- Keep the direct-fire regression cases separate from native discharge.
         if not nativeMode then combat.bindWeapons=function() end end
         return combat
@@ -270,6 +275,8 @@ assert(encounterPlayer()==nil, 'debug Samira skin on Isaac enabled encounter dou
 
 -- Mouse door entry uses native walking, not a forced room transition. Test
 -- the extended clickable art and recovery from just outside each threshold.
+-- The legacy suite below explicitly exercises the optional hold-to-fire binding.
+combat.setAttackMove(false)
 local doorPositions={Vector(0,100),Vector(200,0),Vector(400,100),Vector(200,240)}
 for slot=0,7 do
     start()
@@ -395,7 +402,7 @@ for _, blocked in ipairs({'W','R','E','Q'}) do
     if blocked=='R' then earnStyle() end
     tick('KEY_'..blocked)
     tick('KEY_A')
-    assert(#shots==(blocked=='Q' and 1 or 0), 'manual shot interrupted '..blocked)
+    assert(#shots==0, 'manual shot interrupted '..blocked)
     for i=1,65 do tick('KEY_A') end
     assert(#shots>(blocked=='Q' and 1 or 0), 'held A did not resume after '..blocked)
 end
@@ -434,9 +441,11 @@ assert(callAction('ACTION_LEFT')==nil and callAction('ACTION_BOMB')==nil)
 start()
 mirror=true
 tick('KEY_Q',false,Vector(20,100))
+assert(packet.visual.cooldowns.q==2 and packet.visual.skill.kind=='q')
+for i=1,7 do tick(); assert(#shots==0, 'gun fired before windup finished') end
+tick()
 assert(#shots==1 and shots[1].CollisionDamage==6 and shots[1].Velocity.X>0)
 assert(packet.visual.projectiles[1].velocity[1]<0 and packet.visual.projectiles[1].position[2]==40)
-assert(packet.visual.cooldowns.q==2 and packet.visual.skill.kind=='q')
 for i=1,15 do tick() end
 tick('KEY_Q')
 assert(#shots==1, 'Q ignored its cooldown')
@@ -466,10 +475,12 @@ tick('KEY_Q')
 assert(#shots==1 and #packet.visual.projectiles==0, 'room change reset cooldown or kept old tear')
 for i=1,60 do tick() end
 tick('KEY_Q')
+for i=1,8 do tick() end
 assert(#shots==2, 'Q never became ready again')
 start()
 enemy=makeEntity('enemy',86,100,11);entities={enemy}
 tick('KEY_Q',false,Vector(100,100))
+for i=1,8 do tick() end
 assert(#shots==0 and #enemy.damage==1 and enemy.damage[1]==6 and packet.kind=='QMelee')
 
 -- Melee Q faces the actual cursor in each direction. Its rendered radius
@@ -491,6 +502,7 @@ for _, mirrored in ipairs({false,true}) do
         local aim=origin+heading*60
         if mirrored then aim=Vector(400-aim.X,aim.Y) end
         tick('KEY_Q',false,aim)
+        for i=1,8 do tick() end
         assert(packet.kind=='QMelee' and #shots==0 and #target.damage==1)
         assert(#beyond.damage==0 and #behind.damage==0)
         local x=heading.X*(mirrored and -1 or 1)
@@ -506,6 +518,7 @@ end
 start()
 enemy=makeEntity('enemy',30,100,11);entities={enemy}
 tick('KEY_Q',false,Vector(120,100))
+for i=1,8 do tick() end
 assert(#shots==1 and #enemy.damage==0, 'an enemy behind Samira selected melee Q')
 
 -- Render-only taps must reach the next simulation update even after release.
@@ -521,12 +534,13 @@ for _, key in ipairs({'q','w','e','r'}) do
 end
 start()
 tick('KEY_Q')
-assert(#shots==1, 'Q only cast on release')
+assert(#shots==0 and packet.kind=='Q', 'Q windup did not start on press')
 for i=1,65 do tick('KEY_Q') end
 assert(#shots==1, 'holding Q repeated the cast')
 tick()
 assert(#shots==1, 'releasing Q produced a cast')
 tick('KEY_Q')
+for i=1,8 do tick() end
 assert(#shots==2, 'next press did not produce a cast after release')
 
 -- The last few frames of the current cast accept one brief tap, while taps
@@ -540,7 +554,7 @@ for i=1,4 do tick() end
 renderOnly('KEY_Q')
 renderOnly()
 for i=1,6 do tick() end
-assert(#shots==1 and packet.visual.skill.kind=='q', 'tap near the end of W was not buffered')
+assert(#shots==0 and packet.visual.skill.kind=='q', 'tap near the end of W was not buffered')
 tick('KEY_Q')
 for i=1,65 do tick() end
 assert(#shots==1, 'unavailable Q was buffered indefinitely')
@@ -554,6 +568,7 @@ tick('KEY_Q')
 assert(#shots==0, 'console did not clear queued input or synchronize a held key')
 tick()
 tick('KEY_Q')
+for i=1,8 do tick() end
 assert(#shots==1)
 
 -- W deals two sweeps and continuously eats hostile projectiles. Other
@@ -618,7 +633,7 @@ end
 -- W travels with E and resumes its original phase after the dash. An R
 -- cast overlaps W without cutting short the sweep or projectile block.
 start()
-enemy=makeEntity('enemy',126,170,11)
+enemy=makeEntity('enemy',220,140,11)
 local boundary=makeEntity('enemy',165,100,12)
 local beyond=makeEntity('enemy',170,100,13)
 entities={enemy,boundary,beyond}
@@ -633,7 +648,7 @@ assert(packet.visual.skills[1].kind=='e' and packet.visual.skills[2].kind=='w')
 for i=1,7 do tick() end
 assert(packet.kind=='W' and math.abs(packet.phase-8/24)<1e-6 and shieldTarget.removed)
 for i=1,16 do tick() end
-assert(#effects('w')==2 and #enemy.damage==2)
+assert(#effects('w')==2 and #enemy.damage==1)
 
 start()
 enemy=makeEntity('enemy',90,100,11);entities={enemy}
@@ -665,16 +680,18 @@ for _,obstruction in ipairs({1,2,4}) do
     for i=1,9 do tick() end
     assert(player.Position.X>60 and player.Position.X<80, 'dash crossed blocked terrain')
 end
-start()
-tick('KEY_E',false,Vector(250,100))
-for i=1,7 do tick() end
-assert(math.abs(player.Position.X-204)<1e-6, 'free E did not use its new 144-unit maximum')
+for _,cursorX in ipairs({61,130,250,390}) do
+    start()
+    tick('KEY_E',false,Vector(cursorX,100))
+    for i=1,7 do tick() end
+    assert(math.abs(player.Position.X-180)<1e-6, 'free E changed length with cursor distance')
+end
 
 local function startHop(obstruction, oldClass, flying)
     start()
     player.GridCollisionClass, player.CanFly=oldClass, flying==true
     wall[room:GetGridIndex(Vector(100,100))]=obstruction
-    local target=makeEntity('enemy',270,100,11)
+    local target=makeEntity('enemy',165,100,11)
     entities={target}
     tick('KEY_E',false,target.Position)
     return target
@@ -683,7 +700,7 @@ for _, obstacle in ipairs({1,2}) do
     local target=startHop(obstacle,EntityGridCollisionClass.GRIDCOLL_GROUND)
     assert(packet.visual.skill.kind=='e' and player.GridCollisionClass==EntityGridCollisionClass.GRIDCOLL_NONE)
     for i=1,6 do tick() end
-    assert(#target.damage==1 and math.abs(player.Position.X-296)<1e-6)
+    assert(#target.damage==1 and math.abs(player.Position.X-180)<1e-6)
     assert(player.GridCollisionClass==EntityGridCollisionClass.GRIDCOLL_GROUND)
 end
 local flyingTarget=startHop(2,EntityGridCollisionClass.GRIDCOLL_WALLS,true)
@@ -692,16 +709,16 @@ assert(#flyingTarget.damage==1 and player.GridCollisionClass==EntityGridCollisio
 
 for _, blocked in ipairs({'wall','closedDoor','noLanding','outside'}) do
     start()
-    local target=makeEntity('enemy',180,100,11)
+    local target=makeEntity('enemy',165,100,11)
     if blocked=='wall' then
         wall[room:GetGridIndex(Vector(100,100))]=4
     elseif blocked=='closedDoor' then
         doors[0]={Position=Vector(112,100),IsOpen=function() return false end}
     elseif blocked=='noLanding' then
         wall[room:GetGridIndex(Vector(180,100))]=2
-        wall[room:GetGridIndex(Vector(215,100))]=2
+        for x=220,340,40 do wall[room:GetGridIndex(Vector(x,100))]=2 end
     else
-        player.Position=Vector(290,100)
+        player.Position=Vector(300,100)
         target.Position=Vector(410,100)
     end
     local origin=player.Position
@@ -738,11 +755,12 @@ for _, interrupted in ipairs({'off','preRoom','postRoom','disabled','dead','fram
         assert(player.Position:Distance(current)==0 and player.GridCollisionClass==EntityGridCollisionClass.GRIDCOLL_NONE)
         paused=false
         for i=1,6 do tick() end
-        assert(math.abs(player.Position.X-296)<1e-6)
+        assert(math.abs(player.Position.X-180)<1e-6)
     else
-        wall[room:GetGridIndex(Vector(295,100))]=2
+        wall[room:GetGridIndex(Vector(175,100))]=2
+        wall[room:GetGridIndex(Vector(215,100))]=2
         for i=1,6 do tick() end
-        assert(player.Position.X<280, 'targeted E landed in an obstacle added mid-dash')
+        assert(player.Position.X<160, 'targeted E landed in an obstacle added mid-dash')
     end
     assert(player.GridCollisionClass==EntityGridCollisionClass.GRIDCOLL_GROUND, 'wrong collision after '..interrupted)
     assert(room:GetGridCollision(room:GetGridIndex(player.Position))==0, 'restored mid-obstacle after '..interrupted)
@@ -856,6 +874,7 @@ assert(itemContexts[1]~=itemContexts[2])
 start();itemContexts={}
 entities={makeEntity('enemy',100,100,11),makeEntity('enemy',115,100,12)}
 tick('KEY_Q',false,Vector(180,100))
+for i=1,8 do tick() end
 assert(#itemContexts==2 and itemContexts[1]==itemContexts[2] and itemContexts[1].kind=='qmelee')
 start();entities={};tick('KEY_A',false,Vector(200,100))
 assert(#shots==1 and shots[1]:GetData().ItemContext.kind=='attack')
@@ -869,6 +888,7 @@ include('main')
 start()
 local nativeShots = {}
 local weapon = {charge=0, maximum=0, fired=0}
+function weapon:GetWeaponType() return 'mock weapon' end
 function weapon:GetCharge() return self.charge end
 function weapon:SetCharge(value) self.charge=value end
 function weapon:GetMaxCharge() return self.maximum end
@@ -907,19 +927,72 @@ tick()
 tick('KEY_R')
 assert(packet.kind=='RStart' and packet.visual.cooldowns.r==5 and combat.styleStatus(frame).rank==0)
 
--- A nearby enemy no longer switches Q to the direct melee damage path.
+-- Production uses sword Q against a nearby enemy, and native gun Q downrange.
 start()
 local close=makeEntity('enemy',85,100,201)
 entities={close}
 tick('KEY_Q',false,close.Position)
-assert(packet.kind~='Q' and packet.visual.cooldowns.q==2 and #effects('cast','q')==1)
-assert(#shots==0 and #close.damage==0 and #effects('qmelee')==0 and #nativeShots==0)
+assert(packet.kind=='QMelee' and packet.visual.cooldowns.q==2)
+for i=1,7 do tick(); assert(#close.damage==0 and nativeInput():Length()==0) end
+tick()
+assert(#close.damage==1 and #effects('qmelee')==1 and #shots==0 and #nativeShots==0)
+
+-- Check both acquisition and hit timing on moving targets and crowds.
+start()
+close.Position,close.damage=Vector(170,100),{}
+entities={close}
+tick('KEY_Q',false,close.Position)
+assert(packet.kind=='QMelee')
+close.Position=Vector(195,100)
+for i=1,8 do tick() end
+assert(#close.damage==0, 'sword hit an enemy who left during windup')
+local flank=makeEntity('enemy',63,165,202)
+for _,distant in ipairs({false,true}) do
+    start()
+    local forward=makeEntity('enemy',220,100,203)
+    entities=distant and {flank,forward} or {flank}
+    tick('KEY_Q',false,Vector(200,100))
+    assert(packet.kind==(distant and 'Q' or 'QMelee'), 'flank selected wrong form')
+end
+start()
+close.Position,close.Velocity=Vector(175,100),Vector(1,0)
+entities={close}
+tick('KEY_Q',false,close.Position)
+assert(packet.kind=='Q', 'enemy retreating at the edge should receive gun Q')
+for i=1,7 do tick(nil,false,Vector(60,10)); assert(nativeInput():Length()==0) end
+tick(nil,false,Vector(60,10))
 local qAim=nativeInput()
-assert(qAim.X>.99 and math.abs(qAim.Y)<.01)
+assert(qAim.X>.99 and math.abs(qAim.Y)<.01, 'cast turned after keypress')
 local qContext=discharge(qAim)
 assert(qContext.kind=='q' and qContext.nativeWeapon and qContext.damageMultiplier==1.5)
 tick()
 assert(packet.kind=='Q' and #effects('q')==1 and #shots==0 and #close.damage==0)
+
+-- Starting E on the next tick during a gun windup still releases the original
+-- Q at its scheduled frame. R only becomes ready when its cast lockout ends.
+start()
+earnStyle()
+tick('KEY_Q',false,Vector(60,180))
+assert(not combat.styleStatus(frame).ready)
+tick('KEY_E',false,Vector(80,100))
+assert(packet.visual.skill.kind=='e')
+for i=1,6 do tick(); assert(nativeInput():Length()==0) end
+tick()
+assert(player.Position.X==180 and nativeInput().Y>.99)
+assert(discharge(nativeInput()).kind=='q')
+for i=1,3 do tick() end
+assert(combat.styleStatus(frame).ready)
+
+-- A room change discards both the pending damage and reserved native shot.
+for _,near in ipairs({false,true}) do
+    start()
+    close.Position,close.Velocity=Vector(85,100),Vector.Zero
+    entities=near and {close} or {}
+    tick('KEY_Q',false,Vector(200,100))
+    event('POST_NEW_ROOM')
+    for i=1,10 do tick(); assert(nativeInput():Length()==0) end
+    assert(#close.damage==0)
+end
 
 -- RMB targets drive a normalized native aim vector, including diagonals.
 start()
@@ -933,17 +1006,59 @@ assert(aaContext.kind=='aa' and aaContext.damageMultiplier==1)
 tick()
 assert(packet.kind=='Attack' and #shots==0 and #diagonal.damage==0)
 
+-- A taps can direct the real weapon adapter without producing an extra Lua tear.
+-- The engine double deliberately fires late, then waits out its native delay.
+start()
+do
+    local enemy=makeEntity('enemy',155,100,250)
+    entities={enemy}
+    local count=#nativeShots
+    tick('KEY_A',false,Vector(230,100))
+    local acquired=frame
+    assert(nativeInput():Length()==0, 'attack-move skipped windup')
+    local readyAt
+    for i=1,10 do
+        tick()
+        local aim=nativeInput()
+        if aim.X>.99 then readyAt=readyAt or frame end
+    end
+    assert(readyAt==acquired+3, 'wrong base attack windup')
+    assert(#nativeShots==count and #shots==0, 'unexpected synthetic attack before discharge')
+    local aim=nativeInput()
+    assert(aim.X>.99 and discharge(aim).kind=='aa')
+    tick(nil,true,Vector(60,180))
+    assert(nativeInput():Length()==0 and callAction('ACTION_DOWN')>.5,
+        'retreat after native discharge was delayed')
+    for i=1,12 do tick(); assert(nativeInput():Length()==0) end
+    assert(#nativeShots==count+1 and #shots==0, 'retreating fired an extra volley')
+end
+start()
+do
+    local enemy=makeEntity('enemy',135,100,251)
+    entities={enemy}
+    weapon.maximum,weapon.charge=10,0
+    tick('KEY_A',false,enemy.Position)
+    assert(nativeInput().X>.99, 'charge weapon received a second artificial windup')
+    weapon.charge=4
+    tick(); assert(nativeInput().X>.99 and weapon.charge==4)
+    weapon.maximum,weapon.charge=0,0
+end
+
 -- Manual A and a Q request share one native input instead of two shot paths.
 start()
+combat.setAttackMove(false)
 tick('KEY_A',false,Vector(190,100))
 input.held='KEY_A'
 tick('KEY_Q',false,Vector(60,180))
+for i=1,7 do tick('KEY_A',false,Vector(190,100));assert(nativeInput():Length()==0) end
+tick('KEY_A',false,Vector(190,100))
 local sharedAim=nativeInput()
 assert(sharedAim.Y>.99 and #shots==0)
 local count=#nativeShots
 assert(discharge(sharedAim).kind=='q')
 assert(#nativeShots==count+1 and #shots==0)
 tick('KEY_A',false,Vector(190,100))
+for i=1,3 do tick('KEY_A',false,Vector(190,100)) end
 assert(nativeInput().X>.99, 'manual aim did not return after native Q discharged')
 weapon.charge=12
 paused=true
@@ -979,5 +1094,19 @@ assert(combat.exportCooldowns(frame).e>0, 'boss reset preceded completion')
 roomClear=true
 tick()
 assert(combat.exportCooldowns(frame).e==0, 'boss completion did not reset E')
-print('Passed production native Q/AA, R style gating, pause input and E kill reset integration.')
+-- Old saves without native backup metadata: a backwards frame must never
+-- resurrect expired deadlines or add the rewind duration to remaining CDs.
+start()
+frame = 1541
+combat.restoreCooldowns({q=21,w=525,e=0,r=0},frame)
+frame = 1001
+event('POST_NEW_ROOM'); tick()
+assert(frame==1002 and packet.visual.cooldowns.q==.7 and packet.visual.cooldowns.w==17.5)
+assert(packet.visual.cooldowns.r==0 and packet.visual.cooldowns.e==0)
+frame=4122; tick(); frame=2489; tick()
+for _,v in pairs(packet.visual.cooldowns) do assert(v==0, 'expired cooldown came back after a rewind') end
+combat.restoreCooldowns({q=3000,w=2000,e=1000,r=500},frame)
+local clamped=combat.exportCooldowns(frame)
+assert(clamped.q==60 and clamped.w==660 and clamped.e==360 and clamped.r==150)
+print('Passed production native Q/AA, R style gating, pause input, E kill reset and rewind clock integration.')
 ''')
