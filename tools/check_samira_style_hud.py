@@ -65,26 +65,25 @@ tick = tick + 201
 draw(6, false)
 assert(words[1][4] == 1.23)
 draw(6, true, 5)
-assert(#lines == 20 and words[2][1] == 'R' and words[3][1] == '5')
-local pulse = lines[1][3][4]
-tick = tick + 200
-draw(6, true, 5)
-assert(pulse ~= lines[1][3][4])
-for i = 1, 12 do
-    assert(lines[i][5] <= 14 and lines[i][3][4] < 0.20)
+local function checkReady(withPanel)
+    assert(words[1][1] == 'R ГОТОВА' and words[1][3] < h / 4)
+    assert(#lines == (withPanel and 14 or 6))
+    assert(lines[1][5] == 3 and lines[2][2].X == 0)
+    assert(lines[3][1].X == w and lines[4][2].X == w)
 end
-for _, width in ipairs({480, 640}) do
-    w = width
-    draw(6, true)
-    local panel, bounds = lines[13], hud.bounds()
-    assert(panel[1].X == w / 2 + 50 and panel[1].X == bounds.x)
-    assert(bounds.y == (w == 480 and 215 or 241))
+checkReady(true)
+assert(words[3][1]=='R' and words[4][1]=='5')
+local initial = lines[1][2].X
+tick=tick+500; draw(6,true,5); assert(initial~=lines[1][2].X)
+for _,width in ipairs({480,640}) do
+    w=width; draw(6,true); checkReady(true)
+    local panel,bounds=lines[7],hud.bounds()
+    assert(panel[1].X == w/2+50 and panel[1].X == bounds.x)
+    assert(bounds.y == (w==480 and 215 or 241))
     assert(bounds.x > 233 and bounds.y + bounds.height < h)
 end
-
-lines, words = {}, {}
-hud.render({}, {rank = 6, ready = true}, true)
-assert(#lines == 0 and #words == 0)
+lines,words={},{};hud.render({}, {rank=6,ready=true},true);checkReady(false)
+lines,words={},{};hud.render({}, {rank=6,ready=false},true);assert(#lines==0 and #words==0)
 Font = function() return nil, false end
 hud = assert(load(style_source))()
 draw(4, false, 5)

@@ -7,6 +7,7 @@ end
 local game = Game()
 local json = require('json')
 local Combat = include('samira_testroom_combat')
+local ControlsSettings = include('samira_controls_settings')
 local Gait = include('samira_testroom_gait')
 local Items = include('samira_items')
 local ItemRoom = include('samira_items_room')
@@ -236,7 +237,7 @@ mod:AddCallback(ModCallbacks.MC_EXECUTE_CMD, function(_, command, args)
         else
             start()
             Isaac.ConsoleOutput('Samira test skin enabled. Close the console to continue.\n')
-            Isaac.ConsoleOutput('RMB move/attack | Hold A to shoot at cursor | S stop | QWER skills | G bomb | 4 card | Space item\n')
+            Isaac.ConsoleOutput('RMB move/attack | A attack-move or direct fire (F9 settings) | S stop | QWER skills | G bomb | 4 card | Space item\n')
         end
     elseif command == 'samiraanim' then
         if not active then
@@ -300,8 +301,7 @@ mod:AddCallback(ModCallbacks.MC_INPUT_ACTION, function(_, entity, hook, action)
         if hook == InputHook.GET_ACTION_VALUE then return held and 1 or 0 end
         return held
     end
-    local intent = movement and Combat.movement()
-    if intent and Items.movementInput then intent = Items.movementInput(p, intent) end
+    local intent = movement and Combat.walkInput(p)
     local value = intent and math.max(0, intent:Dot(movement)) or 0
     if hook == InputHook.GET_ACTION_VALUE then return value end
     return value > 0
@@ -328,9 +328,12 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, function()
     local p = player()
     if not p then return end
     local clock = game:GetFrameCount()
+    Combat.syncCooldownClock(clock)
+    Items.applyCooldownCheckpoint(clock)
     local actionable = canControl(p)
     Combat.sampleInput(game:GetRoom(), clock, actionable)
     if not actionable then
+        Combat.finishWalkTick(p, game:GetRoom(), true)
         Weapons.update(p, clock, nil, false)
         if p:IsDead() or p.ControlsEnabled == false and not game:IsPaused() and not ImGui.IsVisible() then
             Combat.cancelDash(not transition())
@@ -345,6 +348,7 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, function()
     if Items.claimCombatRoomReset() then Combat.refreshCooldowns() end
     Kills.update(clock)
     local kind, heading = Combat.update(game, p, face, clock)
+    Combat.finishWalkTick(p, game:GetRoom(), wasDashing or clock < (hurtUntil or 0))
     Gait.update(clock, p.Position, wasDashing or Combat.dashing(clock) or pendingAnimation ~= nil)
     if heading then face = heading end
     if kind == 'attack' or kind == 'melee' or kind == 'r' then
@@ -382,7 +386,9 @@ mod:AddCallback(ModCallbacks.MC_PRE_CHANGE_ROOM, function()
 end)
 
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function()
-    if active then resetRoom(not Items.claimCombatRoomReset()) end
+    -- Apply the engine's rewind and the normal first-combat reset in the
+    -- first update, after both room entry and Hourglass callbacks have run.
+    if active then resetRoom(true) end
 end)
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, stop)
 mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, stop)
@@ -401,7 +407,8 @@ mod:AddCallback(ModCallbacks.MC_POST_NIGHTMARE_SCENE_RENDER, hideDuringCinematic
 
 -- Register item damage hooks after the dash guard so a protected dash never
 -- spends an item shield. Items stay native collectibles in the run inventory.
-Items.init(mod, game, player)
+ControlsSettings.init(mod, Combat, player, InventoryHUD.statsSummary)
+Items.init(mod, game, player, ControlsSettings.attachToSave)
 Inventory.init(mod, game, player, Items)
 InventoryHUD.init(game, Inventory)
 ItemRoom.init(mod, game, player, Items)
@@ -411,8 +418,8 @@ end, Items)
 Weapons.init(mod, game, player, Items, function(kind, heading, context)
     local p = player()
     if not p then return end
-    local key = kind == 'q' and 'q' or 'attack'
-    animation, animationAt = combatClips[key], game:GetFrameCount()
+    -- Q already started its windup when the player pressed the key.
+    if kind ~= 'q' then animation, animationAt = combatClips.attack, game:GetFrameCount() end
     Combat.weaponFired(p, kind, heading, context, game:GetFrameCount())
 end)
 Kills.init(mod, game, player, Combat.onKill)

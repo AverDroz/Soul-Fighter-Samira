@@ -2,11 +2,13 @@ local Items = {}
 local catalog = include('samira_items_data')
 local json = require('json')
 
-local mod, game, getPlayer, combat, weapons, kills
+local mod, game, getPlayer, combat, weapons, kills, attachSettings
 local defeat
 local ids, rng
 local vampProbe
 local run, room, clock, directContext, previousRoom, rewindRoom
+local cooldownCheckpoints, loadingCheckpoint, pendingCheckpoint = {}, nil, nil
+local resetPrefix = 'abilityReset:'
 local queues = {}
 local statFlags
 local activeStats = false
@@ -214,8 +216,10 @@ local function save(shouldSave)
         for key, time in pairs(run.current.effects) do run.current.effects[key] = math.max(0, time - clock) end
     end
     local saved = clone(run)
+    saved.cooldownCheckpoints = cooldownCheckpoints
     if combat and combat.exportCooldowns then saved.combatCooldowns = combat.exportCooldowns(clock) end
     for key, time in pairs(saved.timers) do saved.timers[key] = math.max(0, time - clock) end
+    if attachSettings then attachSettings(saved) end
     mod:SaveData(json.encode(saved))
 end
 
@@ -232,6 +236,7 @@ end
 
 local function newRun(continued)
     local initial = freshRun()
+    cooldownCheckpoints, loadingCheckpoint, pendingCheckpoint = {}, nil, nil
     if continued and mod:HasData() then
         local ok, saved = pcall(json.decode, mod:LoadData())
         if ok and type(saved) == 'table' and saved.version == initial.version
@@ -240,6 +245,7 @@ local function newRun(continued)
                 if saved[key] ~= nil then initial[key] = saved[key] end
             end
             initial.floorKey, initial.current, initial.enabled = saved.floorKey, saved.current, saved.enabled
+            if type(saved.cooldownCheckpoints) == 'table' then cooldownCheckpoints = saved.cooldownCheckpoints end
         end
     end
     run, room, previousRoom, rewindRoom, clock = initial, nil, nil, nil, game:GetFrameCount()
@@ -284,10 +290,41 @@ end
 
 function Items.claimCombatRoomReset()
     if game:GetRoom():IsClear() then return false end
-    local saved = Items.getRoomState('abilityReset:' .. roomKey())
+    local saved = Items.getRoomState(resetPrefix .. roomKey())
     if saved.used then return false end
     saved.used = true
     return true
+end
+
+local function saveCooldownCheckpoint(_, slot)
+    if not run or not getPlayer() or not combat or not combat.exportCooldowns then return end
+    local claims = {}
+    for key, record in pairs(run.floor.rooms) do
+        if key:sub(1, #resetPrefix) == resetPrefix and record.used then claims[key] = true end
+    end
+    cooldownCheckpoints['slot' .. slot] = {remaining = combat.exportCooldowns(game:GetFrameCount()),
+        floorKey = run.floorKey, claims = claims}
+end
+
+-- Slot snapshots are independent of the ordinary run save and of one
+-- another. Restore only after the engine settles on the destination room.
+function Items.applyCooldownCheckpoint(frame)
+    local snap = pendingCheckpoint
+    pendingCheckpoint = nil
+    if type(snap) ~= 'table' or type(snap.remaining) ~= 'table' then return end
+    combat.reset(true)
+    combat.restoreCooldowns(snap.remaining, frame)
+    if snap.floorKey == floorKey() and type(snap.claims) == 'table' then
+        local rooms = ensureFloor().rooms
+        for key in pairs(rooms) do
+            if key:sub(1, #resetPrefix) == resetPrefix then rooms[key] = nil end
+        end
+        for key, used in pairs(snap.claims) do
+            if used == true and type(key) == 'string' and key:sub(1, #resetPrefix) == resetPrefix then
+                rooms[key] = {used = true}
+            end
+        end
+    end
 end
 
 function Items.bindCombat(module)
@@ -1127,8 +1164,8 @@ local function vampStatus()
     end
 end
 
-function Items.init(host, currentGame, playerProvider)
-    mod, game, getPlayer = host, currentGame, playerProvider
+function Items.init(host, currentGame, playerProvider, saveSettings)
+    mod, game, getPlayer, attachSettings = host, currentGame, playerProvider, saveSettings
     ids = {}
     for _, row in ipairs(catalog) do
         local id = Isaac.GetItemIdByName(row.collectibleName)
@@ -1164,6 +1201,14 @@ function Items.init(host, currentGame, playerProvider)
     callback('MC_POST_GAME_STARTED', function(_, continued) newRun(continued) end)
     callback('MC_PRE_GAME_EXIT', function(_, shouldSave) save(shouldSave) end)
     callback('MC_POST_NEW_ROOM', newRoom)
+    callback('MC_POST_GLOWING_HOURGLASS_SAVE', saveCooldownCheckpoint)
+    callback('MC_PRE_GLOWING_HOURGLASS_LOAD', function(_, slot)
+        loadingCheckpoint = cooldownCheckpoints['slot' .. slot]
+    end)
+    callback('MC_POST_GLOWING_HOURGLASS_LOAD', function(_, slot)
+        pendingCheckpoint = loadingCheckpoint or cooldownCheckpoints['slot' .. slot]
+        loadingCheckpoint = nil
+    end)
     callback('MC_EXECUTE_CMD', function(_, command)
         if command == 'samiravamp' then vampStatus() end
     end)

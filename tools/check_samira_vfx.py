@@ -334,7 +334,8 @@ def main():
             report["melee_q_aim"].append({"degrees": degrees, "front_share": share_in_front,
                                           "linear_scale": ratio})
 
-        # Only the actor moves. The event's cast position and target stay fixed.
+        # The actor can kite immediately after the hit. The impact belongs
+        # to its emitted world position throughout the fade.
         event = state["visual"]["events"][0]
         event["age"] = .1
         def q_frame():
@@ -347,8 +348,7 @@ def main():
         dx, dy = 21, -12
         state["position"] = (ORIGIN[0] + dx, ORIGIN[1] + dy)
         moved = q_frame()
-        expected = np.roll(original, (dy, dx), axis=(0, 1))
-        assert np.abs(moved - expected).sum() < .01 * moved.sum()
+        assert np.array_equal(moved, original)
         state["kind"] = "Idle"
         state["position"] = (ORIGIN[0] - 36, ORIGIN[1])
         assert np.array_equal(q_frame(), moved)

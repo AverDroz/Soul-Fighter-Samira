@@ -13,9 +13,18 @@ def actor_yaw(state):
     x, y = state["face"]
     if state["kind"] == "QMelee":
         visual = state.get("visual") or {}
-        event_face = next((event.get("direction") for event in reversed(visual.get("events") or [])
-                           if event["kind"] == "qmelee" and event["age"] < .45), None)
-        if event_face:
+        skill = visual.get("skill") or {}
+        age = skill.get("age") if skill.get("kind") == "qmelee" else None
+        events = reversed(visual.get("events") or [])
+        # The cast is emitted on keypress, the hit only after the windup.
+        # A previous strike can still be fading when another Q is cast.
+        event_face = next((event.get("direction") for event in events
+                           if event["kind"] == "cast" and event.get("source") == "qmelee"
+                           and age is not None and abs(event["age"] - age) < .05), None)
+        if age is None and event_face is None:
+            event_face = next((event.get("direction") for event in reversed(visual.get("events") or [])
+                               if event["kind"] == "qmelee" and event["age"] < .45), None)
+        if event_face is not None:
             x, y = event_face
         else:
             gx, gy = visual.get("ground") or (1, 1)
@@ -23,6 +32,23 @@ def actor_yaw(state):
         # GPU yaw describes a heading on the ground before camera projection.
         y /= .573576
     return math.pi / 2 - math.atan2(y, x)
+
+def actor_phase(state):
+    phase = state["phase"]
+    if state["kind"] != "QMelee":
+        return phase
+    skill = (state.get("visual") or {}).get("skill") or {}
+    windup = skill.get("windup")
+    if skill.get("kind") != "qmelee" or not windup or not skill.get("duration"):
+        return phase
+    elapsed = phase * skill["duration"]
+    # In the one-second Skin30 clip Sword_Tip2 crosses rig forward (+Z)
+    # at source frame 7.65/30. Meet that frame at the Lua damage tick,
+    # then play the authored follow-through at its original speed.
+    contact = 7.65 / 30
+    if elapsed < windup:
+        return contact * elapsed / windup
+    return min(1, contact + elapsed - windup)
 
 
 def acknowledge(folder,state,visible,capabilities=None):
@@ -104,7 +130,7 @@ def run(args):
                     print('VFX disabled; native projectiles restored: '+repr(error),flush=True)
                     vfx=None;capabilities={}
             yaw=actor_yaw(state)
-            sockets=renderer.draw(state['kind'],state['phase'],tuple(state['position']),tuple(state['screen']),yaw,dt,
+            sockets=renderer.draw(state['kind'],actor_phase(state),tuple(state['position']),tuple(state['screen']),yaw,dt,
                           clip=state.get('clip'),hurt=state.get('hurt',False),body_scale=state.get('bodyScale',(1,1)),
                           anchor_root=((state.get('visual') or {}).get('skill') or {}).get('kind') in ('e','eq'),
                           snap_facing=state['kind']=='QMelee')

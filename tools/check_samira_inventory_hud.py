@@ -118,6 +118,24 @@ assert(words[1][1] == 'Кровопийца' and words[#words][1] == 'X · вы�
 local observed = {}
 for _, word in ipairs(words) do observed[#observed + 1] = word[1] end
 assert(table.concat(observed, ' '):find('Урон +3,2 · Шанс вампиризма автоатак +3,75%', 1, true))
+mouse = Vector.Zero
+rectangles, icons, words = {}, {}, {}
+hud.render(player)
+observed = {}
+for _, word in ipairs(words) do observed[#observed + 1] = word[1] end
+local compact = table.concat(observed, ' ')
+assert(compact:find('Кровопийца', 1, true) and compact:find('Урон +3,2', 1, true))
+assert(not compact:find('восстановить', 1, true), 'passive should be expanded only on hover')
+slots[1] = slots[4]
+slots[6] = {name='Ботинки', stats={move_speed_flat=.075}, icon=icon}
+local summary = hud.statsSummary(player)
+assert(summary:find('Урон +6,4',1,true) and summary:find('Шанс вампиризма автоатак +7,5%',1,true))
+assert(summary:find('Скорость движения +0,075',1,true))
+assert(summary:find('1. Кровопийца',1,true) and summary:find('4. Кровопийца',1,true))
+assert(summary:find('2. Пусто',1,true) and summary:find('6. Ботинки',1,true))
+slots[1], slots[6] = nil, nil
+assert(not hud.statsSummary(player):find('Урон +6,4',1,true))
+assert(hud.statsSummary(nil):find('забеге',1,true))
 for _, size in ipairs({480, 640}) do
     width = size
     for _, offset in ipairs({0, 1}) do
@@ -160,4 +178,4 @@ hud.input(player, true)
 hud.input(player, true)
 assert(#drops == 1 and drops[1] == 4 and not slots[4])
 ''')
-print('Samira inventory HUD sprites, click calibration, input latching and bottom-left trinket clearance passed.')
+print('Passed selected slot stats, hover details, six-slot totals, duplicate items, input and trinket clearance.')

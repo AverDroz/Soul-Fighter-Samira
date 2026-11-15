@@ -324,6 +324,38 @@ lateral.Velocity = Vector(0, -4)
 event('MC_POST_FIRE_SPLIT_TEAR', lateral, lead)
 near(lateral.Velocity:GetAngleDegrees(), -90)
 
+-- Exercise cardinal (zero rotation) and diagonal (rotated) native volleys.
+-- Flight time is set by the native spawn's own vertical parameters.
+for _,angle in ipairs({0,45,90,135,180,225,270,315}) do
+    local aimed = Vector(1,0):Rotated(angle)
+    local native = Vector(1,0):Rotated(math.floor((angle+45)/90)*90)
+    local ranges = {}
+    for _,kind in ipairs({'aa','q'}) do
+        reset('tears',0)
+        if kind=='q' then assert(Weapons.requestQ(p,aimed,ticks)) end
+        begin(aimed)
+        local tear = object('TEAR',p)
+        tear.Velocity = native*9 + p:GetTearMovementInheritance(native)
+        tear.ContinueVelocity = native*9
+        tear.Height, tear.FallingSpeed, tear.FallingAcceleration = -22,-1,.25
+        weapon.entity = tear -- The fire callback and weapon main entity report the same tear.
+        event('MC_POST_FIRE_TEAR',tear)
+        trigger(nil,native)
+        endFrame()
+        local intrinsic = tear.Velocity - p:GetTearMovementInheritance(aimed)
+        near((intrinsic - aimed*(kind=='q' and 12 or 9)):Length(),0)
+        near((tear.ContinueVelocity - intrinsic):Length(),0)
+        local height,fallSpeed,ticksInAir = tear.Height,tear.FallingSpeed,0
+        while height < 0 do
+            height = height + fallSpeed
+            fallSpeed = fallSpeed + tear.FallingAcceleration
+            ticksInAir = ticksInAir + 1
+        end
+        ranges[kind] = tear.Velocity:Length()*ticksInAir
+    end
+    assert(ranges.q > ranges.aa, 'ranged Q fell short of an AA at angle '..angle)
+end
+
 reset('laser', 0)
 assert(Weapons.requestQ(p, Vector(-1, 1), ticks))
 begin(Vector(1, 0))
@@ -346,6 +378,7 @@ endFrame()
 near(knife.Rotation, 135)
 
 reset('fetus', 0)
+assert(Weapons.requestQ(p, Vector(-1,-1), ticks))
 begin(Vector(-1, -1))
 local chargedBomb = object('BOMB', p)
 chargedBomb.Velocity = Vector(-8, 0)
@@ -356,6 +389,7 @@ near(chargedBomb.Velocity:GetAngleDegrees(), -135)
 near(chargedBomb.Velocity:Length(), 8)
 
 reset('techx', 0)
+assert(Weapons.requestQ(p, diagonal, ticks))
 begin(diagonal)
 local ring = object('LASER', p)
 ring.ring, ring.Velocity = true, Vector(8, 0)
@@ -363,6 +397,7 @@ event('MC_POST_FIRE_TECH_X_LASER', ring)
 trigger(nil, Vector(1, 0))
 endFrame()
 near(ring.Velocity:GetAngleDegrees(), 45)
+near(ring.Velocity:Length(), 8)
 
 print('Passed native charge, grouped volleys, cardinal-to-cursor rotation, rockets and Ludovico.')
 ''')
