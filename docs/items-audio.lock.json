@@ -1,0 +1,45 @@
+{
+  "source": "Riot Games League of Legends, Heartsteel (item 3084)",
+  "riot_manifest": "https://lol.dyn.riotcdn.net/channels/public/releases/6EDAD6B3C9806CB9.manifest",
+  "event_id": 2944046613,
+  "sample_selection": "One of three variants per proc, verified with wwiser v20260808",
+  "verification_reference": "https://github.com/Debonairesnake6/LoLItems/blob/main/LolItems/Assets/Soundbank.bnk",
+  "conversion": "Original Riot WEM to PCM16 WAV using vgmstream r2168",
+  "banks": {
+    "assets/sounds/wwise2016/sfx/shared/items_global_events.bnk": {
+      "archive": "Maps/Shipping/Common",
+      "offset": 15479610,
+      "compressed_size": 22179,
+      "sha256": "404b661a1bbb40b4948d5e571c052606179f26607043d0d847de95b3036108fd"
+    },
+    "assets/sounds/wwise2016/sfx/shared/items_global_audio.bnk": {
+      "archive": "Maps/Shipping/Common",
+      "offset": 100164065,
+      "compressed_size": 10565007,
+      "sha256": "b506be39612d1eb4d3fc8ad9e4ff31c2455ce68034b6b726ea164f1640f933e0"
+    }
+  },
+  "samples": [
+    {
+      "wem_id": 30036669,
+      "bank_stream_index": 18,
+      "relative_to_mod": "resources/sfx/samira-items/heartsteel_proc_30036669.wav",
+      "seconds": 1.470748,
+      "output_sha256": "817ff8e30e9b3fd3e4c374d40474ca04437a241cd0009e22560bf9fa2263859b"
+    },
+    {
+      "wem_id": 112272935,
+      "bank_stream_index": 67,
+      "relative_to_mod": "resources/sfx/samira-items/heartsteel_proc_112272935.wav",
+      "seconds": 1.588798,
+      "output_sha256": "0b34fc54427b0a3205b164e8034d89d3d4b66e09284b94ee196b9894ed37f34c"
+    },
+    {
+      "wem_id": 767032564,
+      "bank_stream_index": 362,
+      "relative_to_mod": "resources/sfx/samira-items/heartsteel_proc_767032564.wav",
+      "seconds": 1.426485,
+      "output_sha256": "5744376480969ba1fc39d60ebdd0e16dae6bf3dc0df863fa2a6bdcaf2c70239b"
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "assets": {
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/21.tex": {
+      "file": "b405e5eadafd.png"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/2v2cameo_jhin_mult.tex": {
+      "file": "57d74a057bbb.png"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/3026_base_vertical_mask_wispy.tex": {
+      "file": "3eea55669c76.png"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/3026_items_distort.tex": {
+      "file": "1f31fd17398a.png"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/aatrox_skin33_spawn_noise_01.tex": {
+      "file": "20790618abb4.png"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/base_52.tex": {
+      "file": "570cfbcf2fb5.png"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/color-hold.tex": {
+      "file": "67885f0ee037.png"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/crest10backdropglow.tex": {
+      "file": "f8748259fa34.png"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/crest7glow_4.scb": {
+      "file": "5cd06be9f5fd.json"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/crest_skin07_tx_cm.tex": {
+      "file": "450509f4f231.png"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/crest_skin7_gemmask.tex": {
+      "file": "8d34da4a98d9.png"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/lv07_glowmask.tex": {
+      "file": "dca661508353.png"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/lv7_materialshinemask.tex": {
+      "file": "e42f7c21c6c0.png"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/mastercrestmetallicsheen.tex": {
+      "file": "128c7e89b9c0.png"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/mastery10gemglow.scb": {
+      "file": "c8d87638daa8.json"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/masterychangeswipemesh_lv78.scb": {
+      "file": "0bed0550e71c.json"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/masterycrestgemmult.tex": {
+      "file": "9b5136a2c16b.png"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/masterycrestgradients.tex": {
+      "file": "901e0a453009.png"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/masterycrestmote.tex": {
+      "file": "b044c03ee7d9.png"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/masterycrestringflare.tex": {
+      "file": "62a34a3eca4a.png"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/masterycrestringflareerosion.tex": {
+      "file": "20afa31a123f.png"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/masterycrestshimmer.tex": {
+      "file": "447bfeaf65f4.png"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/masterycreststarflareerode.tex": {
+      "file": "d6e9473d47be.png"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/masteryseasonalglowdiscmesh.scb": {
+      "file": "bf87271be250.json"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/seasonalmilestoneglow_soft.tex": {
+      "file": "eb1eac929759.png"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/statstones_milestone_self_glows_2x2_01.tex": {
+      "file": "637305a31e45.png"
+    },
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/tft5_dmg_skin36_swirlingsmokebeam.tex": {
+      "file": "c5b7f32808ae.png"
+    }
+  },
+  "missing": []
+}

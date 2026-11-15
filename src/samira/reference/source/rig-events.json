@@ -1,0 +1,1815 @@
+{
+  "source": "https://raw.communitydragon.org/16.22/game/data/characters/samira/animations/skin30.bin.json",
+  "frames_per_second": 30,
+  "states": {
+    "Channel": {
+      "clip": "channel",
+      "events": [
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "Channel_Wndup": {
+      "clip": "channel_wndup",
+      "events": [
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "Crit_Gun_Start": {
+      "clip": "crit_gun_start",
+      "events": []
+    },
+    "Death": {
+      "clip": "death",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_World_Snap",
+          "__type": "JointSnapEventData",
+          "name": "Sword_World_Snap"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_World_Snap",
+          "__type": "JointSnapEventData",
+          "name": "Revolver_World_Snap"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_World_Snap",
+          "__type": "JointSnapEventData",
+          "name": "Pistol_World_Snap"
+        }
+      ]
+    },
+    "Laugh": {
+      "clip": "laugh",
+      "events": [
+        {
+          "mStartFrame": 4.0,
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_World_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{ba27ea81}"
+        },
+        {
+          "mStartFrame": 4.0,
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_World_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b727e5c8}"
+        }
+      ]
+    },
+    "Taunt": {
+      "clip": "taunt",
+      "events": [
+        {
+          "mEndFrame": 89.0,
+          "mShowSubmeshList": [
+            "Coin"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{d470cacd}"
+        },
+        {
+          "mEndFrame": 122.0,
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mEndFrame": 117.0,
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mEndFrame": 87.0,
+          "mShowSubmeshList": [
+            "Viego_Crown"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{d811b121}"
+        }
+      ]
+    },
+    "Recall": {
+      "clip": "recall",
+      "events": [
+        {
+          "mStartFrame": 69.0,
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mStartFrame": 37.0,
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mStartFrame": 115.0,
+          "mEndFrame": 161.0,
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mStartFrame": 161.0,
+          "mEndFrame": 259.0,
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_World_Snap",
+          "__type": "JointSnapEventData",
+          "name": "Sword_World_Snap"
+        }
+      ]
+    },
+    "{07bc9fc0}": {
+      "clip": "idle_gun_in",
+      "events": [
+        {
+          "mStartFrame": 38.0,
+          "mEndFrame": 42.0,
+          "mShowSubmeshList": [
+            "Pistol_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{6b973a1f}"
+        }
+      ]
+    },
+    "{fd68f937}": {
+      "clip": "run_gun_haste",
+      "events": []
+    },
+    "Dance_Start": {
+      "clip": "dance_in",
+      "events": []
+    },
+    "Passive": {
+      "clip": "passive",
+      "events": [
+        {
+          "mStartFrame": 23.0,
+          "mEndFrame": 31.0,
+          "mShowSubmeshList": [
+            "Revolver_Blur"
+          ],
+          "mHideSubmeshList": [
+            "Revolver"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{d7b40a76}"
+        },
+        {
+          "mStartFrame": 23.0,
+          "mEndFrame": 31.0,
+          "mShowSubmeshList": [
+            "Pistol_Blur"
+          ],
+          "mHideSubmeshList": [
+            "Pistol"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{0467f336}"
+        }
+      ]
+    },
+    "{f1330a3e}": {
+      "clip": "idle_gun",
+      "events": []
+    },
+    "Recall_Winddown": {
+      "clip": "respawn",
+      "events": [
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mEndFrame": 37.0,
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mStartFrame": 38.0,
+          "mEndFrame": 71.0,
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_World_Snap",
+          "__type": "JointSnapEventData",
+          "name": "Sword_World_Snap"
+        }
+      ]
+    },
+    "Attack1_Gun_Start": {
+      "clip": "attack1_gun_start",
+      "events": []
+    },
+    "Attack2_Gun_Start": {
+      "clip": "attack2_gun_start",
+      "events": []
+    },
+    "{fc82440d}": {
+      "clip": "attack1_sword_start",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        }
+      ]
+    },
+    "{3d0f04a8}": {
+      "clip": "crit_sword_start",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        }
+      ]
+    },
+    "Spell2_Dash": {
+      "clip": "spell2_dash",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "Spell4_Dash": {
+      "clip": "spell4_dash",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{448a455b}": {
+      "clip": "spell1_gun_into_idle",
+      "events": []
+    },
+    "{b3130c32}": {
+      "clip": "spell1_gun_into_run",
+      "events": [
+        {
+          "mStartFrame": 19.0,
+          "mEndFrame": 24.0,
+          "mShowSubmeshList": [
+            "Revolver_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{d7b40a76}"
+        }
+      ]
+    },
+    "{313f3d19}": {
+      "clip": "run_gun_base",
+      "events": []
+    },
+    "{b6fe81c4}": {
+      "clip": "run_sword_base",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{385598f5}": {
+      "clip": "spell1_gun",
+      "events": [
+        {
+          "mStartFrame": 10.0,
+          "mShowSubmeshList": [
+            "Revolver_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{d7b40a76}"
+        }
+      ]
+    },
+    "{84e39258}": {
+      "clip": "attack2_sword_start",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        }
+      ]
+    },
+    "{f5e23875}": {
+      "clip": "spell1_during_dash",
+      "events": [
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mStartFrame": 6.0,
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mStartFrame": 9.0,
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{3b6df91b}": {
+      "clip": "spell1_sword_into_run",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{de050fbe}": {
+      "clip": "spell4_loop_a",
+      "events": []
+    },
+    "{12ec94a2}": {
+      "clip": "run_ooc",
+      "events": [
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{b525b24c}": {
+      "clip": "run_sword_haste",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        }
+      ]
+    },
+    "{73daf58c}": {
+      "clip": "spell1_sword_into_idle",
+      "events": [
+        {
+          "mStartFrame": 13.0,
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{9b2f0a2d}": {
+      "clip": "idle_sword",
+      "events": [
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{44a9e999}": {
+      "clip": "idle_sword_in",
+      "events": [
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{12c16f23}": {
+      "clip": "idle_ooc_in",
+      "events": [
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{86ecbbf9}": {
+      "clip": "idle",
+      "events": [
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{78e4514a}": {
+      "clip": "run_ooc_haste",
+      "events": [
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{a51d5638}": {
+      "clip": "sheath_sword_idle",
+      "events": [
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{5e3c1d14}": {
+      "clip": "sheath_gun_idle",
+      "events": [
+        {
+          "mStartFrame": 5.0,
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mStartFrame": 90.0,
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mStartFrame": 3.0,
+          "mEndFrame": 6.0,
+          "mShowSubmeshList": [
+            "Pistol_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{05576a95}"
+        },
+        {
+          "mStartFrame": 76.0,
+          "mEndFrame": 80.0,
+          "mShowSubmeshList": [
+            "Pistol_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{025765dc}"
+        }
+      ]
+    },
+    "{1ecf0923}": {
+      "clip": "sheath_gun_run",
+      "events": [
+        {
+          "mStartFrame": 5.0,
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mStartFrame": 91.0,
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mStartFrame": 3.0,
+          "mEndFrame": 6.0,
+          "mShowSubmeshList": [
+            "Pistol_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{05576a95}"
+        },
+        {
+          "mStartFrame": 76.0,
+          "mEndFrame": 80.0,
+          "mShowSubmeshList": [
+            "Pistol_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{025765dc}"
+        }
+      ]
+    },
+    "{5e1d3d86}": {
+      "clip": "idle",
+      "events": [
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{a4096aa5}": {
+      "clip": "passive_melee",
+      "events": [
+        {
+          "mStartFrame": 27.0,
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mEndFrame": 27.0,
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_World_Snap",
+          "__type": "JointSnapEventData",
+          "name": "Sword_World_Snap"
+        }
+      ]
+    },
+    "{27791420}": {
+      "clip": "spell2",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "Spell2_Into_Idle": {
+      "clip": "spell2_into_idle",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{2b042d33}": {
+      "clip": "spell2_180",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{c9b147a1}": {
+      "clip": "spell2_90",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{c8a47a1b}": {
+      "clip": "spell2_45",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "Spell2_Into_Run": {
+      "clip": "spell2_into_run",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{272b365e}": {
+      "clip": "spell2_-90",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{ade924ef}": {
+      "clip": "spell2_135",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{5a777767}": {
+      "clip": "attack1_gun_into_idle",
+      "events": [
+        {
+          "mStartFrame": 47.0,
+          "mEndFrame": 53.0,
+          "mShowSubmeshList": [
+            "Pistol_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "Pistol_Blur"
+        }
+      ]
+    },
+    "{f753c3da}": {
+      "clip": "attack2_gun_into_idle",
+      "events": [
+        {
+          "mStartFrame": 58.0,
+          "mEndFrame": 63.0,
+          "mShowSubmeshList": [
+            "Pistol_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "Pistol_Blur"
+        }
+      ]
+    },
+    "{6c3c3618}": {
+      "clip": "attack1_sword_into_idle",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        }
+      ]
+    },
+    "{e4839231}": {
+      "clip": "attack2_sword_into_idle",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        }
+      ]
+    },
+    "{547c75c1}": {
+      "clip": "crit_sword_toidle",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        }
+      ]
+    },
+    "{1986b9ea}": {
+      "clip": "crit_gun_into_idle",
+      "events": [
+        {
+          "mStartFrame": 63.0,
+          "mEndFrame": 68.0,
+          "mShowSubmeshList": [
+            "Pistol_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{a1c1901a}"
+        }
+      ]
+    },
+    "{3ca70816}": {
+      "clip": "walkover",
+      "events": []
+    },
+    "Walkover_Right": {
+      "clip": "walkover",
+      "events": []
+    },
+    "Walkover_Left": {
+      "clip": "walkover",
+      "events": []
+    },
+    "{36930421}": {
+      "clip": "attack_gun_into_run_front",
+      "events": [
+        {
+          "mStartFrame": 9.0,
+          "mEndFrame": 15.0,
+          "mShowSubmeshList": [
+            "Pistol_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "Pistol_Blur"
+        },
+        {
+          "mStartFrame": 12.0,
+          "mEndFrame": 16.0,
+          "mShowSubmeshList": [
+            "Revolver_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "Revolver_Blur"
+        }
+      ]
+    },
+    "{0da02482}": {
+      "clip": "spell1_to_run_haste",
+      "events": [
+        {
+          "mStartFrame": 19.0,
+          "mEndFrame": 24.0,
+          "mShowSubmeshList": [
+            "Revolver_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{d7b40a76}"
+        }
+      ]
+    },
+    "{623aa6c7}": {
+      "clip": "attack1_sword_into_run",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        }
+      ]
+    },
+    "{b4168d9c}": {
+      "clip": "attack2_sword_into_run",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        }
+      ]
+    },
+    "{732e72b2}": {
+      "clip": "spell1_during_dash_torun",
+      "events": [
+        {
+          "mStartFrame": 6.0,
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{5161cc49}": {
+      "clip": "attack2_sword_hit",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        }
+      ]
+    },
+    "{fa0260b8}": {
+      "clip": "attack1_sword_ht",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        }
+      ]
+    },
+    "{bd4393bb}": {
+      "clip": "spell1_sword_run_start",
+      "events": [
+        {
+          "mStartFrame": 17.0,
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mStartFrame": 10.0,
+          "mEndFrame": 17.0,
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_World_Snap",
+          "__type": "JointSnapEventData",
+          "name": "Sword_World_Snap"
+        },
+        {
+          "mEndFrame": 9.0,
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{ab848d9c}"
+        }
+      ]
+    },
+    "Attack1_Gun_Hit": {
+      "clip": "attack1_gun_hit",
+      "events": []
+    },
+    "Attack2_Gun_Hit": {
+      "clip": "attack2_gun_hit",
+      "events": []
+    },
+    "{72861d63}": {
+      "clip": "attack_gun_into_run_left",
+      "events": [
+        {
+          "mStartFrame": 9.0,
+          "mEndFrame": 15.0,
+          "mShowSubmeshList": [
+            "Pistol_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "Pistol_Blur"
+        },
+        {
+          "mStartFrame": 12.0,
+          "mEndFrame": 16.0,
+          "mShowSubmeshList": [
+            "Revolver_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "Revolver_Blur"
+        }
+      ]
+    },
+    "{e04be6ec}": {
+      "clip": "attack_gun_into_run_right",
+      "events": [
+        {
+          "mStartFrame": 9.0,
+          "mEndFrame": 15.0,
+          "mShowSubmeshList": [
+            "Pistol_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "Pistol_Blur"
+        },
+        {
+          "mStartFrame": 12.0,
+          "mEndFrame": 16.0,
+          "mShowSubmeshList": [
+            "Revolver_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "Revolver_Blur"
+        }
+      ]
+    },
+    "Crit_Gun_Hit": {
+      "clip": "crit_gun_hit",
+      "events": []
+    },
+    "{3965f279}": {
+      "clip": "crit_sword_hit",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        }
+      ]
+    },
+    "Passive_Dash": {
+      "clip": "passive_dash",
+      "events": [
+        {
+          "mEndFrame": 4.0,
+          "mShowSubmeshList": [
+            "Revolver_Blur"
+          ],
+          "mHideSubmeshList": [
+            "Revolver"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{d7b40a76}"
+        },
+        {
+          "mEndFrame": 4.0,
+          "mShowSubmeshList": [
+            "Pistol_Blur"
+          ],
+          "mHideSubmeshList": [
+            "Pistol"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{0467f336}"
+        }
+      ]
+    },
+    "{030b8eb4}": {
+      "clip": "passive_toidle",
+      "events": []
+    },
+    "{9b6db68d}": {
+      "clip": "run_gun_base",
+      "events": []
+    },
+    "{bad705c6}": {
+      "clip": "run_sword_base",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{81cf0910}": {
+      "clip": "homeguard_loop",
+      "events": []
+    },
+    "{114d7237}": {
+      "clip": "spell1_sword_into_run",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "KnockUp": {
+      "clip": "knockup",
+      "events": [
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "Stun": {
+      "clip": "idle_ooc_in",
+      "events": []
+    },
+    "Spell3_INTO_Run": {
+      "clip": "spell3_torun",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mEndFrame": 11.0,
+          "mShowSubmeshList": [
+            "Revolver_Blur"
+          ],
+          "mHideSubmeshList": [
+            "Revolver"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{d7b40a76}"
+        },
+        {
+          "mEndFrame": 11.0,
+          "mShowSubmeshList": [
+            "Pistol_Blur"
+          ],
+          "mHideSubmeshList": [
+            "Pistol"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{0467f336}"
+        }
+      ]
+    },
+    "{a588bfe0}": {
+      "clip": "run_ooc_boots",
+      "events": [
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{71dbbcb0}": {
+      "clip": "spell4_start_a",
+      "events": []
+    },
+    "Spell4_INTO_Run": {
+      "clip": "spell4_into_run",
+      "events": [
+        {
+          "mStartFrame": 5.0,
+          "mEndFrame": 10.0,
+          "mShowSubmeshList": [
+            "Pistol_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{0467f336}"
+        }
+      ]
+    },
+    "Respawn": {
+      "clip": "respawn",
+      "events": [
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mEndFrame": 56.0,
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        }
+      ]
+    },
+    "{b343b3cc}": {
+      "clip": "crit_sword_torun",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        }
+      ]
+    },
+    "{0b2d68f8}": {
+      "clip": "sheath_gun_idle",
+      "events": [
+        {
+          "mStartFrame": 5.0,
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mStartFrame": 90.0,
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mStartFrame": 3.0,
+          "mEndFrame": 6.0,
+          "mShowSubmeshList": [
+            "Pistol_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{05576a95}"
+        },
+        {
+          "mStartFrame": 76.0,
+          "mEndFrame": 80.0,
+          "mShowSubmeshList": [
+            "Pistol_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{025765dc}"
+        }
+      ]
+    },
+    "{942cf33c}": {
+      "clip": "sheath_sword_idle",
+      "events": [
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{ddf5bc3d}": {
+      "clip": "idle",
+      "events": [
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{10044e2b}": {
+      "clip": "passive_melee_toidle",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "Joke": {
+      "clip": "joke",
+      "events": [
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_World_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{6c91d2fd}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        }
+      ]
+    },
+    "Dance_Loop": {
+      "clip": "dance_loop",
+      "events": []
+    },
+    "{e6e59190}": {
+      "clip": "homeguard_in",
+      "events": []
+    },
+    "Spell3_Base": {
+      "clip": "spell3",
+      "events": [
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mStartFrame": 10.0,
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mEndFrame": 10.0,
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_World_Snap",
+          "__type": "JointSnapEventData",
+          "name": "Sword_World_Snap"
+        },
+        {
+          "mStartFrame": 14.0,
+          "mShowSubmeshList": [
+            "Revolver_Blur"
+          ],
+          "mHideSubmeshList": [
+            "Revolver"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{d7b40a76}"
+        },
+        {
+          "mStartFrame": 14.0,
+          "mShowSubmeshList": [
+            "Pistol_Blur"
+          ],
+          "mHideSubmeshList": [
+            "Pistol"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{0467f336}"
+        }
+      ]
+    },
+    "{c1157a0e}": {
+      "clip": "spell3_var02",
+      "events": [
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mStartFrame": 10.0,
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mEndFrame": 10.0,
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_World_Snap",
+          "__type": "JointSnapEventData",
+          "name": "Sword_World_Snap"
+        }
+      ]
+    },
+    "{29ec20f3}": {
+      "clip": "spell3_var02_torun",
+      "events": [
+        {
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "{454e55b9}": {
+      "clip": "spell1_sword_from_idle",
+      "events": [
+        {
+          "mEndFrame": 9.0,
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_R_Hand_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{b58dd4bf}"
+        },
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        },
+        {
+          "mStartFrame": 9.0,
+          "mEndFrame": 22.0,
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_World_Snap",
+          "__type": "JointSnapEventData",
+          "name": "Sword_World_Snap"
+        },
+        {
+          "mStartFrame": 22.0,
+          "mJointNameToOverride": "Sword",
+          "mJointNameToSnapTo": "Sword_World_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{8d254ca4}"
+        }
+      ]
+    },
+    "{74dbc169}": {
+      "clip": "spell4_start_b",
+      "events": []
+    },
+    "{dd050e2b}": {
+      "clip": "spell4_loop_b",
+      "events": []
+    },
+    "{efb6b72d}": {
+      "clip": "sheath_sword_idle",
+      "events": [
+        {
+          "mJointNameToOverride": "Revolver",
+          "mJointNameToSnapTo": "Revolver_L_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{2acabba3}"
+        },
+        {
+          "mJointNameToOverride": "Pistol",
+          "mJointNameToSnapTo": "Pistol_R_Holster_Snap",
+          "__type": "JointSnapEventData",
+          "name": "{821d5c63}"
+        }
+      ]
+    },
+    "Spell4_INTO_Idle": {
+      "clip": "spell4_into_idle",
+      "events": [
+        {
+          "mStartFrame": 7.0,
+          "mEndFrame": 13.0,
+          "mShowSubmeshList": [
+            "Pistol_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{05576a95}"
+        },
+        {
+          "mStartFrame": 9.0,
+          "mEndFrame": 14.0,
+          "mShowSubmeshList": [
+            "Revolver_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "Revolver_Blur"
+        },
+        {
+          "mStartFrame": 34.0,
+          "mEndFrame": 40.0,
+          "mShowSubmeshList": [
+            "Pistol_Blur"
+          ],
+          "__type": "SubmeshVisibilityEventData",
+          "name": "{025765dc}"
+        }
+      ]
+    }
+  }
+}

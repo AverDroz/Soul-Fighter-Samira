@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<sounds root="sfx/samira-items/">
+  <sound name="Samira Heartsteel Proc">
+    <sample weight="1" path="heartsteel_proc_30036669.wav" />
+    <sample weight="1" path="heartsteel_proc_112272935.wav" />
+    <sample weight="1" path="heartsteel_proc_767032564.wav" />
+  </sound>
+</sounds>

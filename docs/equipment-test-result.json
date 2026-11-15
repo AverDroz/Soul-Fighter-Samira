@@ -1,0 +1,7 @@
+{
+  "suite": "HeroStudio equipment-reference/runtime-tests.lua",
+  "status": "passed",
+  "cases": 6,
+  "runtime": "lupa 2.8 / Lua 5.4",
+  "live_game_test": false
+}

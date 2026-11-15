@@ -1,0 +1,3 @@
+<entities anm2root="gfx/" version="5">
+  <entity name="Samira Floor Tutorial" id="1000" variant="414026" subtype="0" anm2path="aatrox/branding/controls.anm2" />
+</entities>

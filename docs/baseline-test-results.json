@@ -1,0 +1,35 @@
+{
+  "live_game_test": false,
+  "results": [
+    {
+      "suite": "tools/test.py",
+      "exit_code": 1,
+      "log": "work/test.log",
+      "tail": "ack (most recent call last):\n  File \"C:\\Users\\Mortem ad Deos\\samira айзек\\src\\samira\\tools\\test.py\", line 20, in <module>\n    for p in sorted((ROOT/'tests').glob('*.lua')):lua.execute(p.read_text(encoding='utf-8'),name=str(p))\n                                                  ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"lupa/lua54.pyx\", line 466, in lupa.lua54.LuaRuntime.execute\n  File \"lupa/lua54.pyx\", line 1897, in lupa.lua54.run_lua\n  File \"lupa/lua54.pyx\", line 1911, in lupa.lua54.call_lua\n  File \"lupa/lua54.pyx\", line 1938, in lupa.lua54.execute_lua_call\n  File \"lupa/lua54.pyx\", line 1819, in lupa.lua54.raise_lua_error\nlupa.lua54.LuaError: [string \"C:\\Users\\Mortem ad Deos\\samira айзек\\src...\"]:157: Q stagger must not intercept native NPC rendering\nstack traceback:\n\t[string \"C:\\Users\\Mortem ad Deos\\samira айзек\\src...\"]:157: in main chunk\n\t[C]: in function 'assert'\n"
+    },
+    {
+      "suite": "external/test_bridge.py",
+      "exit_code": 0,
+      "log": "work/test_bridge.log",
+      "tail": ".........\n----------------------------------------------------------------------\nRan 9 tests in 0.033s\n\nOK\n"
+    },
+    {
+      "suite": "external/test_status.py",
+      "exit_code": 1,
+      "log": "work/test_status.log",
+      "tail": "ion=1,session='run-1',time=123456,ready=True,capabilities={'combat':1,'hud':1,'shop':1},visible=True,hudVisible=True,room=None))\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'ver[87 chars] 1, 'mastery': 1, 'hud': 1, 'shop': 1}, 'visib[39 chars]None} != {'ver[87 chars] 1, 'hud': 1, 'shop': 1}, 'visible': True, 'hu[25 chars]None}\n- {'capabilities': {'combat': 1, 'hud': 1, 'mastery': 1, 'shop': 1},\n?                                         --------------\n\n+ {'capabilities': {'combat': 1, 'hud': 1, 'shop': 1},\n   'hudVisible': True,\n   'ready': True,\n   'room': None,\n   'session': 'run-1',\n   'time': 123456,\n   'version': 1,\n   'visible': True}\n\n----------------------------------------------------------------------\nRan 3 tests in 0.015s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "suite": "external/test_visibility.py",
+      "exit_code": 0,
+      "log": "work/test_visibility.log",
+      "tail": ".....\n----------------------------------------------------------------------\nRan 5 tests in 0.007s\n\nOK\n"
+    },
+    {
+      "suite": "companion/test_installer.py",
+      "exit_code": 0,
+      "log": "work/test_installer.log",
+      "tail": "ckage_moves (__main__.InstallerTests.test_custom_install_found_after_package_moves) ... ok\ntest_downgrade_rejected (__main__.InstallerTests.test_downgrade_rejected) ... ok\ntest_failed_switch_restores_bridge (__main__.InstallerTests.test_failed_switch_restores_bridge) ... ok\ntest_lifecycle_and_user_files (__main__.InstallerTests.test_lifecycle_and_user_files) ... ok\ntest_long_native_library_path_rejected (__main__.InstallerTests.test_long_native_library_path_rejected) ... ok\ntest_repair_corrupt_runtime_and_bridge (__main__.InstallerTests.test_repair_corrupt_runtime_and_bridge) ... ok\ntest_running_game_rejected_before_changes (__main__.InstallerTests.test_running_game_rejected_before_changes) ... ok\ntest_traversal_and_unknown_dll (__main__.InstallerTests.test_traversal_and_unknown_dll) ... ok\n\n----------------------------------------------------------------------\nRan 9 tests in 0.838s\n\nOK\n"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+Samira常用控制台指令 / Samira console commands
+
+先进入Samira，再打开以撒控制台输入。Mod 0.7.70 新增 level 指令，更新后请重启游戏。
+Enter an Samira run before using these commands. The level command requires Mod 0.7.70; restart after updating.
+
+samira level 6
+升至 6 级。数字可替换为当前等级至 18；不能降级。保留已学技能，补足升级经验并获得技能点。技能仍需自己加点。
+Reach the requested level, up to 18; cannot lower your level. Keeps learned skills and grants normal growth/skill points. Spend the points yourself.
+
+samira level 18
+升至满级 / Reach level 18.
+
+samira heal
+回满生命，不补护盾、不复活 / Restore full health, not shields; does not resurrect.
+
+samira heal 200
+恢复 200 点生命，最多回满 / Restore up to 200 HP.
+
+samira health
+查看生命、护盾及当前楼层受伤倍率 / Print HP, shield and incoming floor damage multiplier.
+
+samira gold 99
+把金币设为 99，不是增加 99 / Set coins to 99, rather than add 99.
+
+0cd on
+开启 Q/W/E/R 无冷却；不刷新赐死剑气被动 / Disable ability cooldowns; does not reset the passive.
+
+0cd off
+关闭无冷却，之后施法恢复正常冷却 / Restore normal cooldown behavior for subsequent casts.
+
+samira test
+在身边生成 3 个普通敌人（会攻击） / Spawn three ordinary enemies nearby; they can attack.
+
+samira config
+打开设置菜单，也可按 F10 / Open settings; also available with F10.

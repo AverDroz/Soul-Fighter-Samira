@@ -1,0 +1,12 @@
+{
+  "frames": 120,
+  "fps": 30,
+  "duration": 4.0,
+  "clip": "crest_skin07_full_cycle_",
+  "source": [
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/crest_skin07_01.skl",
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/crest_skin07_01.skn",
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/crest_skin07_full_cycle_.anm",
+    "assets/shared/particles/emotes/masteries/mastery_crest_v02/lv7/crest_skin07_tx_cm.tex"
+  ]
+}

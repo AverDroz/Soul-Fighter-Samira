@@ -1,0 +1,129 @@
+{
+  "scope": "Offscreen original-model animation rendering; not live Isaac gameplay",
+  "gpu": "Radeon(TM) RX 460 Graphics",
+  "bones": 133,
+  "animations": 89,
+  "rendered_actions": [
+    {
+      "action": "Idle",
+      "clip": "idle_gun",
+      "bbox": [
+        103,
+        55,
+        409,
+        496
+      ]
+    },
+    {
+      "action": "Walk",
+      "clip": "run_gun_base",
+      "bbox": [
+        35,
+        84,
+        477,
+        466
+      ]
+    },
+    {
+      "action": "AttackStart",
+      "clip": "attack1_gun_start",
+      "bbox": [
+        147,
+        54,
+        365,
+        496
+      ]
+    },
+    {
+      "action": "Attack",
+      "clip": "attack1_gun_hit",
+      "bbox": [
+        141,
+        54,
+        371,
+        496
+      ]
+    },
+    {
+      "action": "MeleeAttack",
+      "clip": "attack1_sword_ht",
+      "bbox": [
+        67,
+        54,
+        446,
+        495
+      ]
+    },
+    {
+      "action": "Q",
+      "clip": "spell1_gun",
+      "bbox": [
+        103,
+        55,
+        409,
+        496
+      ]
+    },
+    {
+      "action": "QMelee",
+      "clip": "spell1_sword_from_idle",
+      "bbox": [
+        35,
+        147,
+        477,
+        403
+      ]
+    },
+    {
+      "action": "W",
+      "clip": "spell2",
+      "bbox": [
+        63,
+        54,
+        449,
+        496
+      ]
+    },
+    {
+      "action": "E",
+      "clip": "spell3",
+      "bbox": [
+        137,
+        54,
+        375,
+        496
+      ]
+    },
+    {
+      "action": "RStart",
+      "clip": "spell4_start_a",
+      "bbox": [
+        65,
+        54,
+        447,
+        496
+      ]
+    },
+    {
+      "action": "R",
+      "clip": "spell4_loop_a",
+      "bbox": [
+        41,
+        54,
+        472,
+        496
+      ]
+    },
+    {
+      "action": "Death",
+      "clip": "death",
+      "bbox": [
+        73,
+        54,
+        439,
+        496
+      ]
+    }
+  ],
+  "frames": 116
+}

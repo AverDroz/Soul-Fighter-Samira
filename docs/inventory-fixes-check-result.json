@@ -1,0 +1,17 @@
+{
+  "status": "installed_pending_user_playtest",
+  "version": "0.2.0",
+  "installed_files_verified": 64,
+  "icons_native_paths_verified": 46,
+  "shop_bonus_count": 4,
+  "lol_inventory_slots": 6,
+  "tests_passed": [
+    "combat",
+    "items",
+    "items_room",
+    "inventory",
+    "inventory_hud",
+    "vfx_gpu"
+  ],
+  "legacy_test_note": "HeroStudio vendor test_source_lifetime_delay_and_determinism independently fails 1 != 12 on untouched vendor Emitter; unrelated to this Q fix."
+}

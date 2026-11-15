@@ -1,0 +1,730 @@
+{
+  "source": "Riot Games League of Legends, Soul Fighter Samira (Skin30)",
+  "riot_manifest": "https://lol.dyn.riotcdn.net/channels/public/releases/6EDAD6B3C9806CB9.manifest",
+  "skin_bin": "data/characters/samira/skins/skin30.bin",
+  "sfx": {
+    "archive": "DATA/FINAL/Champions/Samira.wad.client",
+    "sha256": "46de520169a641ea2b871aab56a56af09e754258f778d55042feb52a83474142",
+    "banks": {
+      "assets/sounds/wwise2016/sfx/characters/samira/skins/skin30/samira_skin30_sfx_audio.bnk": {
+        "sha256": "5601503fa0151d4a3ec10c958a3f61e074e6b3450496b3294967184c197e7602",
+        "size": 1985391
+      },
+      "assets/sounds/wwise2016/sfx/characters/samira/skins/skin30/samira_skin30_sfx_events.bnk": {
+        "sha256": "9185009554201f44bdce577a61ed79ab6e87d27da05e6e9138fde34157b84bf9",
+        "size": 23549
+      },
+      "assets/sounds/wwise2016/sfx/characters/samira/skins/skin30/samira_skin30_sfx_audio.wpk": {
+        "sha256": "c90752dea10ab00639ea977f0bdc9128993df53c74da269fdeddf0005d0c63d9",
+        "size": 943952
+      }
+    }
+  },
+  "voice": {
+    "archive": "DATA/FINAL/Champions/Samira.ru_RU.wad.client",
+    "sha256": "dd23c4808f7790489c5d613927e6d0b186e6d502c0225398aef0c2dda598a991",
+    "locale": "ru_RU",
+    "banks": {
+      "assets/sounds/wwise2016/vo/en_us/characters/samira/skins/skin30/samira_skin30_vo_audio.bnk": {
+        "sha256": "5c9c409536358e37b62df3b2229517b716d77bf7930d36a4486dba828e5bc8b5",
+        "size": 48
+      },
+      "assets/sounds/wwise2016/vo/en_us/characters/samira/skins/skin30/samira_skin30_vo_events.bnk": {
+        "sha256": "82c64cefb9d0bed4e3b052f8f02bee7000f1b8b5763937bd238db1f4711a4ca0",
+        "size": 18482
+      },
+      "assets/sounds/wwise2016/vo/en_us/characters/samira/skins/skin30/samira_skin30_vo_audio.wpk": {
+        "sha256": "2df67439bc4530ba8a6e3e44286c49cfeed01b7e2914b4d0c9f4a587ec6a2692",
+        "size": 4963883
+      }
+    }
+  },
+  "tools": {
+    "wwiser": "https://github.com/bnnm/wwiser/releases/tag/v20260808",
+    "vgmstream": "https://github.com/vgmstream/vgmstream/releases/tag/r2168"
+  },
+  "samples": {
+    "attack": [
+      {
+        "file": "attack-1.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraBasicAttack_OnCast",
+        "wem_id": 289728221,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 34,
+        "seconds": 0.8166,
+        "sha256": "658ad0b339c08c7e0023aa6959da33a29d1d6306eb7f18ed724d4a1679f77ddc"
+      },
+      {
+        "file": "attack-2.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraBasicAttack_OnCast",
+        "wem_id": 1055351691,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 126,
+        "seconds": 1.1052,
+        "sha256": "4f8f9336f096ba212db1402c9a9072e86dd66463eab45e62e02f2e9f8082ed3a"
+      },
+      {
+        "file": "attack-3.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraBasicAttack_OnCast",
+        "wem_id": 1009098176,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 123,
+        "seconds": 0.7197,
+        "sha256": "2983839ac7b40d0cf5bab5e26320265ef6b833f46b007736e2030c8d6250fcb7"
+      }
+    ],
+    "attack_hit": [
+      {
+        "file": "attack_hit-1.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraBasicAttack_OnHit",
+        "wem_id": 36913924,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 4,
+        "seconds": 0.9936,
+        "sha256": "58a89d7c555c0efe5a981618488361ce4e689a335f04285d8e5bcf39b33aa0c5"
+      },
+      {
+        "file": "attack_hit-2.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraBasicAttack_OnHit",
+        "wem_id": 361752119,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 44,
+        "seconds": 0.862,
+        "sha256": "3965ba40e8b56fc4cb4701550a7a6b0b6b60d54646125f0f5fa137be991050fc"
+      },
+      {
+        "file": "attack_hit-3.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraBasicAttack_OnHit",
+        "wem_id": 902515938,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 109,
+        "seconds": 1.0995,
+        "sha256": "7f5438161904132555294749dddc39ca07b9e26d3a508cd5e72019007dc6dbde"
+      }
+    ],
+    "melee": [
+      {
+        "file": "melee-1.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraBasicAttackMelee_OnCast",
+        "wem_id": 500338263,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 63,
+        "seconds": 1.7226,
+        "sha256": "d67f35c0b7b46d597892f7fea927d6a9b5038ca98e2bb7cf0c2cade7d7111385"
+      },
+      {
+        "file": "melee-2.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraBasicAttackMelee_OnCast",
+        "wem_id": 674369395,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 86,
+        "seconds": 1.7576,
+        "sha256": "54e614a6ba9342633578e50847fb7d2b230c93e79c59af75506b3d190ad89b72"
+      },
+      {
+        "file": "melee-3.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraBasicAttackMelee_OnCast",
+        "wem_id": 577731931,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 73,
+        "seconds": 1.3403,
+        "sha256": "b57c22e05d47290123263df1ca0bcc764d424226d895ac9c1b58c5ab5ec15ed6"
+      }
+    ],
+    "melee_hit": [
+      {
+        "file": "melee_hit-1.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraBasicAttackMelee_OnHit",
+        "wem_id": 713998482,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 88,
+        "seconds": 0.7542,
+        "sha256": "dcd688480bd41bf3346d0ca35da8b28a6d165963657c6bd2f1a7a559bcb33e76"
+      },
+      {
+        "file": "melee_hit-2.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraBasicAttackMelee_OnHit",
+        "wem_id": 89081303,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 16,
+        "seconds": 0.7244,
+        "sha256": "5729b860dfe5b27684f5ac3331a9c58d76bde813f1bc75a51f9405498198c83c"
+      },
+      {
+        "file": "melee_hit-3.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraBasicAttackMelee_OnHit",
+        "wem_id": 298492521,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 35,
+        "seconds": 0.7604,
+        "sha256": "ffc9d29d2cfa3fafb471a099ebb900c45dced231b65341a1cc6433ee1bdd2d4a"
+      }
+    ],
+    "q": [
+      {
+        "file": "q-1.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraQGun_OnCast",
+        "wem_id": 1063092654,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 127,
+        "seconds": 2.2169,
+        "sha256": "c14fa5a76b300bb4f247d4bc2cfb333f7187dc9408e60626d9e7481532688032"
+      },
+      {
+        "file": "q-2.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraQGun_OnCast",
+        "wem_id": 732386272,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 89,
+        "seconds": 2.1224,
+        "sha256": "ff426451d5cd92910f11e5b147ea905a0c0b3fe1cb15f6abd917bae031cac4c8"
+      },
+      {
+        "file": "q-3.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraQGun_OnCast",
+        "wem_id": 225770375,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 29,
+        "seconds": 2.1797,
+        "sha256": "c8eaf34526d50f8911a4d7647139bb4bdb1b6f42292392c90bd7db03cb7c7b7b"
+      }
+    ],
+    "q_hit": [
+      {
+        "file": "q_hit-1.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraQGun_OnHit",
+        "wem_id": 65864203,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 11,
+        "seconds": 2.5498,
+        "sha256": "b916289a34aba839a7da1c01e7e5853509ca2ec3e69f6acf1cf5ce6f1886ac86"
+      },
+      {
+        "file": "q_hit-2.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraQGun_OnHit",
+        "wem_id": 45632128,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 5,
+        "seconds": 2.3553,
+        "sha256": "c509dc68379f21df7cfbe33796c656669a4c609d67401b187eec3848ba8763be"
+      },
+      {
+        "file": "q_hit-3.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraQGun_OnHit",
+        "wem_id": 385873602,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 49,
+        "seconds": 2.5724,
+        "sha256": "d6c7232b38a778247fb26df2044c3926f2d6047501c0bdfa51fa498ad6055944"
+      }
+    ],
+    "qmelee": [
+      {
+        "file": "qmelee-1.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraQSword_OnCast",
+        "wem_id": 747452049,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 92,
+        "seconds": 1.8631,
+        "sha256": "9a51bc76365aa172dcfea2fed60a239064b4f689dfb2d4355191a8255ef42529"
+      }
+    ],
+    "qmelee_hit": [
+      {
+        "file": "qmelee_hit-1.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraQSword_OnHit",
+        "wem_id": 322852460,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 39,
+        "seconds": 1.763,
+        "sha256": "7cfc5f467b754503eb64304800de5b211596ad745762fd2d237775a164fcc1ab"
+      },
+      {
+        "file": "qmelee_hit-2.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraQSword_OnHit",
+        "wem_id": 605435132,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 78,
+        "seconds": 1.6022,
+        "sha256": "4de4e4d2e2b0ab2c65878a5d08ef1d004433b0945d03005a6af904087eeaa48f"
+      }
+    ],
+    "w": [
+      {
+        "file": "w-1.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraW_OnCast",
+        "wem_id": 791331646,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 95,
+        "seconds": 2.1123,
+        "sha256": "d2295497264b8b51c71d537ffec2a83b8c8d49a1747c21157055efd1c1ee4b45"
+      }
+    ],
+    "w_hit": [
+      {
+        "file": "w_hit-1.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraW_hit",
+        "wem_id": 917954960,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 111,
+        "seconds": 1.6724,
+        "sha256": "78fb2877c7a82fbaed63373c5fb18edfa5179a50cbdf0f56636ad60b6be7272c"
+      },
+      {
+        "file": "w_hit-2.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraW_hit",
+        "wem_id": 853062853,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 104,
+        "seconds": 1.8652,
+        "sha256": "926220e670c2eac77b3b9575ca448c5fa1b1021f43504899183563674b5d10f5"
+      }
+    ],
+    "block": [
+      {
+        "file": "block-1.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraW_hit_block_sml",
+        "wem_id": 323626349,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 40,
+        "seconds": 0.6708,
+        "sha256": "d61bcbefebd7275604e853c08ddb3bc37690bf13ca968685e820b4211710231e"
+      },
+      {
+        "file": "block-2.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraW_hit_block_sml",
+        "wem_id": 377509298,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 47,
+        "seconds": 0.7889,
+        "sha256": "c067d34b8671f79441c7c221e146da32473acac049f675d21a4f4205ab38d7a2"
+      },
+      {
+        "file": "block-3.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraW_hit_block_sml",
+        "wem_id": 885278424,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 108,
+        "seconds": 0.8855,
+        "sha256": "475e4222c11a1d96732f31e9d499a47e437bf4add6098e2c4738f8e2c7ecc76b"
+      }
+    ],
+    "e": [
+      {
+        "file": "e-1.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraE_cast",
+        "wem_id": 114100631,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 20,
+        "seconds": 1.9674,
+        "sha256": "a890759afd9be5d730af6e4ea108e26d81f4a1555419c1a31bf1422d622f6e68"
+      },
+      {
+        "file": "e-2.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraE_cast",
+        "wem_id": 921671937,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 114,
+        "seconds": 2.028,
+        "sha256": "ed07ee2bfcd37a57a512fad3b857f846627fcba99800ca4259783aeef52840f4"
+      }
+    ],
+    "e_hit": [
+      {
+        "file": "e_hit-1.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraE_hit",
+        "wem_id": 760267833,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 93,
+        "seconds": 0.6274,
+        "sha256": "670a5868de76bae0050799276b20ae459ff5265962f8b1907b0d1fc2bc444c60"
+      },
+      {
+        "file": "e_hit-2.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraE_hit",
+        "wem_id": 582478821,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 74,
+        "seconds": 0.7313,
+        "sha256": "18bafbc674296734ac2d42c0bb8ac51b49eee0141c9f38baa064703cbbe65eee"
+      },
+      {
+        "file": "e_hit-3.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraE_hit",
+        "wem_id": 356352586,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 43,
+        "seconds": 0.6698,
+        "sha256": "f76789092d789d36f4bffa06beff3ad784597ea091330e6a134de2180d0e5b43"
+      }
+    ],
+    "eq": [
+      {
+        "file": "eq-1.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraQBufferedSword_OnCast",
+        "wem_id": 27920450,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 3,
+        "seconds": 1.6113,
+        "sha256": "1a6de7d1e2cb1877f953c295ddde0d47461ce717897df55384015755fdb1c7e9"
+      }
+    ],
+    "eq_burst": [
+      {
+        "file": "eq_burst-1.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraQBufferedSword_buffactivate",
+        "wem_id": 310924282,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 37,
+        "seconds": 2.1217,
+        "sha256": "60433b934ea3742429051bd0db6300733a10efa710accd0821069dacb7edc453"
+      }
+    ],
+    "eq_hit": [
+      {
+        "file": "eq_hit-1.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraQBufferedSword_hit",
+        "wem_id": 476397541,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 57,
+        "seconds": 0.9539,
+        "sha256": "d31aba4dcaabde3c6717667c371495f0ba2bb8f3d43c314e30a576c8a64f2e85"
+      },
+      {
+        "file": "eq_hit-2.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraQBufferedSword_hit",
+        "wem_id": 920549008,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 113,
+        "seconds": 1.032,
+        "sha256": "b978397fd24ed4ff25bb50e86fe38988a322f522eec9372c470b7f7992c681a8"
+      },
+      {
+        "file": "eq_hit-3.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraQBufferedSword_hit",
+        "wem_id": 216183216,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 27,
+        "seconds": 1.5252,
+        "sha256": "9546670ccb28cfcf03271974b78303267d6bcbb33a3418746bb20e106f36b834"
+      }
+    ],
+    "r": [
+      {
+        "file": "r-1.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraR_OnCast",
+        "wem_id": 454780567,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 55,
+        "seconds": 4.2238,
+        "sha256": "7da6586a472e5a69162da3bb1879db7379a5bb04c1e4ee8a5a967ba9e613861a"
+      }
+    ],
+    "r_shot": [
+      {
+        "file": "r_shot-1.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraRMissile_OnMissileCast",
+        "wem_id": 827511299,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 98,
+        "seconds": 1.3938,
+        "sha256": "3a58013d16f5a6c9aeb4de3f085d950d03f9392d6204d0397edae028936cf16a"
+      },
+      {
+        "file": "r_shot-2.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraRMissile_OnMissileCast",
+        "wem_id": 835500214,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 101,
+        "seconds": 1.3,
+        "sha256": "f3bb1df78d24b10b103f701bd4378ddcd81b11543d50437933ee2c08fe21d7ea"
+      },
+      {
+        "file": "r_shot-3.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraRMissile_OnMissileCast",
+        "wem_id": 738686427,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 91,
+        "seconds": 1.1371,
+        "sha256": "fbf85f47ca966d32b9f8840bf62a0ef486fc7b6661bd877f350bb2c81e9ffe23"
+      }
+    ],
+    "r_hit": [
+      {
+        "file": "r_hit-1.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraRMissile_OnHit",
+        "wem_id": 547396765,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 70,
+        "seconds": 0.748,
+        "sha256": "5947874a2c9dc277210c0ee4243059b459f46883af782b618bf115acd9ed5007"
+      },
+      {
+        "file": "r_hit-2.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraRMissile_OnHit",
+        "wem_id": 842103488,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 103,
+        "seconds": 0.6537,
+        "sha256": "0f9e03fac489529195b9beccafb16f8931cbdbddafb83f802e0ec4c52dd936e5"
+      },
+      {
+        "file": "r_hit-3.wav",
+        "event": "Play_sfx_SamiraSkin30_SamiraRMissile_OnHit",
+        "wem_id": 643362701,
+        "source_file": "samira_skin30_sfx_audio.bnk",
+        "bank_stream_index": 85,
+        "seconds": 0.666,
+        "sha256": "d1c4e4f5f43224818237ae27e1e535e4b6d300f097b4297f5ef54117f30d4f21"
+      }
+    ],
+    "voice_move": [
+      {
+        "file": "voice_move-1.wav",
+        "event": "Play_vo_SamiraSkin30_Move2DStandard",
+        "wem_id": 357657566,
+        "source_file": "357657566.wem",
+        "bank_stream_index": null,
+        "seconds": 4.7253,
+        "sha256": "630427af1656bee34ccb420f57a8be4c5286d05307a9e8da00ae325b918e5cb1"
+      },
+      {
+        "file": "voice_move-2.wav",
+        "event": "Play_vo_SamiraSkin30_Move2DStandard",
+        "wem_id": 404661896,
+        "source_file": "404661896.wem",
+        "bank_stream_index": null,
+        "seconds": 5.3546,
+        "sha256": "fe183b6aa2744262d5c78a01a6bf33dbb359cc5bb0442ade6ad8e64804b1a597"
+      },
+      {
+        "file": "voice_move-3.wav",
+        "event": "Play_vo_SamiraSkin30_Move2DStandard",
+        "wem_id": 1290833416,
+        "source_file": "1290833416.wem",
+        "bank_stream_index": null,
+        "seconds": 3.8933,
+        "sha256": "c7bfc2f843625c07422cdd4b222f46b41f0c908daff7fe955266400f6d1e4efd"
+      },
+      {
+        "file": "voice_move-4.wav",
+        "event": "Play_vo_SamiraSkin30_Move2DStandard",
+        "wem_id": 1155108219,
+        "source_file": "1155108219.wem",
+        "bank_stream_index": null,
+        "seconds": 3.2427,
+        "sha256": "a1c711e1f6bed4a5b6cd49cac5c83369ffaaf4ecfa9e989dcef4f06142fd0775"
+      }
+    ],
+    "voice_attack": [
+      {
+        "file": "voice_attack-1.wav",
+        "event": "Play_vo_SamiraSkin30_Attack2DGeneral",
+        "wem_id": 1366268263,
+        "source_file": "1366268263.wem",
+        "bank_stream_index": null,
+        "seconds": 2.272,
+        "sha256": "621d7ed6a6c9bde3fa8e442ed7090ed583a773f5a66bad0d45b84a5c294b15ff"
+      },
+      {
+        "file": "voice_attack-2.wav",
+        "event": "Play_vo_SamiraSkin30_Attack2DGeneral",
+        "wem_id": 743677788,
+        "source_file": "743677788.wem",
+        "bank_stream_index": null,
+        "seconds": 2.3146,
+        "sha256": "db2994ceee26977859528233da85f46250324a2619ab7276a6145011f040583e"
+      },
+      {
+        "file": "voice_attack-3.wav",
+        "event": "Play_vo_SamiraSkin30_Attack2DGeneral",
+        "wem_id": 1616122997,
+        "source_file": "1616122997.wem",
+        "bank_stream_index": null,
+        "seconds": 2.144,
+        "sha256": "1fa7493f09f3bc727034e6685978e2a9fcc36b4c4b0bc69c17e0171336d4de3a"
+      },
+      {
+        "file": "voice_attack-4.wav",
+        "event": "Play_vo_SamiraSkin30_Attack2DGeneral",
+        "wem_id": 453803950,
+        "source_file": "453803950.wem",
+        "bank_stream_index": null,
+        "seconds": 2.176,
+        "sha256": "a1f79bbeee04e4b5616e9702a24e9739cad8deb542f384f836186ef2c2f7c85d"
+      }
+    ],
+    "voice_q": [
+      {
+        "file": "voice_q-1.wav",
+        "event": "Play_vo_SamiraSkin30_SamiraQGun_cast3D",
+        "wem_id": 1701852729,
+        "source_file": "1701852729.wem",
+        "bank_stream_index": null,
+        "seconds": 1.472,
+        "sha256": "764ea8145858c168611aaf98068069ae0a20b86b477568eefcf7c1d5a1f7133c"
+      },
+      {
+        "file": "voice_q-2.wav",
+        "event": "Play_vo_SamiraSkin30_SamiraQGun_cast3D",
+        "wem_id": 1423154110,
+        "source_file": "1423154110.wem",
+        "bank_stream_index": null,
+        "seconds": 1.344,
+        "sha256": "cd7d9e56ee73f7b95b13cd71a6ebaa4e09083892a41d94177da196b016102166"
+      },
+      {
+        "file": "voice_q-3.wav",
+        "event": "Play_vo_SamiraSkin30_SamiraQGun_cast3D",
+        "wem_id": 1320744088,
+        "source_file": "1320744088.wem",
+        "bank_stream_index": null,
+        "seconds": 1.152,
+        "sha256": "1cbdf3c3733b81c47875b655f4af94e6f8ac68fd2c42dfdc19b5e164242c3423"
+      }
+    ],
+    "voice_qmelee": [
+      {
+        "file": "voice_qmelee-1.wav",
+        "event": "Play_vo_SamiraSkin30_SamiraQSword_cast3D",
+        "wem_id": 1323877541,
+        "source_file": "1323877541.wem",
+        "bank_stream_index": null,
+        "seconds": 1.3547,
+        "sha256": "92a154c36c8fea37bd39dc6ac4837f91f6af94584415777a2ed5871a4bf4acc6"
+      },
+      {
+        "file": "voice_qmelee-2.wav",
+        "event": "Play_vo_SamiraSkin30_SamiraQSword_cast3D",
+        "wem_id": 1618539171,
+        "source_file": "1618539171.wem",
+        "bank_stream_index": null,
+        "seconds": 1.5147,
+        "sha256": "5465bf6fbd6a87f2664455fc9eeea00588c6332c373a38e3d25b6f0c076fd640"
+      },
+      {
+        "file": "voice_qmelee-3.wav",
+        "event": "Play_vo_SamiraSkin30_SamiraQSword_cast3D",
+        "wem_id": 1386597761,
+        "source_file": "1386597761.wem",
+        "bank_stream_index": null,
+        "seconds": 1.1307,
+        "sha256": "9bb2674cc36dba09ee6ff450e7aec0b72a498f1cb9e06ce93f8e23d952120330"
+      }
+    ],
+    "voice_w": [
+      {
+        "file": "voice_w-1.wav",
+        "event": "Play_vo_SamiraSkin30_SamiraW_cast3D",
+        "wem_id": 1770619932,
+        "source_file": "1770619932.wem",
+        "bank_stream_index": null,
+        "seconds": 2.5387,
+        "sha256": "3f52de290b138a2be6b8e8a457fb38e7848b5767104ccb9661daaf86d607e96c"
+      },
+      {
+        "file": "voice_w-2.wav",
+        "event": "Play_vo_SamiraSkin30_SamiraW_cast3D",
+        "wem_id": 12374420,
+        "source_file": "12374420.wem",
+        "bank_stream_index": null,
+        "seconds": 1.7173,
+        "sha256": "98cd9b0a9b92e704d7974fcdfe524f7441afcbdd6f9f7288b38e2d526cad8cf7"
+      },
+      {
+        "file": "voice_w-3.wav",
+        "event": "Play_vo_SamiraSkin30_SamiraW_cast3D",
+        "wem_id": 51078119,
+        "source_file": "51078119.wem",
+        "bank_stream_index": null,
+        "seconds": 2.2187,
+        "sha256": "b49ea9465f1efffb16dcc8a9e0b8a097a5b16229bc2707e43e800633c0f7b125"
+      },
+      {
+        "file": "voice_w-4.wav",
+        "event": "Play_vo_SamiraSkin30_SamiraW_cast3D",
+        "wem_id": 1775407000,
+        "source_file": "1775407000.wem",
+        "bank_stream_index": null,
+        "seconds": 2.5707,
+        "sha256": "17d89ec260e55e115efe5f2417d4f4a9523ddded4d6873712047a240eca694c1"
+      }
+    ],
+    "voice_e": [
+      {
+        "file": "voice_e-1.wav",
+        "event": "Play_vo_SamiraSkin30_SamiraE_cast3D",
+        "wem_id": 1600604437,
+        "source_file": "1600604437.wem",
+        "bank_stream_index": null,
+        "seconds": 1.8453,
+        "sha256": "ba53c4eb89344cf3e8cbe98f7014da54e4f44fe1183e359865769076d9ce8592"
+      },
+      {
+        "file": "voice_e-2.wav",
+        "event": "Play_vo_SamiraSkin30_SamiraE_cast3D",
+        "wem_id": 973210714,
+        "source_file": "973210714.wem",
+        "bank_stream_index": null,
+        "seconds": 1.696,
+        "sha256": "113a1b3617df5475b35fc624ab58f6b35bd604e349ac559ee25fd0d2d77e25e6"
+      },
+      {
+        "file": "voice_e-3.wav",
+        "event": "Play_vo_SamiraSkin30_SamiraE_cast3D",
+        "wem_id": 24310987,
+        "source_file": "24310987.wem",
+        "bank_stream_index": null,
+        "seconds": 1.1093,
+        "sha256": "04fa148fb85cf250dfe577f7ddf06a8538ef75cf71fff2b0b3a21c40dba6f14c"
+      },
+      {
+        "file": "voice_e-4.wav",
+        "event": "Play_vo_SamiraSkin30_SamiraE_cast3D",
+        "wem_id": 1384767486,
+        "source_file": "1384767486.wem",
+        "bank_stream_index": null,
+        "seconds": 1.8773,
+        "sha256": "d28b52ab901efbda1f415a912d755f82f65d48e693bdd1408414e97d2e0a2e4e"
+      }
+    ],
+    "voice_r": [
+      {
+        "file": "voice_r-1.wav",
+        "event": "Play_vo_SamiraSkin30_SamiraR_cast3D",
+        "wem_id": 2131774679,
+        "source_file": "2131774679.wem",
+        "bank_stream_index": null,
+        "seconds": 2.5067,
+        "sha256": "8d9eb5fbc691aaee900489587cc50d7d167a3fa686cde062d26002b8ad3d2283"
+      },
+      {
+        "file": "voice_r-2.wav",
+        "event": "Play_vo_SamiraSkin30_SamiraR_cast3D",
+        "wem_id": 2138109273,
+        "source_file": "2138109273.wem",
+        "bank_stream_index": null,
+        "seconds": 2.8587,
+        "sha256": "f3150d8e2540bb46feed7d1600e58036628bb36eaf4f23a8de3ab667461c49ed"
+      },
+      {
+        "file": "voice_r-3.wav",
+        "event": "Play_vo_SamiraSkin30_SamiraR_cast3D",
+        "wem_id": 1853863330,
+        "source_file": "1853863330.wem",
+        "bank_stream_index": null,
+        "seconds": 2.272,
+        "sha256": "7c7f7ae8d67c381c89c4ecfa122cff4e985bbd96e35353ebe34e64fe570fbbf5"
+      },
+      {
+        "file": "voice_r-4.wav",
+        "event": "Play_vo_SamiraSkin30_SamiraR_cast3D",
+        "wem_id": 573580350,
+        "source_file": "573580350.wem",
+        "bank_stream_index": null,
+        "seconds": 2.7307,
+        "sha256": "4f1472f72fdba5a050e2246133b58ddf389ce3eb5d84f31dd6aded528a2dc9f4"
+      }
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "samira",
+  "name": "Samira",
+  "version": "0.0.1",
+  "mod_directory": "samira_isaac",
+  "state_prefix": "Samira",
+  "telemetry_prefix": "[SAMIRA_EXTERNAL] ",
+  "status_directory": "samira_external_link",
+  "app": "SamiraCompanion",
+  "dll": "zhlSamiraCompanion.dll",
+  "ini": "samira-companion.ini",
+  "setup": "SamiraSetup.exe",
+  "source_example": "Aatrox reference template",
+  "status": "REFERENCE FORK ONLY. Read STUDIO-START-HERE.txt; hero config is not yet integrated."
+}

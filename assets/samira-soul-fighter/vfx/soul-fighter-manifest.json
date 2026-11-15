@@ -1,0 +1,1336 @@
+{
+  "source": "Riot Games, League of Legends, Soul Fighter Samira (Skin30)",
+  "riot_manifest": "https://lol.dyn.riotcdn.net/channels/public/releases/6EDAD6B3C9806CB9.manifest",
+  "wad_path": "DATA/FINAL/Champions/Samira.wad.client",
+  "wad_sha256": "46de520169a641ea2b871aab56a56af09e754258f778d55042feb52a83474142",
+  "particle_bin": "data/characters/samira/skins/skin30.bin",
+  "decoded_particle_bin_url": "https://raw.communitydragon.org/16.22/game/data/characters/samira/skins/skin30.bin.json",
+  "decoded_particle_bin_sha256": "571b57c0e4b6fec7941c5833fde6c2f45708806800ee24a51d629ace214c11bd",
+  "mesh_format_reference": "https://github.com/LeagueToolkit/LeagueToolkit/tree/main/src/LeagueToolkit/Core/Mesh",
+  "systems_sha256": "dd398d9e4cc86a5f648c309b75c9cb107747e064ad5b02696d7ffc903ce885e9",
+  "assets": {
+    "assets/characters/samira/skins/skin30/particles/3026_itemscolor-hold.tex": {
+      "wad_size": 68,
+      "wad_sha256": "bc06557b44402fee1498430bd4008df9598085f44b29fea2f02218473674b2f8",
+      "dimensions": [
+        8,
+        8
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/3026_itemscolor-hold.png",
+      "sha256": "38fb43fbd4b078237a94650903231de41f9ac8ed0c2550b3581cd41b6e9ff501"
+    },
+    "assets/characters/samira/skins/skin30/particles/aura_self.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "41241eafa700d7aa8a280bc7d943c090005324d146d33777a5b8b4bda3ab977b",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/aura_self.png",
+      "sha256": "cc27e89b201e548f544cd4844d9b0b27e5e4c5b615e92b78a36aa60ec603aa5e"
+    },
+    "assets/characters/samira/skins/skin30/particles/cirlcle_01.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "6ce600a5c83b9e3bc60659e2a6f5471d67c7e07557aa3790cfe11ef02871494a",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/cirlcle_01.png",
+      "sha256": "2096ed5cd168da5f0e45db68d5cf6e9ca8ef0bc2cf538766f9b82fbc9433ac7f"
+    },
+    "assets/characters/samira/skins/skin30/particles/color-rampdown32_03.tex": {
+      "wad_size": 5500,
+      "wad_sha256": "27417dadf26445d6189ccb373aec13c4a87343e2dbcda5cec79c82509b960816",
+      "dimensions": [
+        64,
+        64
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/color-rampdown32_03.png",
+      "sha256": "0292fe7cf123eef8ebb6e81c84574aaf0fd5d281abad35e3ca0c03e07368c0d9"
+    },
+    "assets/characters/samira/skins/skin30/particles/color-rampup32.tex": {
+      "wad_size": 5500,
+      "wad_sha256": "175f90b816acace999739ba441461d32c1f268c3ae5d4d1e628732d6ea0d9bd3",
+      "dimensions": [
+        64,
+        64
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/color-rampup32.png",
+      "sha256": "386655042d90effc430c7de704962784a301f889d672e4337bcecdca7804b652"
+    },
+    "assets/characters/samira/skins/skin30/particles/common_color-rampdown.tex": {
+      "wad_size": 5500,
+      "wad_sha256": "e9cda2207af86c29df667084bd6ba99868da6ab5a981d3577fe1a1db622b8a8d",
+      "dimensions": [
+        64,
+        64
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/common_color-rampdown.png",
+      "sha256": "288846ba2b77f3327bfa453ab88cafb711258adcfd016ab3361c250d06f8c320"
+    },
+    "assets/characters/samira/skins/skin30/particles/common_glow-soft.tex": {
+      "wad_size": 10948,
+      "wad_sha256": "d21ae5cd9d6a95ffa10f91a1f389f8c958cf73d0c1b33ff593b368ee038913d1",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/common_glow-soft.png",
+      "sha256": "24cbc501f05a0395a5c066e5eee5f70a71fb87ada89d7c631d26c287be86b50a"
+    },
+    "assets/characters/samira/skins/skin30/particles/common_jayce_aura.tex": {
+      "wad_size": 43716,
+      "wad_sha256": "45b1c93bb7553ca6746d5e1a1a7bede0462da95a8491820cff0aea6b4d88e2e0",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/common_jayce_aura.png",
+      "sha256": "925179ec3bb13d49de1d496292a0af0f0b93f86deec8fd674feb0592e1154ecf"
+    },
+    "assets/characters/samira/skins/skin30/particles/distort-pinch.tex": {
+      "wad_size": 87420,
+      "wad_sha256": "090cbc61c81ba392a3abe357998e7a5f39ae237848260987fa0ac7dd6668cc4a",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/distort-pinch.png",
+      "sha256": "de89712fd9d2d5b1a0837084a55ded4fcf5bd0e49693fff560ad9f8660f60144"
+    },
+    "assets/characters/samira/skins/skin30/particles/flame_trail_gradient.tex": {
+      "wad_size": 5524,
+      "wad_sha256": "b12007d17f737964e414d3accae6c6509f8604daa379ed74c0745edae238be4f",
+      "dimensions": [
+        256,
+        32
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/flame_trail_gradient.png",
+      "sha256": "bb81b41ececb203f908b94b34fce9cd47cf252432210524b6ae3dbad7f98877a"
+    },
+    "assets/characters/samira/skins/skin30/particles/hit_bits.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "45bf6e039a752783b52031e71a7d7aea50586c6c08f79782cc9d86a804defc20",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/hit_bits.png",
+      "sha256": "f16e40e5c1ae2326311de62c9d36af5c1732383659eee9b05a8d6d06a8a2ec48"
+    },
+    "assets/characters/samira/skins/skin30/particles/orianna_skin30_ba_distort-wave.tex": {
+      "wad_size": 87420,
+      "wad_sha256": "e2e02313f7eada72b07fd4349ead6f1d8cf7e3ff66c1590a009d76f10f20a028",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/orianna_skin30_ba_distort-wave.png",
+      "sha256": "35fc696190dd863db6c61f8bd5f1db3223c9f9bd7c00a6bf25b82f337631b744"
+    },
+    "assets/characters/samira/skins/skin30/particles/q_head.scb": {
+      "wad_size": 41408,
+      "wad_sha256": "e319f6fa74ed7942a5917a932c078f3bd50d87cbe5ca6462cc82da3dc3e1ad95",
+      "triangles": 380,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/q_head.json",
+      "sha256": "34e5923e80bd7aba6d91d37ab8070f83ffdfa9cb9aa1c12e93ce0551b4a9301f"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_ba_tar_flare.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "252b05d3a8b8154549a6c7490cf315613071df804697e5724b0b778e7a575291",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_ba_tar_flare.png",
+      "sha256": "2e9b8c763514168d9cf77c763179eebb83e5773292a27104b0cf907525c425ec"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_distort-soft-shockwave.tex": {
+      "wad_size": 43716,
+      "wad_sha256": "38e97daffd711e55af080f42a51f1b4326b1706b6b9b19d36d40c7010e156e19",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_distort-soft-shockwave.png",
+      "sha256": "8b1480df64a977053ef4bc9e3df7436f029254c9ea1b3c5bfd6225395b858a52"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_e_dash.tex": {
+      "wad_size": 10948,
+      "wad_sha256": "8ff3704e38fe382c2274ea7329ccf934cd6e5a0daaa7c900ac3f3914a1a5d6bc",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_e_dash.png",
+      "sha256": "155f6522e690ebb0f429b5637baf8a48c381e859f84250319b255d578249c963"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_passive_hit_lens_flare.tex": {
+      "wad_size": 43740,
+      "wad_sha256": "eec921a767ce3677182a38390f4cb6ec910640917662028810e91592c17a4f39",
+      "dimensions": [
+        256,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_passive_hit_lens_flare.png",
+      "sha256": "cf5e507518ed1046f3aa00ebc91cc3f8ceb44bc705205546cc79d83c5800e493"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_q_swirls.scb": {
+      "wad_size": 10800,
+      "wad_sha256": "793de628b667c958427a0b567e5e44c0b8cf43046a50b4127ff9890803337c15",
+      "triangles": 96,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_q_swirls.json",
+      "sha256": "d0c038055d54c9c1a984f0a9b11728c5d22bec92eece443d8a2b2fea92bcbcc1"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_aa_air_swoosh.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "a7ea9d4cd68a5d77f71cdd91d1053f134099aea40f57d1693229723629a9347c",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_aa_air_swoosh.png",
+      "sha256": "e32034ffdf5d8b4363c407aaa4c89b091cfa8672371f7e1314dc02c74d99d5a0"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_aa_block_flash.tex": {
+      "wad_size": 87420,
+      "wad_sha256": "38c6b87f977555abef747d64936d0b08f9913e59c7e27cf940231ec917958775",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_aa_block_flash.png",
+      "sha256": "1d67037bbb0a45d553c0358f150f977b5852f2a3382d486daa2fbf09e20e5ffd"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_aa_bullet_glow.tex": {
+      "wad_size": 10972,
+      "wad_sha256": "f7675cf4d13a7a2190621fd8705c3da8333dfabdf06b151cf922750e1b188a93",
+      "dimensions": [
+        64,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_aa_bullet_glow.png",
+      "sha256": "b665922a5d4900d59241dabbcaa0345f49431dc4376957a841cd5eae7d3cd678"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_aa_vertical_gradient.tex": {
+      "wad_size": 5500,
+      "wad_sha256": "1d95301b564ba8bb7da431453b07d40fb4851647f00e6b826d55d484288a14f1",
+      "dimensions": [
+        64,
+        64
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_aa_vertical_gradient.png",
+      "sha256": "c1576113a6f6820fb30cd73342a919e85e27b7883c81b320fc3d0e77c6a654c6"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_air_swoosh.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "b96cf3aa883b9859b3294d9e1c6e3f372a3a86ed35b7a3e3c6fcfef3584af34e",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_air_swoosh.png",
+      "sha256": "05023086722a3512c92fc7d383e723860922671c6d04394c6884ae6db3d09f7e"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "b9057eb4a3a0b6481540ae35ebeed585a43eca3a0f04b97d847e0d0d412c2d36",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.png",
+      "sha256": "a1cd0aa9c894ee4c723e19d1037a10c985e8569256a54f9fc6c0f7930931e893"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_animeburstmesh01.scb": {
+      "wad_size": 36364,
+      "wad_sha256": "3ab719cf51f2857e10e5452b90322acbaa0f8d5bbd3cc7b42ca2fcdc322f51a2",
+      "triangles": 340,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_animeburstmesh01.json",
+      "sha256": "24b93b9ab585c062e95aa1c0fc9a712195c6b792b10a67b7a5e353cf81453499"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_crit_swipe.scb": {
+      "wad_size": 22208,
+      "wad_sha256": "03474043d39772fe58f4290e32c0a22221234d5eac3820cf4086dbfa11776d0c",
+      "triangles": 200,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_ba_crit_swipe.json",
+      "sha256": "b9a2302433dcf8cf1496b4b088bac80f8f50116c74fdc7e6fd8dcdc85708e0b8"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_crit_swipe_top.scb": {
+      "wad_size": 29312,
+      "wad_sha256": "9af9b3f8ddae49dab4c3157de2301349cbdadee8654bdaad7ad7238d02b0bc75",
+      "triangles": 264,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_ba_crit_swipe_top.json",
+      "sha256": "754387f084a622c060b334edb5e530017a4daa5cb0b5db1900bc333b463f3f95"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_dot.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "cd0c576c31c72582e4b624ac413fc877fe87642fec04ce852de4496869a73cd6",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_ba_dot.png",
+      "sha256": "e59a832b49c71625b8f491b830beec5dd2c163f9e6c2800b2028fa2f1409363f"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_hit2ball32_02.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "d1b2b8aee57eb464c0e4ed2dc5ab3b969e49597364540eaee9a8223f2b35b058",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_ba_hit2ball32_02.png",
+      "sha256": "32954274b20710fee920424e038fc15562afef977085637fd5f5d32ff020786f"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_melee_one_swipe.scb": {
+      "wad_size": 29472,
+      "wad_sha256": "36c0903c841aa8ec1cf6cd55e9999a1f09a2dfeadc56973d7aaafaf42b499dac",
+      "triangles": 264,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_ba_melee_one_swipe.json",
+      "sha256": "14c5b9ceaca771f1755f2416e1efa89f66caf12eaeaee178b232b1990bb26ba5"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_melee_slash_tar_01.scb": {
+      "wad_size": 17452,
+      "wad_sha256": "670905552c78fdd4c10d5d4d74f5a1c24ef5a563ef48f887287b698bef300520",
+      "triangles": 160,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_ba_melee_slash_tar_01.json",
+      "sha256": "8e7cd614a025076c98543aeb7072a6d1d09c243776ede5b29b257b37ea21ca7b"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_melee_two_swipe.scb": {
+      "wad_size": 28808,
+      "wad_sha256": "621fcf08287d048e4aec2e4419aaf1bb15f5a13410c4b8d8cb115fcdf2669516",
+      "triangles": 258,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_ba_melee_two_swipe.json",
+      "sha256": "776ea0325c4a7154fd224c4f25b5b06d0dda2e798a47829df3c208292a6fa29f"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_noise02.tex": {
+      "wad_size": 10948,
+      "wad_sha256": "e7736869d952921dbc8b1c7fc2cdbf4b0bb36d2243f9cd783ca78f3bba937911",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_ba_noise02.png",
+      "sha256": "e53bab4d18d9e4c6dfd99b53baefcad818eae90635829629374fae080116338c"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_sharp_ray.tex": {
+      "wad_size": 43740,
+      "wad_sha256": "c4a4687e46911ccb533a2fbef486d144b53da24c26a6c46f104750bc3b1c15dc",
+      "dimensions": [
+        128,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_ba_sharp_ray.png",
+      "sha256": "b28516a3fe97131c96fee332f46dac43098377420bd4bd4907a0ac4c308f294a"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_smoke_trail.tex": {
+      "wad_size": 43740,
+      "wad_sha256": "93c68f82ab8c7c67a84184bb6089a043f5c843f558efc71e489913d1666efe71",
+      "dimensions": [
+        256,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_ba_smoke_trail.png",
+      "sha256": "2d1795def6fa8d6a78b4014c2c84697fadf0b88a052e84c8b2765eed49244a8f"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_sparks.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "4902403316a49955371f8814d0b464ac92b304d70f7c450c2df4eaab5d3abf94",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_ba_sparks.png",
+      "sha256": "595046cdb8c478a8a9d816b6b5d674870495f232787619c7b7b16f7fecb71627"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_swipe.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "ad968873742c55176a8c3075e6134f6b16f5b350c3e7fe2d39fa3e8b5a2b330a",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_ba_swipe.png",
+      "sha256": "6044b54b7d4a2b94d57d1081cc7d05d7bfb6c9d0d6e558c34779ccd9711d4e0c"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_swipe_erode.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "2c9a64294d51caab2c09c23f8e6785e76200181d8cf5b7f1ee271df7ec1d0551",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_ba_swipe_erode.png",
+      "sha256": "4064032767aade4c4e7c141c7b95c737a6ea2f93b3a5dc7a4352267a5ae45885"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_trail_flame.tex": {
+      "wad_size": 87420,
+      "wad_sha256": "ea72cf469ff641f1a84d23ec483e2800d9fc7df25b369c529fd33a2c22774976",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_ba_trail_flame.png",
+      "sha256": "3abc4006a11aecc58a2013813e492ffa15c3b3750c5aca2c887813ec8d9c66a2"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_trail_flame_2.tex": {
+      "wad_size": 87420,
+      "wad_sha256": "97acd2c2553744eb7532474d013c0832d9f1012b65f2ea29c0732f6aa0076f37",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_ba_trail_flame_2.png",
+      "sha256": "ef638894384c705eb46011293cb6e88df0c1184ab7d1990d5ae9051df1d33a12"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_death_sparks.tex": {
+      "wad_size": 5500,
+      "wad_sha256": "7583b48ab19c691b437ed8ea7b4468f7acd6855e0093e2f264f46e86d23c1721",
+      "dimensions": [
+        64,
+        64
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_death_sparks.png",
+      "sha256": "5ff5b9e3e0bbcfd71cd6350b0b07e465ca8b12625425e41493cfb677516d3746"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_e_air_swoosh_grad01.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "6989c666cc40d9f610c6ab8800d3cca98373b8e74926e0c8b6d7313d390fe553",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_e_air_swoosh_grad01.png",
+      "sha256": "3808c311dd3a87019187b91e57694ad803e3d7319b13942356ec5d7c1c3cc26d"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_e_air_swoosh_grad02.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "285482c08d251770e2f61bb2ea1a5428b30d52cbd3c2d50171e42a715b1d8a6f",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_e_air_swoosh_grad02.png",
+      "sha256": "d675c96630c3fd955489f309377a5166f3d67c55d5e1b79d112735f5e8383260"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_e_bullet.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "90ec6b907435021ec9efe7a6950a4abe9703a48c3878c266aa2d4f2e260f7cb7",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_e_bullet.png",
+      "sha256": "ac0f704b539eca99dd687401fd0a54c6cd4362ae3e8f0af7f54abf27c7cbd3b9"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_e_dash_cone.scb": {
+      "wad_size": 8948,
+      "wad_sha256": "1f026fb78845b8e3d8bac46bacedce608adb149eaf3f5627824c3f9f63da9df5",
+      "triangles": 80,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_e_dash_cone.json",
+      "sha256": "12fd004c970e55d4df7b0c124c01bda58c203c0386e5ad180a21707bb5cf2b20"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_e_dash_streaks.scb": {
+      "wad_size": 22304,
+      "wad_sha256": "32e61299b10b23d090e3a2b90a5d034262f83c55a4519b3b0b0e49c4d153bb75",
+      "triangles": 200,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_e_dash_streaks.json",
+      "sha256": "86ceda97f2454f424d532c53af128aae7e8411cb3497f61f14f516f26a3061a4"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_e_ground_cracks.tex": {
+      "wad_size": 43740,
+      "wad_sha256": "0328ceece70cb25f2bee84387fa6e7014a2c9c6384944c7effd7a862066c5161",
+      "dimensions": [
+        128,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_e_ground_cracks.png",
+      "sha256": "1db61ddcfd683e8f849adf65a324a0d582b47fee8e86a4deba056af6c1d10ac9"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_e_impact_flare.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "31efe95e6c7bc59fc6282a040c48934bc1cb62c7a37a4353a2b23407e52b8325",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_e_impact_flare.png",
+      "sha256": "b64aaad2507a4fe3cfe4c9e56dc70f29daf42295253dfad802a3284ad8bc5e11"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_e_outer_flare_erode.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "5f5a7f0f8d96a99a07e20b70af9ca0987854c5e169c92ca727e5d209561babb4",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_e_outer_flare_erode.png",
+      "sha256": "a192d994c6c0e95d7c7409999716a143e4bb07d47de9fe166d29575165c43a86"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_e_white_rgb.tex": {
+      "wad_size": 124,
+      "wad_sha256": "cf589f62041fec1401d8737e05736f60ba8fc54b56f2a5d72019712451039037",
+      "dimensions": [
+        8,
+        8
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_e_white_rgb.png",
+      "sha256": "184188683fa5dc7e2fe422801502b3eca0f9444a59490c0a47ff1412dcaafdc4"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_emote_dash_dirttrail.tex": {
+      "wad_size": 43740,
+      "wad_sha256": "d505b83eddb720f991cfe5381ee2193b6f3c5a69f893c04674c572328992f086",
+      "dimensions": [
+        256,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_emote_dash_dirttrail.png",
+      "sha256": "3ccf1df8974561d639c06be3d5298d1e34cce606e11d58c041bfe1db8b483ee1"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_emote_shimmer.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "cec012d37f0e7a37000308f2cced9b8340cb15c70dd79f25aec264e650c6d33e",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_emote_shimmer.png",
+      "sha256": "eff489563f0be5f4190c9ce765a02a820cc857553990c8b6939d29c4231fada7"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_flame_trail.tex": {
+      "wad_size": 43740,
+      "wad_sha256": "5770d1015a220ede532efe40f343d3cdd9ee9d84c70a16313837d239c31b9c63",
+      "dimensions": [
+        256,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_flame_trail.png",
+      "sha256": "2b01431c8857041594e723c88aca54fd6266e762f37007396a0937cea8637c5a"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_gradient.tex": {
+      "wad_size": 5500,
+      "wad_sha256": "72b00a133586c24e44c15311d5ee5301336b5dddab9b04451cc00c8d2c3700bf",
+      "dimensions": [
+        64,
+        64
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_gradient.png",
+      "sha256": "ac3699d93c1d49bed34750b84bfbd02ea31ca97c518dcf12e28adcb25886d7a9"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_hit_shockwave.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "124acb7b2be35ce0c7b9c1ed18b6ae240a0346a5af682de06a3ada1b03f8a53a",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_hit_shockwave.png",
+      "sha256": "ddfa110af4606d85cc0e614b7206d417f218ce8bfb873282a65e9ba9da3d5b5e"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_hit_shockwave_dark.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "4d03a163e5d46d844033faadd7901c79d019857c49966ee3534921ecb3c1a132",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_hit_shockwave_dark.png",
+      "sha256": "e379f060005443dd2dd7f4b2e5b805c3cb12728866d16ffa4835fb83cd1fa1a2"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_hit_shockwave_erosion.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "e03c69462a5dda7557f837a41c2fd412ee11c42980282396d18ab1e665959ca1",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_hit_shockwave_erosion.png",
+      "sha256": "5cf51801af0317934344fb81fe9da590fcacb8151c4e2fe87a67d0c058cd6cb0"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_hit_shockwave_largeshape.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "b8dc1ad1a1cb342be62f8e5590b72935bffa66a3dd6f745224f1f2a9fafc582e",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_hit_shockwave_largeshape.png",
+      "sha256": "8fbf20ecc6469529e376577307bd6ebc058a4dac9e861b7f026dc69e18835d8f"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_morgw_meshmult.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "eab88f073dea2954c599bcb55c968d800e414c44a5e09ceb973e68f509d6bd1b",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_morgw_meshmult.png",
+      "sha256": "097abfd13882b11cb86bbcd3f3c9f028a3d0488a144e486f96f425eb78a91cdf"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_noisec.tex": {
+      "wad_size": 87420,
+      "wad_sha256": "8f7b4223cae9a976ff71810221c957f92a9ed9d77b51a651a80d25d7c0289c66",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_noisec.png",
+      "sha256": "95c24a1c8ecc713bdc04c33185181f9cc83228cf8b024f0692b35c35eb8cd349"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_p_buffer_ground_erode.tex": {
+      "wad_size": 43740,
+      "wad_sha256": "ab83dc2a67fa05f3098092ca30365e8c7019671196c109f4b3ca3ba3de641392",
+      "dimensions": [
+        128,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_p_buffer_ground_erode.png",
+      "sha256": "8c9431455783a310d9a2df81e63afa6b8c41983c455cf81e796ba4a0f8438233"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_p_screen_flames_soft.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "9b7791f8b69943a25f30012b4076745d059e44410cb06c2c90fc2b7987a23b6e",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_p_screen_flames_soft.png",
+      "sha256": "6d146e61ed69fea463ba62b928cd760f39002fe193aefbf0ef3769476a398337"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_p_tracer.tex": {
+      "wad_size": 43740,
+      "wad_sha256": "fd8f13eda959ab4bb8ae37ec75d4df2c31c6cdb397e9f8a7b3c7689b5fac4463",
+      "dimensions": [
+        128,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_p_tracer.png",
+      "sha256": "a4569fa2c9fad83eb4bd672310907df173019fc8b3eace6092691f3e2f610fa7"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_passive_flipbook02.tex": {
+      "wad_size": 43740,
+      "wad_sha256": "88c04f8e5a33fe82cc635d1effb9a41e54bfe94c0c70d537a6579515b5fbba45",
+      "dimensions": [
+        256,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_passive_flipbook02.png",
+      "sha256": "3ac4e99952a7189f0b09b995c6ac567ec50dd92205c4cbb4447167ba8489c3cc"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_passive_juggle_cylinder.scb": {
+      "wad_size": 44032,
+      "wad_sha256": "05e0bac7b23112a43cb47df91c934b810072c62315a438ffedffd9fd933553d3",
+      "triangles": 400,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_passive_juggle_cylinder.json",
+      "sha256": "08e35b2c32333603ac993d655ac825b241c3168affe19783ebdcb9ff549ae288"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_passive_juggle_plane.scb": {
+      "wad_size": 26752,
+      "wad_sha256": "7e8dcc1c8eca486fdb2739674f325c84b29fb3f7245d9676a2b34fe0cbb4e84a",
+      "triangles": 240,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_passive_juggle_plane.json",
+      "sha256": "21a10730e20f121fb5a0a56a92e67b64c2d34656a80073711831ab0f40d3e66e"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_passive_swipe_edge.tex": {
+      "wad_size": 43740,
+      "wad_sha256": "b5b8f49b42be1e84a4f6ed7cd02d1e2772da3271d64fb7a2c689eec9e62e47ab",
+      "dimensions": [
+        256,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_passive_swipe_edge.png",
+      "sha256": "ff0b4ee0fd9f862ef45cc236ad19090e1691f3d1032cac60bcd2b3fd2d981ab6"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_q2_mis_energy.tex": {
+      "wad_size": 87420,
+      "wad_sha256": "e57198498c3d8d23abb26bb1aaa036d1c4da0f5c84168e00f5888010eded6e6a",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_q2_mis_energy.png",
+      "sha256": "0832d382d11efa371f26328acfb95e5b3b10b0ad11ac416e85c3f55f8168a4cc"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_q_blade_trail.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "5e44733997302f090a7d02a8b93847a54f885aae4622e63c940f3d187e11ae73",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_q_blade_trail.png",
+      "sha256": "eab0e38b923f9dee6dace71888bc9444767aac4e532f3456cfcd0e64c11241e8"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_q_cas_distort.tex": {
+      "wad_size": 1436,
+      "wad_sha256": "6393a62a2d8405823533b3ee183567490c78d5be80b18213d3f13cf40f39a504",
+      "dimensions": [
+        64,
+        16
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_q_cas_distort.png",
+      "sha256": "6ee6d72c23cbb807bdf19a119083faf0d201266bb3493ef3c4e06fcfa33a3753"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_q_grenades.scb": {
+      "wad_size": 13360,
+      "wad_sha256": "c1e6ad6dec1095f07bdf9a6bdb4a2974061b5978b5bb902104254654df6d5965",
+      "triangles": 124,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_q_grenades.json",
+      "sha256": "fd96883c2c46d127d99a851b5b6a84a7ec49278302508eabb700e14cb787b102"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_q_horizontal_grad.tex": {
+      "wad_size": 5500,
+      "wad_sha256": "2dbb78767dc54203c2226f228d7ec2e54d2368bed93521fff6d9ac8ac0ea72ba",
+      "dimensions": [
+        64,
+        64
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_q_horizontal_grad.png",
+      "sha256": "1ca0a7d830932bdcae70fc46fcfe1e87258a249e4a8c29a95ada4d09833a20a4"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_q_melee_border.tex": {
+      "wad_size": 43740,
+      "wad_sha256": "61eb3d42d007eb2a8088b53b43615596560c6347c2a0946930c21e7c2fc8473d",
+      "dimensions": [
+        128,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_q_melee_border.png",
+      "sha256": "4e4cc04d81a974f5691bff92d842b5b3f8bc886210e678588a9149cb1d98327e"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_q_melee_border_burn_in.tex": {
+      "wad_size": 43740,
+      "wad_sha256": "24b2ced5047b98d6285d03ae321f1ad7ddfcd3e9881226d0cfc8fa636c4ce082",
+      "dimensions": [
+        128,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_q_melee_border_burn_in.png",
+      "sha256": "fe19f96abc7956b0bad2b84d67fa9dd4f2cb83eadd7b51c035a66e532f9d608e"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_q_melee_hitbox.scb": {
+      "wad_size": 22128,
+      "wad_sha256": "d95f96cc78e37e18abdde84f0923d10c58c65c1daa5bbef34b4877a3670b7678",
+      "triangles": 200,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_q_melee_hitbox.json",
+      "sha256": "ed3d2da621867eb012c3dc3738535235162bf8112924a202196710dedac19643"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_q_melee_hitbox_swipe_02.scb": {
+      "wad_size": 47536,
+      "wad_sha256": "5679cd7889b1233031025fe08291aeb40a0b254c653b920922effeb35738c70a",
+      "triangles": 432,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_q_melee_hitbox_swipe_02.json",
+      "sha256": "c1ec450fc909b47a2a0c34376b4617788d5994a654b18a1695e99562efc6488e"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_q_missile_head_2.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "3c06a5b12135c47c8c7bc32d5f49baded6c75c01a5883256db464be07ff79cee",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_q_missile_head_2.png",
+      "sha256": "cbd05be65da334d30530c68f4809aff623ab7fa9f0bc4cfce6710818d979f054"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_q_muzzle_flash.tex": {
+      "wad_size": 43740,
+      "wad_sha256": "993a3909bdc6ef32ed1c3723071346b5c2a85aeb45f9f9fdc02e184cbbbc7918",
+      "dimensions": [
+        128,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_q_muzzle_flash.png",
+      "sha256": "82001a376a253bd75eea01e52b4b4a2859e4145c474ea7d77c2899dd9e4f36d0"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_q_muzzleflashcore.scb": {
+      "wad_size": 1584,
+      "wad_sha256": "a123cec83c984b5819167c6a107e036fa66401357b16092075bba5d8d32324eb",
+      "triangles": 12,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_q_muzzleflashcore.json",
+      "sha256": "c2e790bac3ec013029bf26036e673c9d167eb78cc5fa639056b2627a4a290a08"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_q_q_ground_mult.tex": {
+      "wad_size": 87420,
+      "wad_sha256": "a3a22081830a0b578a24eddeef751d62c93ccbc23692b32c68dafdde0815ba08",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_q_q_ground_mult.png",
+      "sha256": "0e65ad3c35000dd8f1e77d2bafe0b415fbfe16c4f0410e9768f66c7fa085fab5"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_q_screen_flames.tex": {
+      "wad_size": 87420,
+      "wad_sha256": "3b49fd174a85a2fb9fba5ce9f99f38379d2f8fa919afed40aaac4f74d7531255",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_q_screen_flames.png",
+      "sha256": "73673a77ccbb3682c0e4bf26925538ed51c7779c009ac7d6940e0fec758b7281"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_q_screen_flames_02.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "2500a86873ddb34f7dbf0cc2c13fb9cb68de8eee055f5cd4f771894b7ef6c038",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_q_screen_flames_02.png",
+      "sha256": "bdc35c6e98f41fbcba7e190e84a845d8ba6a9c24b35a0faa41123cf69cffdc3c"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_q_smoke_erode.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "4265e8af420763f690d805d0b9ebc78ea032194d0e48c85f1b47118cb3125f18",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_q_smoke_erode.png",
+      "sha256": "ffd364813e33e5ec1f5511c37acf8cb491a8c464373eae2d16edaa08461e61c2"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_q_sphere_01.scb": {
+      "wad_size": 80776,
+      "wad_sha256": "5c89ba0ae0e4168a82556ad08669bce1068e4143481bc1c826863ecbbdf5f41e",
+      "triangles": 760,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_q_sphere_01.json",
+      "sha256": "5c48b79978364841f7c9da82984f7b93a0797af8aa8422255db157ed2280ce24"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_q_trail_sharp.tex": {
+      "wad_size": 43740,
+      "wad_sha256": "4da607ffc88bd696d7615cd119d7fd9a288bb58ecd4ce2b1929b325676128a47",
+      "dimensions": [
+        256,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_q_trail_sharp.png",
+      "sha256": "8fd6dd030372eac46a4681c2045c815fb71b2649f929b84d2e8dde18faf52ad7"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_q_trail_sharp_02.tex": {
+      "wad_size": 43740,
+      "wad_sha256": "d567ec79fd83bff422d132e98365466f80b244deea846dec2d40051d8fb65653",
+      "dimensions": [
+        256,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_q_trail_sharp_02.png",
+      "sha256": "ade16ac2dcb1f83e654b00a313c40b1c35639336d066b0c9cd243f6c1c152a1b"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeburstmesh01.scb": {
+      "wad_size": 36364,
+      "wad_sha256": "3ab719cf51f2857e10e5452b90322acbaa0f8d5bbd3cc7b42ca2fcdc322f51a2",
+      "triangles": 340,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeburstmesh01.json",
+      "sha256": "24b93b9ab585c062e95aa1c0fc9a712195c6b792b10a67b7a5e353cf81453499"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeshapes02.tex": {
+      "wad_size": 87420,
+      "wad_sha256": "9ae1db1c020896c4a85d60e925fb8968178874e783fd3c96f88e8be1ba4033c0",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeshapes02.png",
+      "sha256": "9ed8465097f3782d9a6b4ac5541e07a65fee59311675a08e08027ffae5aec65f"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeshapes02_erode.tex": {
+      "wad_size": 87420,
+      "wad_sha256": "3dcbbb6222498d00626a7c742c0f57d307ff02878541f74ee0b82a28c7294bc7",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeshapes02_erode.png",
+      "sha256": "341418bb1a1d549826e6de3030bb241b43f060e83923200c656f765301f033d9"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeshapesmesh01.tex": {
+      "wad_size": 87420,
+      "wad_sha256": "8cfdd33cb785ecad652c78e0e2e756fb02e1c0891a404e39f8b2285c0add0fe5",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeshapesmesh01.png",
+      "sha256": "c1254c560adc09722b1648f73f3ffb23b8acece4e850e191774bdd4a8ba30228"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeshapesmesh02.tex": {
+      "wad_size": 87420,
+      "wad_sha256": "13ed8629effbbe66e4b450d00b4ca85f40afda56559b4f55171ac259950871be",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeshapesmesh02.png",
+      "sha256": "81f588346be5d964859e295733c56de94c7e483328da144d15b09eca0efcfea7"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeshapesmesherosion.tex": {
+      "wad_size": 43716,
+      "wad_sha256": "068bf24570b73e4335139011195453641f0794d4a2c72f1c2c1817abf9e1f568",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeshapesmesherosion.png",
+      "sha256": "625f39bcf86b18754d5ccc3d6daa2f6879cb5e7350ba1c57e06fe3372939d747"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_r_buffer_ground_indicator.tex": {
+      "wad_size": 43740,
+      "wad_sha256": "70fc43bd6be7464c8af431953c43ee6ee4315be45ea5275d9f2ba980b00c3fe2",
+      "dimensions": [
+        128,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_r_buffer_ground_indicator.png",
+      "sha256": "2cbadbab3cf7523ea5f6327457b3f5ef35f3823249793c0713922212dcc3dc30"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_r_cracks_mult.tex": {
+      "wad_size": 5500,
+      "wad_sha256": "0be92939a368592326e0241c527d09990c60f9649a570487596b574126fb93ef",
+      "dimensions": [
+        64,
+        64
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_r_cracks_mult.png",
+      "sha256": "03bc27c0a176600f1ade7525ad601d328d42f9622e77424585d6c31b4406fba1"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_r_fakemissiles.scb": {
+      "wad_size": 2928,
+      "wad_sha256": "92d6a4cb3467b6b6b981c55e5904bf284fe2d3864783b9ccda32d8bb9e835d03",
+      "triangles": 24,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_r_fakemissiles.json",
+      "sha256": "9c8672c038d25f382eaac60e4ef62945d1c0baeef462d1af05ab3c5d4d2d86d4"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_r_flare_ray.tex": {
+      "wad_size": 43740,
+      "wad_sha256": "7216904fd031ffcf5d39d490d6019b7559406f7b322b86221bcd208c08b87dad",
+      "dimensions": [
+        128,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_r_flare_ray.png",
+      "sha256": "4911ef251a0a22e38ed8468604cbbad51c6b6eabfff96c3c91e702f0aa92c388"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_r_gunflash_blue.scb": {
+      "wad_size": 167956,
+      "wad_sha256": "98a81bbb7b95a3497e02930328946fe6140fc82bfe2079b11bbb04f3cbb1ace1",
+      "triangles": 1576,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_r_gunflash_blue.json",
+      "sha256": "4e964267cdf5df931ebc3228825fc3e5d7e7266811b6590d8337b98ff9e89347"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_r_gunflash_red.scb": {
+      "wad_size": 174252,
+      "wad_sha256": "39bb685480dbf5c4eaabb736a9918ff131df0443794db914aa36c211c34662af",
+      "triangles": 1638,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_r_gunflash_red.json",
+      "sha256": "9968b3f270202b027669cb9a5b52064bb8dcef5add423a8cd9bc00fc1d03ce15"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_r_muzzleflash_backdrop.tex": {
+      "wad_size": 43740,
+      "wad_sha256": "699f96366d21c189399ad266b94a911b197ae396d474a17c373a4afe24861c64",
+      "dimensions": [
+        128,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_r_muzzleflash_backdrop.png",
+      "sha256": "e85660c8e3edfafe022eebc30e1fb079a099ca7f80e5e816667b64c74f856079"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_r_muzzleflash_funnel.scb": {
+      "wad_size": 24128,
+      "wad_sha256": "b3bedbc9f567be6ef47f7a75efe10565d0c9a77cf3b9b89faa16c4ff00694da9",
+      "triangles": 220,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_r_muzzleflash_funnel.json",
+      "sha256": "2d0d137e6355ccf08268b92e67307b0aca5cccfcf63b473abc0dfc6c0c455a6b"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_r_muzzleflashcore.scb": {
+      "wad_size": 1584,
+      "wad_sha256": "a123cec83c984b5819167c6a107e036fa66401357b16092075bba5d8d32324eb",
+      "triangles": 12,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_r_muzzleflashcore.json",
+      "sha256": "c2e790bac3ec013029bf26036e673c9d167eb78cc5fa639056b2627a4a290a08"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_r_outer_flare.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "a78ed1701ba4b4d76c3825c95bf0a1c1aef35e4add24ada1277467756f34dbdc",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_r_outer_flare.png",
+      "sha256": "14928512c68de01ed05b9386895128517af657905277119b3bbe2a91f2684fb2"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_r_outeredge_01.scb": {
+      "wad_size": 70592,
+      "wad_sha256": "9417686885a42b68cceef41259a04c35e73f4b577b7ebd260557b5cd17d8ee25",
+      "triangles": 640,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_r_outeredge_01.json",
+      "sha256": "66e64979f4648a1169707a5183a1b06fd979d27813ee341d694fce25e4a9193f"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_r_ring_highlights.tex": {
+      "wad_size": 349564,
+      "wad_sha256": "dcb61ec9efc184c4db9a79aa3ce8fe43733e1c529faed6b998f606ae6a56abfe",
+      "dimensions": [
+        512,
+        512
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_r_ring_highlights.png",
+      "sha256": "23ebf64fb72c5b09c0a76ee8aa23f6a60c625b81b1827eeff01ca153815f7e61"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_r_smokeerosiont.tex": {
+      "wad_size": 43716,
+      "wad_sha256": "8eef4f1df5496089c80567a7fac2138fc93c41bd7831fb84e042286c7fcc4d4a",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_r_smokeerosiont.png",
+      "sha256": "4f4f6544eaccb3e5423169a78847aa4e10d0f821e4c1df0d0644d6ea74d83934"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_r_swipe_filler.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "91d7c820b1065c199e76d8d429a5801e87b9685bf2a1bc7e18c8f9bf7af181a4",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_r_swipe_filler.png",
+      "sha256": "63c21ff2a1a74aa67542576fef7ca853963bbe2b0c3fc799d999375965f8c9b7"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_ring_glow.tex": {
+      "wad_size": 87420,
+      "wad_sha256": "abd2b36fc88f93a882b84559ece59a6a5d733985d06d9c369a28c9d0dd87d7d2",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_ring_glow.png",
+      "sha256": "86d0e9e0f2d0b2a4cf7b0143887edb42f6a69d70718282d95f34ca3acb40b40c"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_taunt_star.tex": {
+      "wad_size": 87420,
+      "wad_sha256": "953180327f7c1757d4acdf780b5818c99c33d313a328be0388e8fcc62426f679",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_taunt_star.png",
+      "sha256": "0a6bf74153917b750770307df39ebed473495a0b5abbcf1577025fb2d3a6f820"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_trail01c.tex": {
+      "wad_size": 87420,
+      "wad_sha256": "0069bb3940351d51c39b1eabb1c71ff7bf22631d96f071c6dc65486d51473d9c",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_trail01c.png",
+      "sha256": "87aaca47e566932c3e25982f7ecce48082b0e2b21052cd0db5b84c5c60544e71"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_w_bullet_trail_beam.tex": {
+      "wad_size": 43740,
+      "wad_sha256": "6150425cb67eb234ffabe8d3af650ed092dfca3b36d76a00c6bbb5b7f6da9854",
+      "dimensions": [
+        128,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_w_bullet_trail_beam.png",
+      "sha256": "f12f810024a98ce54ca884f922b4dc1f71fec8d2903f546fc3ac4d8ab30b26e7"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_w_deflectionripples.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "83a4e0f0d51f533806557879008c90c347a0200d0285495bba5d9d94bbdebc41",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_w_deflectionripples.png",
+      "sha256": "7f3b852554fe1b28310a478a8d261c9d9ae0c199c2d6b81d0a48ee014ba7e512"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_w_distortion_soundwaves_01.tex": {
+      "wad_size": 87420,
+      "wad_sha256": "3df7b4f708d6e6c3f22da72b13c1fd01b8195e78595288dc1ddcf1e2e2f7781a",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_w_distortion_soundwaves_01.png",
+      "sha256": "ada3bcf7ab14338601d267b50d88e4b5ba7a35a51fa761ef1fa71a229a5e79fd"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_w_embers.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "89e03adc5c112e270d091c0c55f5bf03c2dabecd0b5a285f26d8275d280ed6d2",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_w_embers.png",
+      "sha256": "e2721b5e0c61e976bc6a2d84d105638912b345b57a1cf09f4f3ef9eecf31b396"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_w_juggle_cylinder.scb": {
+      "wad_size": 44032,
+      "wad_sha256": "05e0bac7b23112a43cb47df91c934b810072c62315a438ffedffd9fd933553d3",
+      "triangles": 400,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_w_juggle_cylinder.json",
+      "sha256": "08e35b2c32333603ac993d655ac825b241c3168affe19783ebdcb9ff549ae288"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_w_juggle_plane.scb": {
+      "wad_size": 26752,
+      "wad_sha256": "7e8dcc1c8eca486fdb2739674f325c84b29fb3f7245d9676a2b34fe0cbb4e84a",
+      "triangles": 240,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_w_juggle_plane.json",
+      "sha256": "21a10730e20f121fb5a0a56a92e67b64c2d34656a80073711831ab0f40d3e66e"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_w_muzzleflash_funnel.scb": {
+      "wad_size": 24128,
+      "wad_sha256": "b3bedbc9f567be6ef47f7a75efe10565d0c9a77cf3b9b89faa16c4ff00694da9",
+      "triangles": 220,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_w_muzzleflash_funnel.json",
+      "sha256": "2d0d137e6355ccf08268b92e67307b0aca5cccfcf63b473abc0dfc6c0c455a6b"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_w_rocks.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "b63332591fe88a2920466f1fc1584c42492f1a44c0b3e874fa6da77f2fc7f8a0",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_w_rocks.png",
+      "sha256": "9ea0c9dc317f76aa41c65eb994342a4f9e86a07a6e2fbd7d2f16c8db377b70eb"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_w_slash_tar.scb": {
+      "wad_size": 17872,
+      "wad_sha256": "2e35e57c53f2f8d1c4d16161e7ec3b0e4e339fbd56218bf067ae748987abbdec",
+      "triangles": 160,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_w_slash_tar.json",
+      "sha256": "3b4b1442860595836036284dd87dbc04c2f7c9df9355bf2692c1c1ff12b4f8bc"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_w_slashtar_01.scb": {
+      "wad_size": 17452,
+      "wad_sha256": "c8513a50a7d7fa0a277c5030b8aedc42679eeaf7544932ffbbb1bf1d7681e986",
+      "triangles": 160,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_w_slashtar_01.json",
+      "sha256": "70a81409450157fe9b1745e64fd1e1dfb14173772e27161a5867441de2749ec3"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_w_throw_sparks.tex": {
+      "wad_size": 43740,
+      "wad_sha256": "79789bba1c1cdec058303f1cca4afb08bc2139c248d6c49d18de3ae7312695fc",
+      "dimensions": [
+        128,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_w_throw_sparks.png",
+      "sha256": "f9db7cdd6b34a0bf44d7f0eb859795e9cfb97fb6a994bd552b95423ab60247a3"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_w_windwall.scb": {
+      "wad_size": 26752,
+      "wad_sha256": "6f4f310aaa0dc49ae88fa8a3289e88b25db55d2d899bb6b5547bb93d8cb0fde2",
+      "triangles": 240,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/samira_skin30_w_windwall.json",
+      "sha256": "9e7727ff09e2308006227ff713aaad8c6f77dd3eaed6e846244de6703aace89b"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_z_noise_06.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "6b14882bd9c3b103db8188cfdd1f04061c88abdb976d755faa601aba2359f84d",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_z_noise_06.png",
+      "sha256": "47671dccecde6fd330934f43eb808a73a4ca554efac69a6f2129801d070ef656"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_z_noise_08.tex": {
+      "wad_size": 21884,
+      "wad_sha256": "c4522c5deb69ea286c121732097e4f768746854e3175c80603c6cb61592eaaba",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_z_noise_08.png",
+      "sha256": "b2e7cd4294820f404fe95b30161fcb9d0fedb136dfc881bde56b0a0cc2c6f187"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_02.tex": {
+      "wad_size": 87420,
+      "wad_sha256": "a8dc4a704af8dfea62fd03e9903a0fae36e069f09b16f8d61d2f71099c94b579",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_02.png",
+      "sha256": "59c9ab3fa6c74d695a9a8885d51994b6d0b2ca915ce30d272c2bcf23043cf3d2"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_03.tex": {
+      "wad_size": 87420,
+      "wad_sha256": "44bcba1623bf5199626669255744004ca40b34cf1eabcf63c34df229acc0901f",
+      "dimensions": [
+        256,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_03.png",
+      "sha256": "5aac34c6597cc218cbb12774ba92bb9d8bf244fb7a1782435c66e4b6f3ed3caa"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_z_gradient_06.tex": {
+      "wad_size": 1428,
+      "wad_sha256": "f9c45ca68bb9aa04d697c57ca717b68d83c8d533c232f559ba6d131ee607fb55",
+      "dimensions": [
+        128,
+        16
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_z_gradient_06.png",
+      "sha256": "6ad6e2ef5d445d00a37e9f2ead2a261c05f3e05909d6c54645de5c55c9d67c58"
+    },
+    "assets/characters/samira/skins/skin30/particles/samira_z_gradient_08.tex": {
+      "wad_size": 10948,
+      "wad_sha256": "5ffa6667d02050b2b63b9bd666d74fadc7dda918f1335d63c4885bb1231bdd5c",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/samira_z_gradient_08.png",
+      "sha256": "9ca262aaf387cdc307c757bc5e3089d444d008420f08cd271ee64a5eb399f58b"
+    },
+    "assets/characters/samira/skins/skin30/particles/saucer5.scb": {
+      "wad_size": 9868,
+      "wad_sha256": "49d168396078779a383ed01421a407e4a099759849315af854f4f6efe958fd40",
+      "triangles": 80,
+      "file": "meshes/assets/characters/samira/skins/skin30/particles/saucer5.json",
+      "sha256": "a1ac52384b23fca21d6ee55e9372ef830611b2cba890fffddd38f7eeef0f823d"
+    },
+    "assets/characters/samira/skins/skin30/particles/sivir_skin30_w_buf_distort.tex": {
+      "wad_size": 5500,
+      "wad_sha256": "60fd31c5e45870e51a0f81e3d88d111df3adb9f0d0fad7d55e4db2955fc4de99",
+      "dimensions": [
+        64,
+        64
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/sivir_skin30_w_buf_distort.png",
+      "sha256": "8e339c1ddc6972c2df5c795b42420dd0206d1f176b73bd583c4059f03fca3bb7"
+    },
+    "assets/characters/samira/skins/skin30/particles/skin30_energy_ray.tex": {
+      "wad_size": 43740,
+      "wad_sha256": "da2aab66357115f9cf91499f7ba988df5ca56fb9a4cbda1a2419e3d1a6e0c683",
+      "dimensions": [
+        128,
+        256
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/particles/skin30_energy_ray.png",
+      "sha256": "0464d2a2962123744798425b77c3a3d4466561b44cb0b0c71c4d68115276506a"
+    },
+    "assets/characters/samira/skins/skin30/samira_skin30_guns_tx_cm.tex": {
+      "wad_size": 174788,
+      "wad_sha256": "2a5be2c937260bd727b6670dc46d0247936daaf939d9e361f3be4c250bee7f89",
+      "dimensions": [
+        512,
+        512
+      ],
+      "file": "textures/assets/characters/samira/skins/skin30/samira_skin30_guns_tx_cm.png",
+      "sha256": "b528ea53a6ad3383ce55bd1cd57c4513220e3868b30e70e4b557ff2747816859"
+    },
+    "assets/shared/particles/bigglow02_2.tex": {
+      "wad_size": 2756,
+      "wad_sha256": "6a347f4c46ff7541c05bf2d175df0e6874ff4477fb0fd7f411bf9c20c0ab819a",
+      "dimensions": [
+        64,
+        64
+      ],
+      "file": "textures/assets/shared/particles/bigglow02_2.png",
+      "sha256": "04e7e189f64aff7f10de4e22b0be0ac34f63559aa7306964d6763bbe4623a557"
+    }
+  },
+  "icons": {
+    "e": {
+      "wad_size": 2176,
+      "wad_sha256": "9520019f8cecd51ea7ce3aae912b51d8b2b16648071594b27e074109987851e1",
+      "dimensions": [
+        64,
+        64
+      ],
+      "file": "icons/e.png",
+      "sha256": "908d8edb530c51649749a94583cfc108485a308aec181bf5f8209f68db48d813",
+      "wad_path": "assets/characters/samira/hud/icons2d/samirae.dds"
+    },
+    "passive": {
+      "wad_size": 2176,
+      "wad_sha256": "19de387a60be686ae282c0da4cd22a7d008d361d481779be73fde3cfecf8e4e2",
+      "dimensions": [
+        64,
+        64
+      ],
+      "file": "icons/passive.png",
+      "sha256": "eda9bd94e1ee715808da1520ed8d0f96040cf06e469daa3b48bb247e1694e18e",
+      "wad_path": "assets/characters/samira/hud/icons2d/samirap.dds"
+    },
+    "q": {
+      "wad_size": 2176,
+      "wad_sha256": "a269746c7077203a9e58f9cb43c3b7494ffecdb9c52140804ef3e40444873036",
+      "dimensions": [
+        64,
+        64
+      ],
+      "file": "icons/q.png",
+      "sha256": "db035bc1fe5f4afe35c35228d371fa7e0e65ee8021d5b4dde8ee70ec3b68fbb5",
+      "wad_path": "assets/characters/samira/hud/icons2d/samiraq.dds"
+    },
+    "r": {
+      "wad_size": 2176,
+      "wad_sha256": "3c9a046a574ad45f1491fa72c7610558fc6337c006022638946c3f916479f72f",
+      "dimensions": [
+        64,
+        64
+      ],
+      "file": "icons/r.png",
+      "sha256": "6aa9a14e16de6fe0c1905cbfb29b33aaa99989e4ce20057f9f0ccbe832511d32",
+      "wad_path": "assets/characters/samira/hud/icons2d/samirar1.dds"
+    },
+    "w": {
+      "wad_size": 2176,
+      "wad_sha256": "42208776835c2a82f83d5e5edbb3f08903756ba455ba73aeb2c23fad5fc14989",
+      "dimensions": [
+        64,
+        64
+      ],
+      "file": "icons/w.png",
+      "sha256": "10ca297e3c5c37311e5d138832d03d072c7d51bec0cbca9308d00ddc0df666ce",
+      "wad_path": "assets/characters/samira/hud/icons2d/samiraw.dds"
+    },
+    "avatar": {
+      "wad_size": 16396,
+      "wad_sha256": "c859c75895a5ff293bd0b58486de30497009d891cedeea5fdb68c69b4809baba",
+      "dimensions": [
+        128,
+        128
+      ],
+      "file": "icons/avatar.png",
+      "sha256": "4a2fbcefd9709f9f01bb72c60ee75be361a42d3dc000e33997fdec247e9dae4c",
+      "wad_path": "assets/characters/samira/hud/samira_circle_30.tex"
+    },
+    "move": {
+      "file": "icons/move.png",
+      "source_url": "https://raw.communitydragon.org/16.22/game/assets/ux/cursors/hand1.png",
+      "sha256": "642b77bab054c3ac92933942f91eaae05569240f37a846469b1c2c1b454e5370",
+      "pixel_sha256": "e77dd46b3e6156b624418f994803401cbc618d4a124099fb82a0d1c316ca1c74",
+      "dimensions": [
+        48,
+        48
+      ]
+    },
+    "target": {
+      "file": "icons/target.png",
+      "source_url": "https://raw.communitydragon.org/16.22/game/assets/ux/cursors/singletargetenemy.png",
+      "sha256": "a8f2a3c9a197b19bfda7f3ad700195a67392db0ec8450c5c69742b995521286e",
+      "pixel_sha256": "c52c39f23eae1e99e2cc23ee60fc92e5304e1a0f477f539798c3ea46c88ec810",
+      "dimensions": [
+        48,
+        48
+      ]
+    }
+  },
+  "unused_asset_formats": {
+    "assets/characters/samira/skins/skin30/particles/samira_skin30_mine_mesh.skn": {
+      "wad_size": 1264,
+      "wad_sha256": "847d43169abc63d238ed0ed2a3de3ed5e8dbbd46952a0da07290d4cbe39b2333",
+      "reason": "The companion consumes unskinned meshes and textures."
+    }
+  },
+  "unresolved_child_links": []
+}

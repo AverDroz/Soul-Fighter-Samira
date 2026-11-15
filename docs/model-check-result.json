@@ -1,0 +1,9 @@
+{
+  "result": "passed",
+  "animations": 89,
+  "bones": 133,
+  "bindings": 37,
+  "finite_pose_samples": 445,
+  "attachment_and_visibility_boundaries": "passed",
+  "scope": "CPU rig validation; does not validate gameplay or all LoL animation graph features"
+}

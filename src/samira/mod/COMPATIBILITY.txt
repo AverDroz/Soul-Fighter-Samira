@@ -1,0 +1,39 @@
+Samira 0.7.58 - 道具兼容 / Item compatibility
+
+射速与冷却 / Tears and cooldowns
+每点面板射速（每秒发射数）提供 4 点技能极速，和装备技能极速相加。
+Each displayed tear per second grants 4 ability haste, added to equipment haste.
+Cooldown = base cooldown * 100 / (100 + total haste), rounded down to simulation ticks.
+
+Q / 普攻 / 赐死剑气 - Native on-hit effects
+命中存活敌人后，调用原版 GetTearHitParams 和 ApplyTearflagEffects。
+幸运触发判定、状态时长、免疫和视觉表现交给原版处理；没有额外隐形泪弹伤害。
+Native rolls, durations, immunities and status visuals are used after accepted hits on living targets.
+No invisible tear is spawned and no duplicate direct damage is added.
+Supported status flags: poison, slow, freeze, charm, confusion, fear, burn,
+Midas freeze, Gish slow, permanent confusion, shrink, magnetize, bait.
+兼容的常见效果包括普通感冒/天蝎座的毒、蜘蛛之咬的减速、妈妈的隐形眼镜的冻结、
+妈妈的眼影的魅惑、铁棍的混乱、恐惧效果、火焰意志的灼烧、神性肉体的缩小、
+磁石的磁化、腐烂番茄的标记。这里只接入这些道具的命中状态部分。
+Examples: Common Cold/Scorpio poison, Spider Bite slow, Mom's Contact freeze,
+Mom's Eyeshadow charm, Iron Bar confusion, fear effects, Fire Mind burn,
+God's Flesh shrink, Lodestone magnetize and Rotten Tomato bait.
+These adapters cover their on-hit status component, not every secondary item behavior.
+多道 Q 命中同一目标时只判定一次；未命中、伤害被拒绝、火堆和尸体不触发。
+Overlapping Q blades roll once per victim. Misses, rejected damage, fireplaces and dead targets do not proc.
+
+Existing adapters / 已有兼容
+Q emits owned Brimstone, Technology, Technology 2, Tech X, Dr. Fetus and Mom's Knife weapons.
+Native multishot determines Q blade count; Q3 releases Lil Brimstone once per cast.
+原生多重射击决定 Q 数量；Q3 每次释放一次硫磺火宝宝充能攻击。
+
+Limits / 边界
+Not a universal implementation of all Isaac items. Splitting, homing, orbital tears,
+on-kill ice shattering, explosions and special charge familiars need separate adapters.
+本轮不把分裂、追踪、环绕、死亡碎冰或爆炸强行转换为额外 Q 状态。
+已有武器发射仍保留其原生行为。本轮通过模拟回归测试，未逐项完成实机道具组合验证。
+Existing native weapon behavior is retained. Automated routing tests passed; every live item combination has not been verified.
+
+API references:
+https://wofsauge.github.io/IsaacDocs/rep/EntityPlayer.html#gettearhitparams
+https://repentogon.com/EntityNPC.html#applytearflageffects

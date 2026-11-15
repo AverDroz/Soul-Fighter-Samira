@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='utf-8'?>
+<items gfxroot="gfx/items/" version="1">
+  <passive id="1" name="Samira: Boots" description="Speed up" gfx="samira_item_1001.png" quality="3" shopprice="5" />
+  <passive id="2" name="Samira: Overlord's Bloodmail" description="Health and wounds fuel damage" gfx="samira_item_2501.png" quality="3" shopprice="24" maxhearts="4" hearts="4" />
+  <passive id="3" name="Samira: Fiendhunter Bolts" description="Rapid critical attacks after R" gfx="samira_item_2512.png" quality="3" shopprice="19" />
+  <passive id="4" name="Samira: Endless Hunger" description="Haste and boss-triggered vamp" gfx="samira_item_2517.png" quality="3" shopprice="22" />
+  <passive id="5" name="Samira: Bastionbreaker" description="Bonus damage and boss breaker" gfx="samira_item_2520.png" quality="3" shopprice="21" />
+  <passive id="6" name="Samira: Hexoptics C44" description="Distance amplifies shots" gfx="samira_item_2523.png" quality="3" shopprice="20" />
+  <passive id="7" name="Samira: Protoplasm Harness" description="Emergency heal once per floor" gfx="samira_item_2525.png" quality="3" shopprice="19" maxhearts="4" hearts="4" />
+  <passive id="8" name="Samira: Berserker's Greaves" description="Speed and attack speed up" gfx="samira_item_3006.png" quality="3" shopprice="8" />
+  <passive id="9" name="Samira: Gluttonous Greaves" description="Boss kills stack vamp chance" gfx="samira_item_3008.png" quality="3" shopprice="8" />
+  <passive id="10" name="Samira: Boots of Swiftness" description="Speed and slow resistance" gfx="samira_item_3009.png" quality="3" shopprice="7" />
+  <passive id="11" name="Samira: Infinity Edge" description="Stronger critical hits" gfx="samira_item_3031.png" quality="3" shopprice="25" />
+  <passive id="12" name="Samira: Yun Tal Wildarrows" description="Attacks build critical chance" gfx="samira_item_3032.png" quality="3" shopprice="21" />
+  <passive id="13" name="Samira: Mortal Reminder" description="Hits inflict Grievous Wounds" gfx="samira_item_3033.png" quality="3" shopprice="21" />
+  <passive id="14" name="Samira: Lord Dominik's Regards" description="Bonus damage against giants" gfx="samira_item_3036.png" quality="3" shopprice="24" />
+  <passive id="15" name="Samira: Phantom Dancer" description="Spectral shots" gfx="samira_item_3046.png" quality="3" shopprice="19" />
+  <passive id="16" name="Samira: Sterak's Gage" description="Damage and emergency heal" gfx="samira_item_3053.png" quality="3" shopprice="23" maxhearts="2" hearts="2" />
+  <passive id="17" name="Samira: Black Cleaver" description="Stacking vulnerability" gfx="samira_item_3071.png" quality="3" shopprice="21" maxhearts="2" hearts="2" />
+  <passive id="18" name="Samira: Bloodthirster" description="Full-health vamp grants a shield" gfx="samira_item_3072.png" quality="3" shopprice="24" />
+  <passive id="19" name="Samira: Experimental Hexplate" description="Speed surge after R" gfx="samira_item_3073.png" quality="3" shopprice="21" maxhearts="2" hearts="2" />
+  <passive id="20" name="Samira: Trinity Force" description="Ability primes a stronger attack" gfx="samira_item_3078.png" quality="3" shopprice="24" maxhearts="6" hearts="6" />
+  <passive id="21" name="Samira: Warmog's Armor" description="Heart synergy and clean-room healing" gfx="samira_item_3083.png" quality="3" shopprice="22" maxhearts="5" hearts="5" />
+  <passive id="22" name="Samira: Heartsteel" description="Charge a strike and grow health" gfx="samira_item_3084.png" quality="3" shopprice="21" maxhearts="5" hearts="5" />
+  <passive id="23" name="Samira: Runaan's Hurricane" description="Shots split into nearby foes" gfx="samira_item_3085.png" quality="3" shopprice="19" />
+  <passive id="24" name="Samira: Rapid Firecannon" description="Movement charges a long shot" gfx="samira_item_3094.png" quality="3" shopprice="19" />
+  <passive id="25" name="Samira: Stormrazor" description="Charged shots grant speed" gfx="samira_item_3095.png" quality="3" shopprice="23" />
+  <passive id="26" name="Samira: Blade of The Ruined King" description="Bonus damage and three-hit slow" gfx="samira_item_3153.png" quality="3" shopprice="23" />
+  <passive id="27" name="Samira: Ionian Boots of Lucidity" description="Speed and ability haste up" gfx="samira_item_3158.png" quality="3" shopprice="6" />
+  <passive id="28" name="Samira: Spear of Shojin" description="Ability hits build ability damage" gfx="samira_item_3161.png" quality="3" shopprice="22" maxhearts="2" hearts="2" />
+  <passive id="29" name="Samira: Swiftmarch" description="Bonus movement speed fuels damage" gfx="samira_item_3170.png" quality="3" shopprice="10" />
+  <passive id="30" name="Samira: Crimson Lucidity" description="Abilities grant speed" gfx="samira_item_3171.png" quality="3" shopprice="9" />
+  <passive id="31" name="Samira: Gunmetal Greaves" description="Attack speed and vamp chance" gfx="samira_item_3172.png" quality="3" shopprice="11" />
+  <passive id="32" name="Samira: Umbral Glaive" description="Periodic bonus attack damage" gfx="samira_item_3179.png" quality="3" shopprice="20" />
+  <passive id="33" name="Samira: Hullbreaker" description="Fifth attack hits harder" gfx="samira_item_3181.png" quality="3" shopprice="21" maxhearts="4" hearts="4" />
+  <passive id="34" name="Samira: Edge of Night" description="Rechargeable projectile shield" gfx="samira_item_3814.png" quality="3" shopprice="21" maxhearts="1" hearts="1" />
+  <passive id="35" name="Samira: Chempunk Chainsword" description="Hits inflict Grievous Wounds" gfx="samira_item_6609.png" quality="3" shopprice="21" maxhearts="2" hearts="2" />
+  <passive id="36" name="Samira: Sundered Sky" description="First boss hit crits and heals" gfx="samira_item_6610.png" quality="3" shopprice="22" maxhearts="2" hearts="2" />
+  <passive id="37" name="Samira: Kraken Slayer" description="Third attack hits harder" gfx="samira_item_6672.png" quality="3" shopprice="21" />
+  <passive id="38" name="Samira: Immortal Shieldbow" description="Emergency heal once per floor" gfx="samira_item_6673.png" quality="3" shopprice="21" />
+  <passive id="39" name="Samira: Navori Flickerblade" description="Attacks shorten ability cooldowns" gfx="samira_item_6675.png" quality="3" shopprice="19" />
+  <passive id="40" name="Samira: The Collector" description="Execute for extra coins" gfx="samira_item_6676.png" quality="3" shopprice="21" />
+  <passive id="41" name="Samira: Eclipse" description="Rapid mixed hits grant a shield" gfx="samira_item_6692.png" quality="3" shopprice="21" />
+  <passive id="42" name="Samira: Serylda's Grudge" description="Abilities slow injured targets" gfx="samira_item_6694.png" quality="3" shopprice="21" />
+  <passive id="43" name="Samira: Serpent's Fang" description="Attacks destroy hostile projectiles" gfx="samira_item_6695.png" quality="3" shopprice="18" />
+  <passive id="44" name="Samira: Axiom Arc" description="R damage up" gfx="samira_item_6696.png" quality="3" shopprice="20" />
+  <passive id="45" name="Samira: Hubris" description="Clean combat rooms build damage" gfx="samira_item_6697.png" quality="3" shopprice="20" />
+  <passive id="46" name="Samira: Voltaic Cyclosword" description="Ability primes a charged shot" gfx="samira_item_6699.png" quality="3" shopprice="21" />
+</items>

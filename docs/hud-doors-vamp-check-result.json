@@ -1,0 +1,17 @@
+{
+  "version": "0.2.1",
+  "date": "2026-11-15T23:51:10.4808370+06:00",
+  "checks": [
+    "check_samira_combat.py",
+    "check_samira_items.py",
+    "check_samira_items_room.py",
+    "check_samira_inventory.py",
+    "check_samira_inventory_hud.py"
+  ],
+  "result": "passed",
+  "doorCoverage": "8 door slots, closed receiving door, bottom-door approach, ordinary wall exclusion; native physics not simulated",
+  "vampCoverage": "accepted dummy hits, normal targets, source attribution, 5 percent cap, 240 frame cooldown, one roll per R",
+  "hudCoverage": "direct PNG sprites, bottom-left anchor, trinket clearance, mouse hitboxes",
+  "installedFilesVerifiedSha256": 66,
+  "liveGameTest": "Pending user test; game was not launched"
+}

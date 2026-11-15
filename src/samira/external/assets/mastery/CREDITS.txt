@@ -1,0 +1,5 @@
+Original Riot Games level-7 mastery crest, rig, animation, particle meshes/textures and Wwise audio.
+VFX: Global.wad.client/loadouts/summoneremotes.13bb5231.bin, Loadouts/SummonerEmotes/Particles/Masteries/Mastery_2_lv7.
+Audio: Common.wad.client/misc_emotes_sfx_events.bnk, Play_sfx_RevampedLegendaryChampionMasteryEmote_Level7_buffactivate, WEM 722625801.
+Companion renders the source rig and all 27 emitter layers at framebuffer resolution. Timing, texture curves and original sound are retained; projection/compositing adapt to Isaac, not the League renderer.
+原版资产与声音归 Riot Games；直接渲染原版骨骼与 27 层粒子，屏幕投影和透明合成适配以撒，非英雄联盟引擎。

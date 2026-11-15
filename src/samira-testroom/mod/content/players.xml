@@ -1,0 +1,5 @@
+<players root="gfx/characters/costumes/" portraitroot="gfx/samira/" nameimageroot="gfx/samira/">
+    <player name="Samira" skin="character_001_isaac.png" skinColor="-1"
+            hp="6" bombs="0" keys="0" coins="0"
+            nameimage="name.png" portrait="portrait.png" />
+</players>

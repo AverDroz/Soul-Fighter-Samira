@@ -1,0 +1,654 @@
+<?xml version='1.0' encoding='utf8'?>
+<sounds root="sfx/samira/">
+  <sound name="Samira q1_cast">
+    <sample weight="1" path="q1_cast.wav" />
+  </sound>
+  <sound name="Samira q2_cast">
+    <sample weight="1" path="q2_cast.wav" />
+  </sound>
+  <sound name="Samira q3_cast">
+    <sample weight="1" path="q3_cast.wav" />
+  </sound>
+  <sound name="Samira q1_miss">
+    <sample weight="1" path="q1_miss.wav" />
+  </sound>
+  <sound name="Samira q2_miss">
+    <sample weight="1" path="q2_miss.wav" />
+  </sound>
+  <sound name="Samira q3_miss">
+    <sample weight="1" path="q3_miss.wav" />
+  </sound>
+  <sound name="Samira q_hit">
+    <sample weight="1" path="q_hit.wav" />
+  </sound>
+  <sound name="Samira q_sweet">
+    <sample weight="1" path="q_sweet.wav" />
+  </sound>
+  <sound name="Samira q3_hit">
+    <sample weight="1" path="q3_hit.wav" />
+  </sound>
+  <sound name="Samira q3_sweet">
+    <sample weight="1" path="q3_sweet.wav" />
+  </sound>
+  <sound name="Samira w_cast">
+    <sample weight="1" path="w_cast.wav" />
+  </sound>
+  <sound name="Samira w_launch">
+    <sample weight="1" path="w_launch.wav" />
+  </sound>
+  <sound name="Samira w_hit">
+    <sample weight="1" path="w_hit.wav" />
+  </sound>
+  <sound name="Samira w_pull">
+    <sample weight="1" path="w_pull.wav" />
+  </sound>
+  <sound name="Samira e_cast">
+    <sample weight="1" path="e_cast.wav" />
+  </sound>
+  <sound name="Samira r_cast">
+    <sample weight="1" path="r_cast.wav" />
+  </sound>
+  <sound name="Samira r_end">
+    <sample weight="1" path="r_end.wav" />
+  </sound>
+  <sound name="Samira attack">
+    <sample weight="1" path="attack.wav" />
+  </sound>
+  <sound name="Samira attack_hit">
+    <sample weight="1" path="attack_hit.wav" />
+  </sound>
+  <sound name="Samira death">
+    <sample weight="1" path="death.wav" />
+  </sound>
+  <sound name="Samira joke">
+    <sample weight="1" path="joke.wav" />
+  </sound>
+  <sound name="Samira taunt">
+    <sample weight="1" path="taunt.wav" />
+  </sound>
+  <sound name="Samira dance_intro">
+    <sample weight="1" path="dance_intro.wav" />
+  </sound>
+  <sound name="Samira dance_loop">
+    <sample weight="1" path="dance_loop.wav" />
+  </sound>
+  <sound name="Samira vo_q1">
+    <sample weight="1" path="vo_q1_01.wav" />
+    <sample weight="1" path="vo_q1_02.wav" />
+    <sample weight="1" path="vo_q1_03.wav" />
+    <sample weight="1" path="vo_q1_04.wav" />
+    <sample weight="1" path="vo_q1_05.wav" />
+    <sample weight="1" path="vo_q1_06.wav" />
+  </sound>
+  <sound name="Samira vo_q2">
+    <sample weight="1" path="vo_q2_01.wav" />
+    <sample weight="1" path="vo_q2_02.wav" />
+    <sample weight="1" path="vo_q2_03.wav" />
+    <sample weight="1" path="vo_q2_04.wav" />
+    <sample weight="1" path="vo_q2_05.wav" />
+    <sample weight="1" path="vo_q2_06.wav" />
+  </sound>
+  <sound name="Samira vo_q3">
+    <sample weight="1" path="vo_q3_01.wav" />
+    <sample weight="1" path="vo_q3_02.wav" />
+    <sample weight="1" path="vo_q3_03.wav" />
+    <sample weight="1" path="vo_q3_04.wav" />
+    <sample weight="1" path="vo_q3_05.wav" />
+    <sample weight="1" path="vo_q3_06.wav" />
+  </sound>
+  <sound name="Samira vo_w">
+    <sample weight="1" path="vo_w_01.wav" />
+    <sample weight="1" path="vo_w_02.wav" />
+    <sample weight="1" path="vo_w_03.wav" />
+  </sound>
+  <sound name="Samira vo_e">
+    <sample weight="1" path="vo_e_01.wav" />
+    <sample weight="1" path="vo_e_02.wav" />
+  </sound>
+  <sound name="Samira vo_r">
+    <sample weight="1" path="vo_r_01.wav" />
+    <sample weight="1" path="vo_r_02.wav" />
+    <sample weight="1" path="vo_r_03.wav" />
+    <sample weight="1" path="vo_r_04.wav" />
+    <sample weight="1" path="vo_r_05.wav" />
+    <sample weight="1" path="vo_r_06.wav" />
+    <sample weight="1" path="vo_r_07.wav" />
+    <sample weight="1" path="vo_r_08.wav" />
+  </sound>
+  <sound name="Samira vo_death">
+    <sample weight="1" path="vo_death_01.wav" />
+    <sample weight="1" path="vo_death_02.wav" />
+    <sample weight="1" path="vo_death_03.wav" />
+  </sound>
+  <sound name="Samira vo_joke">
+    <sample weight="1" path="vo_joke_01.wav" />
+    <sample weight="1" path="vo_joke_02.wav" />
+    <sample weight="1" path="vo_joke_03.wav" />
+  </sound>
+  <sound name="Samira vo_taunt">
+    <sample weight="1" path="vo_taunt_01.wav" />
+    <sample weight="1" path="vo_taunt_02.wav" />
+    <sample weight="1" path="vo_taunt_03.wav" />
+  </sound>
+  <sound name="Samira vo_laugh">
+    <sample weight="1" path="vo_laugh_01.wav" />
+    <sample weight="1" path="vo_laugh_02.wav" />
+    <sample weight="1" path="vo_laugh_03.wav" />
+  </sound>
+  <sound name="Samira vo_move">
+    <sample weight="1" path="vo_move_01.wav" />
+    <sample weight="1" path="vo_move_02.wav" />
+    <sample weight="1" path="vo_move_03.wav" />
+    <sample weight="1" path="vo_move_04.wav" />
+    <sample weight="1" path="vo_move_05.wav" />
+    <sample weight="1" path="vo_move_06.wav" />
+    <sample weight="1" path="vo_move_07.wav" />
+    <sample weight="1" path="vo_move_08.wav" />
+    <sample weight="1" path="vo_move_09.wav" />
+    <sample weight="1" path="vo_move_10.wav" />
+    <sample weight="1" path="vo_move_11.wav" />
+    <sample weight="1" path="vo_move_12.wav" />
+    <sample weight="1" path="vo_move_13.wav" />
+    <sample weight="1" path="vo_move_14.wav" />
+    <sample weight="1" path="vo_move_15.wav" />
+    <sample weight="1" path="vo_move_16.wav" />
+    <sample weight="1" path="vo_move_17.wav" />
+    <sample weight="1" path="vo_move_18.wav" />
+    <sample weight="1" path="vo_move_19.wav" />
+    <sample weight="1" path="vo_move_20.wav" />
+    <sample weight="1" path="vo_move_21.wav" />
+    <sample weight="1" path="vo_move_22.wav" />
+    <sample weight="1" path="vo_move_23.wav" />
+    <sample weight="1" path="vo_move_24.wav" />
+    <sample weight="1" path="vo_move_25.wav" />
+    <sample weight="1" path="vo_move_26.wav" />
+    <sample weight="1" path="vo_move_27.wav" />
+    <sample weight="1" path="vo_move_28.wav" />
+    <sample weight="1" path="vo_move_29.wav" />
+    <sample weight="1" path="vo_move_30.wav" />
+    <sample weight="1" path="vo_move_31.wav" />
+    <sample weight="1" path="vo_move_32.wav" />
+    <sample weight="1" path="vo_move_33.wav" />
+    <sample weight="1" path="vo_move_34.wav" />
+  </sound>
+  <sound name="Samira vo_attack">
+    <sample weight="1" path="vo_attack_01.wav" />
+    <sample weight="1" path="vo_attack_02.wav" />
+    <sample weight="1" path="vo_attack_03.wav" />
+    <sample weight="1" path="vo_attack_04.wav" />
+    <sample weight="1" path="vo_attack_05.wav" />
+    <sample weight="1" path="vo_attack_06.wav" />
+    <sample weight="1" path="vo_attack_07.wav" />
+    <sample weight="1" path="vo_attack_08.wav" />
+    <sample weight="1" path="vo_attack_09.wav" />
+    <sample weight="1" path="vo_attack_10.wav" />
+    <sample weight="1" path="vo_attack_11.wav" />
+    <sample weight="1" path="vo_attack_12.wav" />
+    <sample weight="1" path="vo_attack_13.wav" />
+    <sample weight="1" path="vo_attack_14.wav" />
+    <sample weight="1" path="vo_attack_15.wav" />
+    <sample weight="1" path="vo_attack_16.wav" />
+    <sample weight="1" path="vo_attack_17.wav" />
+    <sample weight="1" path="vo_attack_18.wav" />
+    <sample weight="1" path="vo_attack_19.wav" />
+    <sample weight="1" path="vo_attack_20.wav" />
+    <sample weight="1" path="vo_attack_21.wav" />
+  </sound>
+  <sound name="Samira vo_kill">
+    <sample weight="1" path="vo_kill_01.wav" />
+    <sample weight="1" path="vo_kill_02.wav" />
+    <sample weight="1" path="vo_kill_03.wav" />
+    <sample weight="1" path="vo_kill_04.wav" />
+    <sample weight="1" path="vo_kill_05.wav" />
+    <sample weight="1" path="vo_kill_06.wav" />
+    <sample weight="1" path="vo_kill_07.wav" />
+    <sample weight="1" path="vo_kill_08.wav" />
+    <sample weight="1" path="vo_kill_09.wav" />
+    <sample weight="1" path="vo_kill_10.wav" />
+    <sample weight="1" path="vo_kill_11.wav" />
+    <sample weight="1" path="vo_kill_12.wav" />
+  </sound>
+  <sound name="Samira ui_open">
+    <sample weight="1" path="ui_open.wav" />
+  </sound>
+  <sound name="Samira ui_close">
+    <sample weight="1" path="ui_close.wav" />
+  </sound>
+  <sound name="Samira ui_click">
+    <sample weight="1" path="ui_click.wav" />
+  </sound>
+  <sound name="Samira ui_buy">
+    <sample weight="1" path="ui_buy.wav" />
+  </sound>
+  <sound name="Samira ui_sell">
+    <sample weight="1" path="ui_sell.wav" />
+  </sound>
+  <sound name="Samira ui_error">
+    <sample weight="1" path="ui_error.wav" />
+  </sound>
+  <sound name="Samira ui_level">
+    <sample weight="1" path="ui_level.wav" />
+  </sound>
+  <sound name="Samira r_music">
+    <sample weight="1" path="r_music.wav" />
+  </sound>
+  <sound name="Samira passive_cast">
+    <sample weight="1" path="passive_cast.wav" />
+  </sound>
+  <sound name="Samira passive_hit">
+    <sample weight="1" path="passive_hit.wav" />
+  </sound>
+  <sound name="Samira vo_move_long">
+    <sample weight="1" path="vo_move_long_01.wav" />
+    <sample weight="1" path="vo_move_long_02.wav" />
+    <sample weight="1" path="vo_move_long_03.wav" />
+    <sample weight="1" path="vo_move_long_04.wav" />
+    <sample weight="1" path="vo_move_long_05.wav" />
+    <sample weight="1" path="vo_move_long_06.wav" />
+    <sample weight="1" path="vo_move_long_07.wav" />
+    <sample weight="1" path="vo_move_long_08.wav" />
+    <sample weight="1" path="vo_move_long_09.wav" />
+    <sample weight="1" path="vo_move_long_10.wav" />
+    <sample weight="1" path="vo_move_long_11.wav" />
+    <sample weight="1" path="vo_move_long_12.wav" />
+    <sample weight="1" path="vo_move_long_13.wav" />
+    <sample weight="1" path="vo_move_long_14.wav" />
+    <sample weight="1" path="vo_move_long_15.wav" />
+    <sample weight="1" path="vo_move_long_16.wav" />
+    <sample weight="1" path="vo_move_long_17.wav" />
+    <sample weight="1" path="vo_move_long_18.wav" />
+    <sample weight="1" path="vo_move_long_19.wav" />
+    <sample weight="1" path="vo_move_long_20.wav" />
+    <sample weight="1" path="vo_move_long_21.wav" />
+    <sample weight="1" path="vo_move_long_22.wav" />
+    <sample weight="1" path="vo_move_long_23.wav" />
+    <sample weight="1" path="vo_move_long_24.wav" />
+    <sample weight="1" path="vo_move_long_25.wav" />
+  </sound>
+  <sound name="Samira vo_r_ready">
+    <sample weight="1" path="vo_r_ready_01.wav" />
+    <sample weight="1" path="vo_r_ready_02.wav" />
+    <sample weight="1" path="vo_r_ready_03.wav" />
+    <sample weight="1" path="vo_r_ready_04.wav" />
+    <sample weight="1" path="vo_r_ready_05.wav" />
+    <sample weight="1" path="vo_r_ready_06.wav" />
+    <sample weight="1" path="vo_r_ready_07.wav" />
+    <sample weight="1" path="vo_r_ready_08.wav" />
+    <sample weight="1" path="vo_r_ready_09.wav" />
+    <sample weight="1" path="vo_r_ready_10.wav" />
+    <sample weight="1" path="vo_r_ready_11.wav" />
+    <sample weight="1" path="vo_r_ready_12.wav" />
+    <sample weight="1" path="vo_r_ready_13.wav" />
+    <sample weight="1" path="vo_r_ready_14.wav" />
+  </sound>
+  <sound name="Samira vo_r_01">
+    <sample weight="1" path="vo_r_01.wav" />
+  </sound>
+  <sound name="Samira vo_r_02">
+    <sample weight="1" path="vo_r_02.wav" />
+  </sound>
+  <sound name="Samira vo_r_03">
+    <sample weight="1" path="vo_r_03.wav" />
+  </sound>
+  <sound name="Samira vo_r_04">
+    <sample weight="1" path="vo_r_04.wav" />
+  </sound>
+  <sound name="Samira vo_r_05">
+    <sample weight="1" path="vo_r_05.wav" />
+  </sound>
+  <sound name="Samira vo_r_06">
+    <sample weight="1" path="vo_r_06.wav" />
+  </sound>
+  <sound name="Samira vo_r_07">
+    <sample weight="1" path="vo_r_07.wav" />
+  </sound>
+  <sound name="Samira vo_r_08">
+    <sample weight="1" path="vo_r_08.wav" />
+  </sound>
+  <sound name="Samira vo_en_q1">
+    <sample weight="1" path="en/File0071.wav" />
+    <sample weight="1" path="en/File0060.wav" />
+    <sample weight="1" path="en/File0041.wav" />
+    <sample weight="1" path="en/File0044.wav" />
+    <sample weight="1" path="en/File0019.wav" />
+    <sample weight="1" path="en/File0145.wav" />
+  </sound>
+  <sound name="Samira vo_en_q2">
+    <sample weight="1" path="en/File0071.wav" />
+    <sample weight="1" path="en/File0060.wav" />
+    <sample weight="1" path="en/File0041.wav" />
+    <sample weight="1" path="en/File0044.wav" />
+    <sample weight="1" path="en/File0019.wav" />
+    <sample weight="1" path="en/File0145.wav" />
+  </sound>
+  <sound name="Samira vo_en_q3">
+    <sample weight="1" path="en/File0071.wav" />
+    <sample weight="1" path="en/File0060.wav" />
+    <sample weight="1" path="en/File0041.wav" />
+    <sample weight="1" path="en/File0044.wav" />
+    <sample weight="1" path="en/File0019.wav" />
+    <sample weight="1" path="en/File0145.wav" />
+  </sound>
+  <sound name="Samira vo_en_w">
+    <sample weight="1" path="en/File0108.wav" />
+    <sample weight="1" path="en/File0138.wav" />
+    <sample weight="1" path="en/File0183.wav" />
+  </sound>
+  <sound name="Samira vo_en_e">
+    <sample weight="1" path="en/File0057.wav" />
+    <sample weight="1" path="en/File0050.wav" />
+  </sound>
+  <sound name="Samira vo_en_r">
+    <sample weight="1" path="en/File0095.wav" />
+    <sample weight="1" path="en/File0034.wav" />
+    <sample weight="1" path="en/File0118.wav" />
+    <sample weight="1" path="en/File0176.wav" />
+    <sample weight="1" path="en/File0166.wav" />
+    <sample weight="1" path="en/File0049.wav" />
+    <sample weight="1" path="en/File0154.wav" />
+    <sample weight="1" path="en/File0030.wav" />
+  </sound>
+  <sound name="Samira vo_en_r_01">
+    <sample weight="1" path="en/File0095.wav" />
+  </sound>
+  <sound name="Samira vo_en_r_02">
+    <sample weight="1" path="en/File0034.wav" />
+  </sound>
+  <sound name="Samira vo_en_r_03">
+    <sample weight="1" path="en/File0118.wav" />
+  </sound>
+  <sound name="Samira vo_en_r_04">
+    <sample weight="1" path="en/File0176.wav" />
+  </sound>
+  <sound name="Samira vo_en_r_05">
+    <sample weight="1" path="en/File0166.wav" />
+  </sound>
+  <sound name="Samira vo_en_r_06">
+    <sample weight="1" path="en/File0049.wav" />
+  </sound>
+  <sound name="Samira vo_en_r_07">
+    <sample weight="1" path="en/File0154.wav" />
+  </sound>
+  <sound name="Samira vo_en_r_08">
+    <sample weight="1" path="en/File0030.wav" />
+  </sound>
+  <sound name="Samira vo_en_death">
+    <sample weight="1" path="en/File0047.wav" />
+    <sample weight="1" path="en/File0119.wav" />
+    <sample weight="1" path="en/File0136.wav" />
+  </sound>
+  <sound name="Samira vo_en_joke">
+    <sample weight="1" path="en/File0008.wav" />
+    <sample weight="1" path="en/File0080.wav" />
+    <sample weight="1" path="en/File0007.wav" />
+  </sound>
+  <sound name="Samira vo_en_taunt">
+    <sample weight="1" path="en/File0022.wav" />
+    <sample weight="1" path="en/File0219.wav" />
+    <sample weight="1" path="en/File0175.wav" />
+  </sound>
+  <sound name="Samira vo_en_laugh">
+    <sample weight="1" path="en/File0127.wav" />
+    <sample weight="1" path="en/File0036.wav" />
+    <sample weight="1" path="en/File0205.wav" />
+  </sound>
+  <sound name="Samira vo_en_move">
+    <sample weight="1" path="en/File0180.wav" />
+    <sample weight="1" path="en/File0088.wav" />
+    <sample weight="1" path="en/File0191.wav" />
+    <sample weight="1" path="en/File0094.wav" />
+    <sample weight="1" path="en/File0153.wav" />
+    <sample weight="1" path="en/File0079.wav" />
+    <sample weight="1" path="en/File0087.wav" />
+    <sample weight="1" path="en/File0010.wav" />
+    <sample weight="1" path="en/File0213.wav" />
+    <sample weight="1" path="en/File0111.wav" />
+    <sample weight="1" path="en/File0235.wav" />
+    <sample weight="1" path="en/File0242.wav" />
+    <sample weight="1" path="en/File0137.wav" />
+    <sample weight="1" path="en/File0200.wav" />
+    <sample weight="1" path="en/File0161.wav" />
+    <sample weight="1" path="en/File0220.wav" />
+    <sample weight="1" path="en/File0082.wav" />
+    <sample weight="1" path="en/File0055.wav" />
+    <sample weight="1" path="en/File0002.wav" />
+    <sample weight="1" path="en/File0218.wav" />
+    <sample weight="1" path="en/File0131.wav" />
+    <sample weight="1" path="en/File0090.wav" />
+    <sample weight="1" path="en/File0006.wav" />
+    <sample weight="1" path="en/File0223.wav" />
+    <sample weight="1" path="en/File0149.wav" />
+    <sample weight="1" path="en/File0160.wav" />
+    <sample weight="1" path="en/File0028.wav" />
+    <sample weight="1" path="en/File0059.wav" />
+    <sample weight="1" path="en/File0098.wav" />
+    <sample weight="1" path="en/File0001.wav" />
+    <sample weight="1" path="en/File0192.wav" />
+    <sample weight="1" path="en/File0239.wav" />
+    <sample weight="1" path="en/File0237.wav" />
+    <sample weight="1" path="en/File0163.wav" />
+  </sound>
+  <sound name="Samira vo_en_attack">
+    <sample weight="1" path="en/File0063.wav" />
+    <sample weight="1" path="en/File0197.wav" />
+    <sample weight="1" path="en/File0121.wav" />
+    <sample weight="1" path="en/File0053.wav" />
+    <sample weight="1" path="en/File0241.wav" />
+    <sample weight="1" path="en/File0074.wav" />
+    <sample weight="1" path="en/File0093.wav" />
+    <sample weight="1" path="en/File0042.wav" />
+    <sample weight="1" path="en/File0165.wav" />
+    <sample weight="1" path="en/File0215.wav" />
+    <sample weight="1" path="en/File0233.wav" />
+    <sample weight="1" path="en/File0035.wav" />
+    <sample weight="1" path="en/File0011.wav" />
+    <sample weight="1" path="en/File0204.wav" />
+    <sample weight="1" path="en/File0232.wav" />
+    <sample weight="1" path="en/File0103.wav" />
+    <sample weight="1" path="en/File0069.wav" />
+    <sample weight="1" path="en/File0155.wav" />
+    <sample weight="1" path="en/File0078.wav" />
+    <sample weight="1" path="en/File0162.wav" />
+    <sample weight="1" path="en/File0104.wav" />
+  </sound>
+  <sound name="Samira vo_en_kill">
+    <sample weight="1" path="en/File0106.wav" />
+    <sample weight="1" path="en/File0076.wav" />
+    <sample weight="1" path="en/File0056.wav" />
+    <sample weight="1" path="en/File0181.wav" />
+    <sample weight="1" path="en/File0170.wav" />
+    <sample weight="1" path="en/File0146.wav" />
+    <sample weight="1" path="en/File0091.wav" />
+    <sample weight="1" path="en/File0128.wav" />
+    <sample weight="1" path="en/File0206.wav" />
+    <sample weight="1" path="en/File0171.wav" />
+    <sample weight="1" path="en/File0209.wav" />
+    <sample weight="1" path="en/File0203.wav" />
+  </sound>
+  <sound name="Samira vo_en_move_long">
+    <sample weight="1" path="en/File0225.wav" />
+    <sample weight="1" path="en/File0224.wav" />
+    <sample weight="1" path="en/File0013.wav" />
+    <sample weight="1" path="en/File0051.wav" />
+    <sample weight="1" path="en/File0048.wav" />
+    <sample weight="1" path="en/File0097.wav" />
+    <sample weight="1" path="en/File0039.wav" />
+    <sample weight="1" path="en/File0038.wav" />
+    <sample weight="1" path="en/File0207.wav" />
+    <sample weight="1" path="en/File0083.wav" />
+    <sample weight="1" path="en/File0075.wav" />
+    <sample weight="1" path="en/File0231.wav" />
+    <sample weight="1" path="en/File0014.wav" />
+    <sample weight="1" path="en/File0077.wav" />
+    <sample weight="1" path="en/File0167.wav" />
+    <sample weight="1" path="en/File0058.wav" />
+    <sample weight="1" path="en/File0148.wav" />
+    <sample weight="1" path="en/File0116.wav" />
+    <sample weight="1" path="en/File0003.wav" />
+    <sample weight="1" path="en/File0151.wav" />
+    <sample weight="1" path="en/File0023.wav" />
+    <sample weight="1" path="en/File0043.wav" />
+    <sample weight="1" path="en/File0064.wav" />
+    <sample weight="1" path="en/File0026.wav" />
+    <sample weight="1" path="en/File0061.wav" />
+  </sound>
+  <sound name="Samira vo_en_r_ready">
+    <sample weight="1" path="en/File0133.wav" />
+    <sample weight="1" path="en/File0157.wav" />
+    <sample weight="1" path="en/File0228.wav" />
+    <sample weight="1" path="en/File0052.wav" />
+    <sample weight="1" path="en/File0208.wav" />
+    <sample weight="1" path="en/File0084.wav" />
+    <sample weight="1" path="en/File0066.wav" />
+    <sample weight="1" path="en/File0112.wav" />
+    <sample weight="1" path="en/File0073.wav" />
+    <sample weight="1" path="en/File0227.wav" />
+    <sample weight="1" path="en/File0054.wav" />
+    <sample weight="1" path="en/File0186.wav" />
+    <sample weight="1" path="en/File0159.wav" />
+    <sample weight="1" path="en/File0216.wav" />
+  </sound>
+  <sound name="Samira heartsteel_hit">
+    <sample weight="1" path="heartsteel_hit_01.wav" />
+    <sample weight="1" path="heartsteel_hit_02.wav" />
+    <sample weight="1" path="heartsteel_hit_03.wav" />
+  </sound>
+  <sound name="Samira vo_boss">
+    <sample weight="1" path="vo_attack_06.wav" />
+  </sound>
+  <sound name="Samira vo_en_boss">
+    <sample weight="1" path="en/File0074.wav" />
+  </sound>
+  <sound name="Samira vo_attack_01">
+    <sample weight="1" path="vo_attack_01.wav" />
+  </sound>
+  <sound name="Samira vo_attack_02">
+    <sample weight="1" path="vo_attack_02.wav" />
+  </sound>
+  <sound name="Samira vo_attack_03">
+    <sample weight="1" path="vo_attack_03.wav" />
+  </sound>
+  <sound name="Samira vo_attack_04">
+    <sample weight="1" path="vo_attack_04.wav" />
+  </sound>
+  <sound name="Samira vo_attack_05">
+    <sample weight="1" path="vo_attack_05.wav" />
+  </sound>
+  <sound name="Samira vo_attack_06">
+    <sample weight="1" path="vo_attack_06.wav" />
+  </sound>
+  <sound name="Samira vo_attack_07">
+    <sample weight="1" path="vo_attack_07.wav" />
+  </sound>
+  <sound name="Samira vo_attack_08">
+    <sample weight="1" path="vo_attack_08.wav" />
+  </sound>
+  <sound name="Samira vo_attack_09">
+    <sample weight="1" path="vo_attack_09.wav" />
+  </sound>
+  <sound name="Samira vo_attack_10">
+    <sample weight="1" path="vo_attack_10.wav" />
+  </sound>
+  <sound name="Samira vo_attack_11">
+    <sample weight="1" path="vo_attack_11.wav" />
+  </sound>
+  <sound name="Samira vo_attack_12">
+    <sample weight="1" path="vo_attack_12.wav" />
+  </sound>
+  <sound name="Samira vo_attack_13">
+    <sample weight="1" path="vo_attack_13.wav" />
+  </sound>
+  <sound name="Samira vo_attack_14">
+    <sample weight="1" path="vo_attack_14.wav" />
+  </sound>
+  <sound name="Samira vo_attack_15">
+    <sample weight="1" path="vo_attack_15.wav" />
+  </sound>
+  <sound name="Samira vo_attack_16">
+    <sample weight="1" path="vo_attack_16.wav" />
+  </sound>
+  <sound name="Samira vo_attack_17">
+    <sample weight="1" path="vo_attack_17.wav" />
+  </sound>
+  <sound name="Samira vo_attack_18">
+    <sample weight="1" path="vo_attack_18.wav" />
+  </sound>
+  <sound name="Samira vo_attack_19">
+    <sample weight="1" path="vo_attack_19.wav" />
+  </sound>
+  <sound name="Samira vo_attack_20">
+    <sample weight="1" path="vo_attack_20.wav" />
+  </sound>
+  <sound name="Samira vo_attack_21">
+    <sample weight="1" path="vo_attack_21.wav" />
+  </sound>
+  <sound name="Samira vo_en_attack_01">
+    <sample weight="1" path="en/File0063.wav" />
+  </sound>
+  <sound name="Samira vo_en_attack_02">
+    <sample weight="1" path="en/File0197.wav" />
+  </sound>
+  <sound name="Samira vo_en_attack_03">
+    <sample weight="1" path="en/File0121.wav" />
+  </sound>
+  <sound name="Samira vo_en_attack_04">
+    <sample weight="1" path="en/File0053.wav" />
+  </sound>
+  <sound name="Samira vo_en_attack_05">
+    <sample weight="1" path="en/File0241.wav" />
+  </sound>
+  <sound name="Samira vo_en_attack_06">
+    <sample weight="1" path="en/File0074.wav" />
+  </sound>
+  <sound name="Samira vo_en_attack_07">
+    <sample weight="1" path="en/File0093.wav" />
+  </sound>
+  <sound name="Samira vo_en_attack_08">
+    <sample weight="1" path="en/File0042.wav" />
+  </sound>
+  <sound name="Samira vo_en_attack_09">
+    <sample weight="1" path="en/File0165.wav" />
+  </sound>
+  <sound name="Samira vo_en_attack_10">
+    <sample weight="1" path="en/File0215.wav" />
+  </sound>
+  <sound name="Samira vo_en_attack_11">
+    <sample weight="1" path="en/File0233.wav" />
+  </sound>
+  <sound name="Samira vo_en_attack_12">
+    <sample weight="1" path="en/File0035.wav" />
+  </sound>
+  <sound name="Samira vo_en_attack_13">
+    <sample weight="1" path="en/File0011.wav" />
+  </sound>
+  <sound name="Samira vo_en_attack_14">
+    <sample weight="1" path="en/File0204.wav" />
+  </sound>
+  <sound name="Samira vo_en_attack_15">
+    <sample weight="1" path="en/File0232.wav" />
+  </sound>
+  <sound name="Samira vo_en_attack_16">
+    <sample weight="1" path="en/File0103.wav" />
+  </sound>
+  <sound name="Samira vo_en_attack_17">
+    <sample weight="1" path="en/File0069.wav" />
+  </sound>
+  <sound name="Samira vo_en_attack_18">
+    <sample weight="1" path="en/File0155.wav" />
+  </sound>
+  <sound name="Samira vo_en_attack_19">
+    <sample weight="1" path="en/File0078.wav" />
+  </sound>
+  <sound name="Samira vo_en_attack_20">
+    <sample weight="1" path="en/File0162.wav" />
+  </sound>
+  <sound name="Samira vo_en_attack_21">
+    <sample weight="1" path="en/File0104.wav" />
+  </sound>
+  <sound name="Samira zhonya_activate">
+    <sample weight="1" path="zhonya_activate.wav" />
+  </sound>
+  <sound name="Hero Mastery Level 7">
+    <sample path="mastery.wav" weight="1" />
+  </sound>
+</sounds>

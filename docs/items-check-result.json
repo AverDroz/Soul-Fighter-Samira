@@ -1,0 +1,13 @@
+{
+  "status": "installed_pending_user_playtest",
+  "filesVerified": 62,
+  "items": 46,
+  "backup": "C:\\Users\\Mortem ad Deos\\samira айзек\\work\\before-items-20261115-230819",
+  "target": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\The Binding of Isaac Rebirth\\mods\\samira_testroom",
+  "tests": [
+    "check_samira_combat.py PASS",
+    "check_samira_items.py PASS",
+    "check_samira_items_room.py PASS"
+  ],
+  "imageGenerations": 1
+}

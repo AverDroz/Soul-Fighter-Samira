@@ -1,0 +1,547 @@
+{
+  "name": "Soul Fighter Samira",
+  "champion_id": 360,
+  "skin_id": 30,
+  "full_skin_id": 360030,
+  "copyright": "League of Legends character, artwork and animations © Riot Games.",
+  "patch": "16.22.8348910",
+  "riot_manifest": "https://lol.dyn.riotcdn.net/channels/public/releases/6EDAD6B3C9806CB9.manifest",
+  "wad_client_path": "DATA/FINAL/Champions/Samira.wad.client",
+  "wad_sha256": "46de520169a641ea2b871aab56a56af09e754258f778d55042feb52a83474142",
+  "path_metadata_source": "https://raw.communitydragon.org/16.22/game/",
+  "original_files": {
+    "assets/characters/samira/skins/skin30/animations/attack1_gun_hit.anm": {
+      "size": 6836,
+      "sha256": "9a72bb3c68605e720530d983de1a7836034b0aad13017080da9a3a95e55743cd"
+    },
+    "assets/characters/samira/skins/skin30/animations/attack1_gun_into_idle.anm": {
+      "size": 116804,
+      "sha256": "eb1e9af04c44d0402a484a5e992d7fe61f3a8cc4587ae95a40dacbd581ef95d9"
+    },
+    "assets/characters/samira/skins/skin30/animations/attack1_gun_start.anm": {
+      "size": 15980,
+      "sha256": "ecb07a61de689da71bd47b7201f5fce6ae210152925dbe845ea0bc5207654729"
+    },
+    "assets/characters/samira/skins/skin30/animations/attack1_sword_ht.anm": {
+      "size": 8792,
+      "sha256": "1c6160328034cef239799d22ade37e14a29b5ed0c097461501e750f911852461"
+    },
+    "assets/characters/samira/skins/skin30/animations/attack1_sword_into_idle.anm": {
+      "size": 79532,
+      "sha256": "da2cdca954b5875375f16209e455ad9fefc5a292e6343fa92359b4236bdcd7e4"
+    },
+    "assets/characters/samira/skins/skin30/animations/attack1_sword_into_run.anm": {
+      "size": 63590,
+      "sha256": "7374206df4bf44288e2565a70cab3c451d8707bf70123fb9b85562e880c0128e"
+    },
+    "assets/characters/samira/skins/skin30/animations/attack1_sword_start.anm": {
+      "size": 15932,
+      "sha256": "8948ea7fbfc4bd665763d3c7e770df2a38b461db47721ac10b201b9227a0816c"
+    },
+    "assets/characters/samira/skins/skin30/animations/attack2_gun_hit.anm": {
+      "size": 6758,
+      "sha256": "92d5606553741700f940146d061b01822cde6f79fb2a04c0b210ccbc87d842d6"
+    },
+    "assets/characters/samira/skins/skin30/animations/attack2_gun_into_idle.anm": {
+      "size": 128276,
+      "sha256": "a4d4b9096b7282f5a5ca94487c664dcc4773085ab9a12d619b3a03b3ce56ed0a"
+    },
+    "assets/characters/samira/skins/skin30/animations/attack2_gun_start.anm": {
+      "size": 15950,
+      "sha256": "a579ffb75f62f96eba79429b39dc2902e65f233e088c64fb01527ebf2fe41b46"
+    },
+    "assets/characters/samira/skins/skin30/animations/attack2_sword_hit.anm": {
+      "size": 7988,
+      "sha256": "1d40cbfe243d4a4c61220f9c06740a71fefeb02c1b8e522bebb01bc572e23c55"
+    },
+    "assets/characters/samira/skins/skin30/animations/attack2_sword_into_idle.anm": {
+      "size": 79202,
+      "sha256": "0c1ec25d00419fcbcaa2692a79fb96e0d1f0b34fb7f510da1c71f93353656e6f"
+    },
+    "assets/characters/samira/skins/skin30/animations/attack2_sword_into_run.anm": {
+      "size": 60310,
+      "sha256": "323a220ee29ec03472d547c911359526da8309db47c4ecdeee68f8ff73405096"
+    },
+    "assets/characters/samira/skins/skin30/animations/attack2_sword_start.anm": {
+      "size": 17198,
+      "sha256": "9056d303d2c2f7379f4802a08536ed97edc5a96ba4e7864a196aad09a2c55d16"
+    },
+    "assets/characters/samira/skins/skin30/animations/attack_gun_into_run_front.anm": {
+      "size": 55400,
+      "sha256": "3aa30a708f5aa3930cf55d81b1861e28685411c7da682d5e278557aefde0b745"
+    },
+    "assets/characters/samira/skins/skin30/animations/attack_gun_into_run_left.anm": {
+      "size": 54386,
+      "sha256": "1838e7d01046174494fcc05abe29838d174e29f9dc009472da6d89ce6ebeaec3"
+    },
+    "assets/characters/samira/skins/skin30/animations/attack_gun_into_run_right.anm": {
+      "size": 54392,
+      "sha256": "6637d64d7d6c49f0a27cef59308ae60321ac09f276fefcffdd55c8e52515a7ec"
+    },
+    "assets/characters/samira/skins/skin30/animations/channel.anm": {
+      "size": 33176,
+      "sha256": "0fff200ff213d6b183663e38b389c7438bffd1e1fdcaf3db95d61fd6e14af152"
+    },
+    "assets/characters/samira/skins/skin30/animations/channel_wndup.anm": {
+      "size": 40726,
+      "sha256": "d01bc640703a3bc964b49c5ab4d655dcfb76a438aa5767d3f2b21ac1f386c109"
+    },
+    "assets/characters/samira/skins/skin30/animations/crit_gun_hit.anm": {
+      "size": 7028,
+      "sha256": "c90e7280b675851746fc2a65e020e2a9d74b86b56d36fc2723bfeaa446076908"
+    },
+    "assets/characters/samira/skins/skin30/animations/crit_gun_into_idle.anm": {
+      "size": 80482,
+      "sha256": "1974df1ffc108aeafc9385084f889e81e3d8e47b26f0522e417cc8d4ecef947c"
+    },
+    "assets/characters/samira/skins/skin30/animations/crit_gun_start.anm": {
+      "size": 16502,
+      "sha256": "8342aa940bbd4ada333747c647500ba2cbd0104f922b049a36a55f9e5b44295e"
+    },
+    "assets/characters/samira/skins/skin30/animations/crit_sword_hit.anm": {
+      "size": 5110,
+      "sha256": "7634eeb1767a8055b814cd269410ba9c334ebeaaddf54bcac5fdf8fd8cb094c2"
+    },
+    "assets/characters/samira/skins/skin30/animations/crit_sword_start.anm": {
+      "size": 17950,
+      "sha256": "28f2546bcfb657aacfcdc0429ba4a55405ed4216df191f6b384c109d48b59970"
+    },
+    "assets/characters/samira/skins/skin30/animations/crit_sword_toidle.anm": {
+      "size": 94172,
+      "sha256": "db8f85a1e0b1b7e2f7956cbde91ec4f8a9f173aef62cf9157a96105a8617aefb"
+    },
+    "assets/characters/samira/skins/skin30/animations/crit_sword_torun.anm": {
+      "size": 77134,
+      "sha256": "1cd06ca45b0392b0355a1647c4ef9fbc661a9e403f87c617297dd9abdbd2d010"
+    },
+    "assets/characters/samira/skins/skin30/animations/dance_in.anm": {
+      "size": 59210,
+      "sha256": "1563492eae97cf91badf1783e28f3e5c14583a766d7eac50b696327e3fca48b4"
+    },
+    "assets/characters/samira/skins/skin30/animations/dance_loop.anm": {
+      "size": 165986,
+      "sha256": "62b87c6c939b05a6ca4282b2b19b3fcacd37e4e1cf8bb11c7423bcf2f9f81260"
+    },
+    "assets/characters/samira/skins/skin30/animations/death.anm": {
+      "size": 92174,
+      "sha256": "178b0a811b2b3f18ff303229b9f979798334fa14c7cb728dbf86331dd5efc295"
+    },
+    "assets/characters/samira/skins/skin30/animations/homeguard_in.anm": {
+      "size": 44870,
+      "sha256": "b42065ed4ba55a99c9dbf65c90d177eb54aed223efb4d0a2920f06bfeaafaa7f"
+    },
+    "assets/characters/samira/skins/skin30/animations/homeguard_loop.anm": {
+      "size": 133210,
+      "sha256": "cc582ae8fc21a4c76c7be5700a193fcf67c4a1a918ffea7818279af1dedf7bc0"
+    },
+    "assets/characters/samira/skins/skin30/animations/idle.anm": {
+      "size": 27404,
+      "sha256": "b6f2addfcd5b0a923eb1e37370bc0e2d4a6a82d59a26598bab8dbd5259b3371b"
+    },
+    "assets/characters/samira/skins/skin30/animations/idle_gun.anm": {
+      "size": 75346,
+      "sha256": "9f5184d9debc3c21795acf93deed1a62d44690579753fd9de64d1da1b9213600"
+    },
+    "assets/characters/samira/skins/skin30/animations/idle_gun_in.anm": {
+      "size": 60900,
+      "sha256": "15640f587eba6e64e499f913df2ede515adf8c2ff50ea608f8d436b3d0a47744"
+    },
+    "assets/characters/samira/skins/skin30/animations/idle_ooc_in.anm": {
+      "size": 36346,
+      "sha256": "394c53d1f852f0090aee880f1f7a0eb110ef902ed0494dfdd9a7219b398dbb3d"
+    },
+    "assets/characters/samira/skins/skin30/animations/idle_sword.anm": {
+      "size": 79408,
+      "sha256": "0a587f8c13e0e01d6177bbafed3eef9051da72826b3ec08411fde7595fc67557"
+    },
+    "assets/characters/samira/skins/skin30/animations/idle_sword_in.anm": {
+      "size": 73514,
+      "sha256": "744cd5298bbae2ae7ac101e455fe94601c1bbfcb51e338d3d9e5fe419b600057"
+    },
+    "assets/characters/samira/skins/skin30/animations/joke.anm": {
+      "size": 256580,
+      "sha256": "e24a31b9dc93607e68c309b285749dfd8b0dd509d91f55723fe47fad905ff5db"
+    },
+    "assets/characters/samira/skins/skin30/animations/knockup.anm": {
+      "size": 33296,
+      "sha256": "152453e296e840a5e2541df8fcc3e0955c311b9c177ca2019f9179874fc10567"
+    },
+    "assets/characters/samira/skins/skin30/animations/laugh.anm": {
+      "size": 181198,
+      "sha256": "3b6e62d85f928f5b893916054796ab6cfb0c535c54876dbbe9a2801ed3c776ad"
+    },
+    "assets/characters/samira/skins/skin30/animations/passive.anm": {
+      "size": 75844,
+      "sha256": "e53dd85727bfde6e6bd7b6ebd73cd9a290a95b4864da251a2741b07734ccb4d6"
+    },
+    "assets/characters/samira/skins/skin30/animations/passive_dash.anm": {
+      "size": 11782,
+      "sha256": "e0930d18ba0740e74bf2f39248e576d71282b9556cbc5c17424c1fcd0839242d"
+    },
+    "assets/characters/samira/skins/skin30/animations/passive_melee.anm": {
+      "size": 25546,
+      "sha256": "2a2053377a0f5a3f03593138431606795e57ad45d579b3b6aca565d8e6acd178"
+    },
+    "assets/characters/samira/skins/skin30/animations/passive_melee_toidle.anm": {
+      "size": 56896,
+      "sha256": "a58f5c8da36245d9d50056d2ba4ef4f43a351df0a633afe516ebd68a197da8e0"
+    },
+    "assets/characters/samira/skins/skin30/animations/passive_toidle.anm": {
+      "size": 59946,
+      "sha256": "0e54376420fc44e60822fec9d432d05a410647dfbc942ba608933f1d7199d3c7"
+    },
+    "assets/characters/samira/skins/skin30/animations/recall.anm": {
+      "size": 265460,
+      "sha256": "09dbb1a1e0ddb0b72fe3fc102b15a55f5c9fa89228337b1f02fd5008ab9112b9"
+    },
+    "assets/characters/samira/skins/skin30/animations/respawn.anm": {
+      "size": 144032,
+      "sha256": "f33df70b103336652536975cc8be5b02953cb7f79f6c6ac6a2766876f5eb7932"
+    },
+    "assets/characters/samira/skins/skin30/animations/run_gun_base.anm": {
+      "size": 40636,
+      "sha256": "41085cd432cbb1ce586726252ffd3908d37ecf8c527c325625ba87c300be655e"
+    },
+    "assets/characters/samira/skins/skin30/animations/run_gun_haste.anm": {
+      "size": 36696,
+      "sha256": "dbb7e3c008dd4a0a44024b7e66340d612b7f065bffbe3fb5328df25061829d4a"
+    },
+    "assets/characters/samira/skins/skin30/animations/run_ooc.anm": {
+      "size": 46458,
+      "sha256": "e632c638c82146fca930886170de24a2038d02eac10f390c020bde2c045f8382"
+    },
+    "assets/characters/samira/skins/skin30/animations/run_ooc_boots.anm": {
+      "size": 46438,
+      "sha256": "5593a6abf31a76a43615bfd784ff5082c4cffe5f095fab8cfe735f71c19574b1"
+    },
+    "assets/characters/samira/skins/skin30/animations/run_ooc_haste.anm": {
+      "size": 46458,
+      "sha256": "06684580e05645390c638916d2afd40de424926383350405db14144944ae45fe"
+    },
+    "assets/characters/samira/skins/skin30/animations/run_sword_base.anm": {
+      "size": 44168,
+      "sha256": "b709c1eaa694cdda5f04d456eaee7cfb00989d93305d7f256c8c86546396d145"
+    },
+    "assets/characters/samira/skins/skin30/animations/run_sword_haste.anm": {
+      "size": 38876,
+      "sha256": "18dbe5151ae811b5ca348ad0911ccfeff6e6af145ff381e2c1a11002955d4c4c"
+    },
+    "assets/characters/samira/skins/skin30/animations/sheath_gun_idle.anm": {
+      "size": 104226,
+      "sha256": "24d2c6690f6b0b0987b5369107a3fd6e283ce4f419ba101c7c69c9f9366fb962"
+    },
+    "assets/characters/samira/skins/skin30/animations/sheath_gun_run.anm": {
+      "size": 104226,
+      "sha256": "21013b3aba85dfc0fb9dce0a0cd90ae142cff19e2671982302b2d31a92dea741"
+    },
+    "assets/characters/samira/skins/skin30/animations/sheath_sword_idle.anm": {
+      "size": 92654,
+      "sha256": "c0482ec76783c556543af0e1873392444a4bd48e54557b7b024d98dc93ce48ab"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell1_during_dash.anm": {
+      "size": 43966,
+      "sha256": "f8c97a13a7c67128abac985d1d8f20e6014918cfd51546e745ffc90e67a887eb"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell1_during_dash_torun.anm": {
+      "size": 30070,
+      "sha256": "9fc5c5d891986dbe30916412728b5025c2984bf12680804999f4b8804cbd408d"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell1_gun.anm": {
+      "size": 36938,
+      "sha256": "8617b9acce419cd616b7f5e228457ae8012e0ecabfb1628f9f9780d5a7b385e3"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell1_gun_into_idle.anm": {
+      "size": 49472,
+      "sha256": "8d9146304c5b52c252b02e84fd9d46ffc39580ec311cbc27defac2523aae8e72"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell1_gun_into_run.anm": {
+      "size": 52292,
+      "sha256": "862ad3bf24255cb159aeca7fccfc5691e604052a38e8ac3a75d785930f0b594a"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell1_sword_from_idle.anm": {
+      "size": 54740,
+      "sha256": "09bf0cb9d8aedab9cdd0eee6a3184c8c63285a942d442f70913c28d5bf355e97"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell1_sword_into_idle.anm": {
+      "size": 58830,
+      "sha256": "6b4b959265d37387008b91e7e864432024962192ff4fb4670d5929bae034d4d2"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell1_sword_into_run.anm": {
+      "size": 33038,
+      "sha256": "f31566ad8da3777d2ddfe6649226f55c6b3302c50026ed41d41f29fd02553679"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell1_sword_run_start.anm": {
+      "size": 54224,
+      "sha256": "e60e925041b9aa2d8f9ca0f01d0048ced05d6ca36fff29e14d2f4216010278e9"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell1_to_run_haste.anm": {
+      "size": 52478,
+      "sha256": "c7a89828e43f995e7a5a307434fb7407199f4c88c195d1d79499101d1d4d6d83"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell2.anm": {
+      "size": 49898,
+      "sha256": "ebb66ab566a92e3a283dfc65405190e491706922f5eeaf9eec05720185580065"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell2_-90.anm": {
+      "size": 50000,
+      "sha256": "d1a696b47762b8993d4c5d0e08678fd933a37e0b34b4eb713d35fb4d76230c42"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell2_135.anm": {
+      "size": 49976,
+      "sha256": "3b4ba6e1b7a1a8ff11a8d044f1f9a31b622ed2c65ba870a7eaa41b2ed6fa57d8"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell2_180.anm": {
+      "size": 49928,
+      "sha256": "41e36a2f19ecda1a428d62122dd9ee9260c8f7b2004057789d174e80739699e6"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell2_45.anm": {
+      "size": 49988,
+      "sha256": "e0b09fa86ac0c68a094fdcc0f73bece3f9f9da91dbc9aa9cd9a49b5a57f9bb53"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell2_90.anm": {
+      "size": 50078,
+      "sha256": "07f94b69f852bc7d1839e7b10039f7dde0231c48c35ba2d73665000d9ff825aa"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell2_dash.anm": {
+      "size": 10598,
+      "sha256": "03777b53def7e2e2c2e791a606110625232542f5337d89c7b55a7ee19d6ec6ed"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell2_into_idle.anm": {
+      "size": 41444,
+      "sha256": "9e79893c058f9c866eb874b27396079bcd034b739a3a1c935d2e7a5fec159d40"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell2_into_run.anm": {
+      "size": 43772,
+      "sha256": "58dae0d35e360e8d5d26a926f6a8924daf675434f65afc474d95af25b85e7cbd"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell3.anm": {
+      "size": 42982,
+      "sha256": "4ef3e726ac43f1e666f92fe7559c127c734fd061b3d60f60e039909f0cd1cd88"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell3_torun.anm": {
+      "size": 57838,
+      "sha256": "dfa6d853cc79c73ffc1819ee73d0a2ea5c9acb16169a5be59f9f4834e92e2d2a"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell3_var02.anm": {
+      "size": 42832,
+      "sha256": "5f660594b4a0a10f852150138468cf1be75351cc2e571b366476aa52483e111f"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell3_var02_torun.anm": {
+      "size": 32116,
+      "sha256": "762a68f1f39116796e00940d6aee2291a133057b24cb0b62e692283619998b8f"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell4_dash.anm": {
+      "size": 23732,
+      "sha256": "851ee45500b2983d96e83039603689c68fee57a665514d76db882e70c63b0d87"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell4_into_idle.anm": {
+      "size": 73542,
+      "sha256": "5e5a99e5e03f19d3b7e1175d829e70f91d009cf7bdf2cdc9fdd90dd3e2c44ac9"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell4_into_run.anm": {
+      "size": 46688,
+      "sha256": "416d00f4d4fc440237134d1b7e85e6851a094813102de7a83d8511353acca610"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell4_loop_a.anm": {
+      "size": 64410,
+      "sha256": "24db843bf1a61ee9b142f7c75ef5aa0b66a44de852b4e906f7bff67c2a394f20"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell4_loop_b.anm": {
+      "size": 53788,
+      "sha256": "65925da01927a44ca3f9220b56fee77229c08c56ecbaeaa28198c5aa539b7c8c"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell4_start_a.anm": {
+      "size": 33434,
+      "sha256": "d66413308c3789183b978e30610fdd95e3b252998a0a5e2ea25f589f3509de6d"
+    },
+    "assets/characters/samira/skins/skin30/animations/spell4_start_b.anm": {
+      "size": 33986,
+      "sha256": "5f04a4aa8a7092c8d3cc6ecba519de7bc57f7cf11d015315eb1e4973167084db"
+    },
+    "assets/characters/samira/skins/skin30/animations/taunt.anm": {
+      "size": 172036,
+      "sha256": "a11a5f990e74d5d238f835977485209ddc66ce52f655c678e85b55e048ca16d1"
+    },
+    "assets/characters/samira/skins/skin30/animations/walkover.anm": {
+      "size": 53092,
+      "sha256": "f5c629d1465c1baf752f53bd10e564480fe4dcd02b7c9823b59a35af1532d710"
+    },
+    "assets/characters/samira/skins/skin30/samira_skin30.skl": {
+      "size": 16504,
+      "sha256": "d74fd9bc2e97d8077fee13157531641cb309018ab244eeb8b653db90fb56c17f"
+    },
+    "assets/characters/samira/skins/skin30/samira_skin30.skn": {
+      "size": 1006460,
+      "sha256": "f0195534a7a7645290586b378b2a0c161187df76f8245a233fea04ebc8acdb66"
+    },
+    "assets/characters/samira/skins/skin30/samira_skin30_assets_tx_cm.tex": {
+      "size": 699076,
+      "sha256": "06b22b0a21e43c50b0d4370a587037172b60dfd3a02f6ededd7a4b5b3a32713b"
+    },
+    "assets/characters/samira/skins/skin30/samira_skin30_blur_tx_cm.tex": {
+      "size": 87420,
+      "sha256": "eee61034d764e63f6aa880442b24445fc4f384fdde6e684f1dd393c791e6fa18"
+    },
+    "assets/characters/samira/skins/skin30/samira_skin30_body_tx_cm.tex": {
+      "size": 699076,
+      "sha256": "5d870f0d386f5bebd7c4ead4c0073d4c87b1d5227017a2cbf742a1745d193221"
+    },
+    "assets/characters/samira/skins/skin30/samira_skin30_gradient_tx_cm.tex": {
+      "size": 532,
+      "sha256": "fc3e2f0aeef2e0c84b8f6b607a873001b1f94402bce1f1d6f35c06e6f56fa74b"
+    },
+    "assets/characters/samira/skins/skin30/samira_skin30_guns_tx_cm.tex": {
+      "size": 174788,
+      "sha256": "2a5be2c937260bd727b6670dc46d0247936daaf939d9e361f3be4c250bee7f89"
+    },
+    "assets/characters/samira/skins/skin30/samira_skin30_hair_tx_cm.tex": {
+      "size": 174788,
+      "sha256": "e8033bd43b73df0ca1e2495540a762b76886c2912213de8b3fea4b5b688d7093"
+    },
+    "assets/characters/samira/skins/skin30/samira_skin30_holsters_tx_cm.tex": {
+      "size": 174788,
+      "sha256": "a5d4d3dc9c3860293301c8f93b440fb740d215f2ebfb834b34d1f04cc8e6f531"
+    },
+    "assets/characters/samira/skins/skin30/samira_skin30_sword_tx_cm.tex": {
+      "size": 174788,
+      "sha256": "a33cbbd360506f76c01a606cc947749a0a388aa856bb5f17fc5491981bd170e5"
+    },
+    "assets/characters/samira/skins/skin30/samira_skin30_tx_cm.tex": {
+      "size": 699076,
+      "sha256": "b6c0c019fac12a21899f2a38678984438a78dc119f9cd47905fe5bd314de13fb"
+    },
+    "assets/characters/samira/skins/skin30/samira_skin30_viego_crown_tx_cm.tex": {
+      "size": 43716,
+      "sha256": "a7b52566028b202fd3eb5306e3729318b5a4fbfed8067a497a6935b5f5d56648"
+    },
+    "data/characters/samira/animations/skin30.bin": {
+      "size": 232573,
+      "sha256": "906f086d5aa9a8bf18363d0041c25d54cb25c88bd80c895ae144a8863a29c3d8"
+    },
+    "data/characters/samira/skins/skin30.bin": {
+      "size": 1135018,
+      "sha256": "35943ef134b200339a106fe219bf65ffad63c05265d852e7a536bfd01281a69e"
+    }
+  },
+  "original_file_counts": {
+    ".anm": 89,
+    ".skl": 1,
+    ".skn": 1,
+    ".tex": 10,
+    ".bin": 2
+  },
+  "converted_model": {
+    "file": "soul-fighter-samira.glb",
+    "sha256": "3f3ce9e8844634cce8169579b9e88f5982bc706f9a855987b41cc49302692b2b",
+    "converter": "HeroStudio 0.2.33",
+    "default_hidden_materials": [
+      "Revolver_Blur",
+      "Pistol_Blur",
+      "Viego_Crown"
+    ],
+    "mesh": "ASSETS/Characters/Samira/Skins/Skin30/Samira_Skin30.skn",
+    "skeleton": "ASSETS/Characters/Samira/Skins/Skin30/Samira_Skin30.skl",
+    "animations": 89,
+    "failures": [],
+    "animation_sources": {
+      "assets/characters/samira/skins/skin30/animations/attack1_gun_hit.anm": "attack1_gun_hit",
+      "assets/characters/samira/skins/skin30/animations/attack1_gun_into_idle.anm": "attack1_gun_into_idle",
+      "assets/characters/samira/skins/skin30/animations/attack1_gun_start.anm": "attack1_gun_start",
+      "assets/characters/samira/skins/skin30/animations/attack1_sword_ht.anm": "attack1_sword_ht",
+      "assets/characters/samira/skins/skin30/animations/attack1_sword_into_idle.anm": "attack1_sword_into_idle",
+      "assets/characters/samira/skins/skin30/animations/attack1_sword_into_run.anm": "attack1_sword_into_run",
+      "assets/characters/samira/skins/skin30/animations/attack1_sword_start.anm": "attack1_sword_start",
+      "assets/characters/samira/skins/skin30/animations/attack2_gun_hit.anm": "attack2_gun_hit",
+      "assets/characters/samira/skins/skin30/animations/attack2_gun_into_idle.anm": "attack2_gun_into_idle",
+      "assets/characters/samira/skins/skin30/animations/attack2_gun_start.anm": "attack2_gun_start",
+      "assets/characters/samira/skins/skin30/animations/attack2_sword_hit.anm": "attack2_sword_hit",
+      "assets/characters/samira/skins/skin30/animations/attack2_sword_into_idle.anm": "attack2_sword_into_idle",
+      "assets/characters/samira/skins/skin30/animations/attack2_sword_into_run.anm": "attack2_sword_into_run",
+      "assets/characters/samira/skins/skin30/animations/attack2_sword_start.anm": "attack2_sword_start",
+      "assets/characters/samira/skins/skin30/animations/attack_gun_into_run_front.anm": "attack_gun_into_run_front",
+      "assets/characters/samira/skins/skin30/animations/attack_gun_into_run_left.anm": "attack_gun_into_run_left",
+      "assets/characters/samira/skins/skin30/animations/attack_gun_into_run_right.anm": "attack_gun_into_run_right",
+      "assets/characters/samira/skins/skin30/animations/channel.anm": "channel",
+      "assets/characters/samira/skins/skin30/animations/channel_wndup.anm": "channel_wndup",
+      "assets/characters/samira/skins/skin30/animations/crit_gun_hit.anm": "crit_gun_hit",
+      "assets/characters/samira/skins/skin30/animations/crit_gun_into_idle.anm": "crit_gun_into_idle",
+      "assets/characters/samira/skins/skin30/animations/crit_gun_start.anm": "crit_gun_start",
+      "assets/characters/samira/skins/skin30/animations/crit_sword_hit.anm": "crit_sword_hit",
+      "assets/characters/samira/skins/skin30/animations/crit_sword_start.anm": "crit_sword_start",
+      "assets/characters/samira/skins/skin30/animations/crit_sword_toidle.anm": "crit_sword_toidle",
+      "assets/characters/samira/skins/skin30/animations/crit_sword_torun.anm": "crit_sword_torun",
+      "assets/characters/samira/skins/skin30/animations/dance_in.anm": "dance_in",
+      "assets/characters/samira/skins/skin30/animations/dance_loop.anm": "dance_loop",
+      "assets/characters/samira/skins/skin30/animations/death.anm": "death",
+      "assets/characters/samira/skins/skin30/animations/homeguard_in.anm": "homeguard_in",
+      "assets/characters/samira/skins/skin30/animations/homeguard_loop.anm": "homeguard_loop",
+      "assets/characters/samira/skins/skin30/animations/idle.anm": "idle",
+      "assets/characters/samira/skins/skin30/animations/idle_gun.anm": "idle_gun",
+      "assets/characters/samira/skins/skin30/animations/idle_gun_in.anm": "idle_gun_in",
+      "assets/characters/samira/skins/skin30/animations/idle_ooc_in.anm": "idle_ooc_in",
+      "assets/characters/samira/skins/skin30/animations/idle_sword.anm": "idle_sword",
+      "assets/characters/samira/skins/skin30/animations/idle_sword_in.anm": "idle_sword_in",
+      "assets/characters/samira/skins/skin30/animations/joke.anm": "joke",
+      "assets/characters/samira/skins/skin30/animations/knockup.anm": "knockup",
+      "assets/characters/samira/skins/skin30/animations/laugh.anm": "laugh",
+      "assets/characters/samira/skins/skin30/animations/passive.anm": "passive",
+      "assets/characters/samira/skins/skin30/animations/passive_dash.anm": "passive_dash",
+      "assets/characters/samira/skins/skin30/animations/passive_melee.anm": "passive_melee",
+      "assets/characters/samira/skins/skin30/animations/passive_melee_toidle.anm": "passive_melee_toidle",
+      "assets/characters/samira/skins/skin30/animations/passive_toidle.anm": "passive_toidle",
+      "assets/characters/samira/skins/skin30/animations/recall.anm": "recall",
+      "assets/characters/samira/skins/skin30/animations/respawn.anm": "respawn",
+      "assets/characters/samira/skins/skin30/animations/run_gun_base.anm": "run_gun_base",
+      "assets/characters/samira/skins/skin30/animations/run_gun_haste.anm": "run_gun_haste",
+      "assets/characters/samira/skins/skin30/animations/run_ooc.anm": "run_ooc",
+      "assets/characters/samira/skins/skin30/animations/run_ooc_boots.anm": "run_ooc_boots",
+      "assets/characters/samira/skins/skin30/animations/run_ooc_haste.anm": "run_ooc_haste",
+      "assets/characters/samira/skins/skin30/animations/run_sword_base.anm": "run_sword_base",
+      "assets/characters/samira/skins/skin30/animations/run_sword_haste.anm": "run_sword_haste",
+      "assets/characters/samira/skins/skin30/animations/sheath_gun_idle.anm": "sheath_gun_idle",
+      "assets/characters/samira/skins/skin30/animations/sheath_gun_run.anm": "sheath_gun_run",
+      "assets/characters/samira/skins/skin30/animations/sheath_sword_idle.anm": "sheath_sword_idle",
+      "assets/characters/samira/skins/skin30/animations/spell1_during_dash.anm": "spell1_during_dash",
+      "assets/characters/samira/skins/skin30/animations/spell1_during_dash_torun.anm": "spell1_during_dash_torun",
+      "assets/characters/samira/skins/skin30/animations/spell1_gun.anm": "spell1_gun",
+      "assets/characters/samira/skins/skin30/animations/spell1_gun_into_idle.anm": "spell1_gun_into_idle",
+      "assets/characters/samira/skins/skin30/animations/spell1_gun_into_run.anm": "spell1_gun_into_run",
+      "assets/characters/samira/skins/skin30/animations/spell1_sword_from_idle.anm": "spell1_sword_from_idle",
+      "assets/characters/samira/skins/skin30/animations/spell1_sword_into_idle.anm": "spell1_sword_into_idle",
+      "assets/characters/samira/skins/skin30/animations/spell1_sword_into_run.anm": "spell1_sword_into_run",
+      "assets/characters/samira/skins/skin30/animations/spell1_sword_run_start.anm": "spell1_sword_run_start",
+      "assets/characters/samira/skins/skin30/animations/spell1_to_run_haste.anm": "spell1_to_run_haste",
+      "assets/characters/samira/skins/skin30/animations/spell2.anm": "spell2",
+      "assets/characters/samira/skins/skin30/animations/spell2_-90.anm": "spell2_-90",
+      "assets/characters/samira/skins/skin30/animations/spell2_135.anm": "spell2_135",
+      "assets/characters/samira/skins/skin30/animations/spell2_180.anm": "spell2_180",
+      "assets/characters/samira/skins/skin30/animations/spell2_45.anm": "spell2_45",
+      "assets/characters/samira/skins/skin30/animations/spell2_90.anm": "spell2_90",
+      "assets/characters/samira/skins/skin30/animations/spell2_dash.anm": "spell2_dash",
+      "assets/characters/samira/skins/skin30/animations/spell2_into_idle.anm": "spell2_into_idle",
+      "assets/characters/samira/skins/skin30/animations/spell2_into_run.anm": "spell2_into_run",
+      "assets/characters/samira/skins/skin30/animations/spell3.anm": "spell3",
+      "assets/characters/samira/skins/skin30/animations/spell3_torun.anm": "spell3_torun",
+      "assets/characters/samira/skins/skin30/animations/spell3_var02.anm": "spell3_var02",
+      "assets/characters/samira/skins/skin30/animations/spell3_var02_torun.anm": "spell3_var02_torun",
+      "assets/characters/samira/skins/skin30/animations/spell4_dash.anm": "spell4_dash",
+      "assets/characters/samira/skins/skin30/animations/spell4_into_idle.anm": "spell4_into_idle",
+      "assets/characters/samira/skins/skin30/animations/spell4_into_run.anm": "spell4_into_run",
+      "assets/characters/samira/skins/skin30/animations/spell4_loop_a.anm": "spell4_loop_a",
+      "assets/characters/samira/skins/skin30/animations/spell4_loop_b.anm": "spell4_loop_b",
+      "assets/characters/samira/skins/skin30/animations/spell4_start_a.anm": "spell4_start_a",
+      "assets/characters/samira/skins/skin30/animations/spell4_start_b.anm": "spell4_start_b",
+      "assets/characters/samira/skins/skin30/animations/taunt.anm": "taunt",
+      "assets/characters/samira/skins/skin30/animations/walkover.anm": "walkover"
+    }
+  },
+  "rig_events": {
+    "file": "rig-events.json",
+    "sha256": "e484d9674d491d806633a4e215246603181f13c4d4498b18559860567ba989ff"
+  },
+  "khada_reference": {
+    "url": "https://cdn.modelviewer.lol/lol/models/samira/360030/model-compressed.wasm?c=1",
+    "file": "khada.glb",
+    "sha256": "0d367f93a5f82e0ca0eb337873f1495848c5b9e60ddc208619d3e99af2e15531"
+  }
+}

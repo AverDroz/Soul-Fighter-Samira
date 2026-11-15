@@ -1,0 +1,28 @@
+{
+  "retrieved_date": "2026-11-15",
+  "upstream": "https://github.com/TFOS4/Isaac-LoL-HeroStudio",
+  "release": "v1.0.0",
+  "assets": [
+    {
+      "name": "Isaac-LoL-HeroStudio1.0.0.3.zip",
+      "url": "https://github.com/TFOS4/Isaac-LoL-HeroStudio/releases/download/v1.0.0/Isaac-LoL-HeroStudio1.0.0.3.zip",
+      "size_bytes": 103151974,
+      "sha256": "7d284f7a03d77447f4f17a0c874a296bab625412ae3c0e556e450fdbe6abb166",
+      "verified_against_github_digest": true
+    },
+    {
+      "name": "Nasus-Example.zip",
+      "url": "https://github.com/TFOS4/Isaac-LoL-HeroStudio/releases/download/v1.0.0/Nasus-Example.zip",
+      "size_bytes": 138486341,
+      "sha256": "d303084d3980d2863d46a99048b64a0b20b383765bc12a30d2cb30b869a7704d",
+      "verified_against_github_digest": true
+    }
+  ],
+  "studio_inner_directory": "Hero-Studio-0.2.33",
+  "nasus_companion": {
+    "version": "0.1.13",
+    "protocol": 1
+  },
+  "samira_assets_imported": false,
+  "license_note": "No blanket license assigned. Preserve upstream credits and bundled dependency licenses."
+}

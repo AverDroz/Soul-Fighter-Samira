@@ -1,0 +1,9 @@
+Native collectible descriptions and translated names are adapted from External Item Descriptions (EID), by Wofsauge and its contributors and translators.
+Project: https://github.com/wofsauge/External-Item-Descriptions
+Steam Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=836319872
+
+The user supplied an installed EID copy for this integration. English and Simplified Chinese static descriptions are merged in Afterbirth+, Repentance, Repentance+ order. Formatting icons are converted to readable text, and item-reference icons resolve to translated item names. This is a snapshot, not a running instance of EID: conditional descriptions, synergies and dynamically registered descriptions are not evaluated.
+
+Samira-specific compatibility notes are maintained by this mod separately from the original EID descriptions. Original item descriptions do not override this mod's numeric health and skill rules.
+Import script: tools/import_eid_descriptions.py
+Source file hashes and local provenance: reference/eid-description-import.json

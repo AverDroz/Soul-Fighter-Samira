@@ -1,0 +1,28 @@
+{
+  "version": "0.3.1",
+  "checked": "2026-11-16T01:23:42.8090062+06:00",
+  "installed": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\The Binding of Isaac Rebirth\\mods\\samira_testroom",
+  "backup": "C:\\Users\\Mortem ad Deos\\samira айзек\\work\\before-samira-0.3.1-20261116-012342",
+  "verifiedFiles": 83,
+  "tests": [
+    "combat",
+    "weapons",
+    "encounters",
+    "items",
+    "items_room",
+    "inventory",
+    "inventory_hud",
+    "style",
+    "style_hud",
+    "kills"
+  ],
+  "result": "passed",
+  "gpu": "style badge and ready edge glow verified offscreen",
+  "liveGame": "Pending user verification; not launched by agent",
+  "limitations": [
+    "Immediate laser first damage needs native timing verification",
+    "Scripted boss phases, exits, and real save/rewind need user gameplay verification",
+    "Already saved rooms are not repopulated; newly spawned independent waves are eligible",
+    "Attached boss parts and non-door-blocking hazards remain native"
+  ]
+}

@@ -1,0 +1,861 @@
+{
+  "bundle": "soul-fighter",
+  "roles": {
+    "auto_muzzle": [
+      "BA_Muzzle"
+    ],
+    "auto_projectile": [
+      "BA_Projectile",
+      "AA_mis_Crit"
+    ],
+    "auto_impact": [
+      "BA_Tar",
+      "AA_tar_Crit"
+    ],
+    "auto_melee": [
+      "BA_Melee_One",
+      "BA_Melee_Two",
+      "BA_Melee_Crit_Swipe"
+    ],
+    "auto_melee_impact": [
+      "BA_Melee_One_Tar",
+      "BA_Melee_two_Tar",
+      "BA_Melee_Crit_Tar"
+    ],
+    "q_muzzle": [
+      "Q_Muzzle"
+    ],
+    "q_projectile": [
+      "Q_Projectile"
+    ],
+    "q_impact": [
+      "Q_Tar"
+    ],
+    "q_expire": [
+      "Q_Miss_Dissipation"
+    ],
+    "q_slash": [
+      "Q_Melee_AOE"
+    ],
+    "q_slash_impact": [
+      "Q_Melee_Tar"
+    ],
+    "w_slash": [
+      "W_CircleCut"
+    ],
+    "w_zone": [
+      "W_Zone"
+    ],
+    "w_blade_trail": [
+      "W_SwordTrail"
+    ],
+    "w_impact": [
+      "W_tar"
+    ],
+    "w_block": [
+      "W_Missle_Block",
+      "W_Missile_Block_Beam",
+      "W_Ult_block"
+    ],
+    "e_dash": [
+      "E_DashTrail",
+      "E_R_Dash_Trail",
+      "E_Air_Trail"
+    ],
+    "e_impact": [
+      "E_dash_hit"
+    ],
+    "eq_combo": [
+      "Q_EBufferCast",
+      "E_Q_Buffer_Target"
+    ],
+    "r_ring": [
+      "R_Range_Indicator_Self"
+    ],
+    "r_sword": [
+      "R_SwordSpin"
+    ],
+    "r_muzzle": [
+      "R_Gun_Blue_Muzzle",
+      "R_Gun_Red_Muzzle"
+    ],
+    "r_projectile": [
+      "R_Mis_Gun_Blue",
+      "R_Mis_Gun_Red",
+      "R_mis"
+    ],
+    "r_tracer": [
+      "R_Tracer_Flash"
+    ],
+    "r_impact": [
+      "R_Tar"
+    ]
+  },
+  "icons": {
+    "e": "icons/e.png",
+    "passive": "icons/passive.png",
+    "q": "icons/q.png",
+    "r": "icons/r.png",
+    "w": "icons/w.png",
+    "avatar": "icons/avatar.png",
+    "move": "icons/move.png",
+    "target": "icons/target.png"
+  },
+  "systems": {
+    "AA_mis_Crit": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_AA_mis_Crit",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/aura_self.tex",
+        "assets/characters/samira/skins/skin30/particles/color-rampdown32_03.tex",
+        "assets/characters/samira/skins/skin30/particles/distort-pinch.tex",
+        "assets/characters/samira/skins/skin30/particles/q_head.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_smoke_trail.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_flame_trail.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_noisec.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_missile_head_2.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_muzzle_flash.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_smoke_erode.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_trail_sharp.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_trail_sharp_02.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeburstmesh01.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeshapesmesh01.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeshapesmesherosion.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_trail01c.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_embers.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_noise_06.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_02.tex"
+      ]
+    },
+    "AA_tar_Crit": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_AA_tar_Crit",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/common_jayce_aura.tex",
+        "assets/characters/samira/skins/skin30/particles/hit_bits.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_death_sparks.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_impact_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_outer_flare_erode.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_muzzleflash_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_outer_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ring_glow.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_taunt_star.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_embers.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_02.tex"
+      ]
+    },
+    "BA_Melee_Crit_Swipe": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_BA_Melee_Crit_Swipe",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/3026_itemscolor-hold.tex",
+        "assets/characters/samira/skins/skin30/particles/common_color-rampdown.tex",
+        "assets/characters/samira/skins/skin30/particles/orianna_skin30_ba_distort-wave.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_crit_swipe.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_crit_swipe_top.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_swipe.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_swipe_erode.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_passive_swipe_edge.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_cracks_mult.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_muzzleflash_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_swipe_filler.tex"
+      ]
+    },
+    "BA_Melee_Crit_Tar": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_BA_Melee_Crit_Tar",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/common_jayce_aura.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_ba_tar_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_outer_flare_erode.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_outer_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ring_glow.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_taunt_star.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_02.tex"
+      ]
+    },
+    "BA_Melee_One": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_BA_Melee_One",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/3026_itemscolor-hold.tex",
+        "assets/characters/samira/skins/skin30/particles/common_color-rampdown.tex",
+        "assets/characters/samira/skins/skin30/particles/orianna_skin30_ba_distort-wave.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_melee_one_swipe.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_swipe.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_swipe_erode.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_passive_swipe_edge.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_swipe_filler.tex"
+      ]
+    },
+    "BA_Melee_One_Tar": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_BA_Melee_One_Tar",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_ba_tar_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_melee_slash_tar_01.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_02.tex"
+      ]
+    },
+    "BA_Melee_Two": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_BA_Melee_Two",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/3026_itemscolor-hold.tex",
+        "assets/characters/samira/skins/skin30/particles/common_color-rampdown.tex",
+        "assets/characters/samira/skins/skin30/particles/orianna_skin30_ba_distort-wave.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_melee_two_swipe.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_swipe.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_swipe_erode.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_passive_swipe_edge.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_swipe_filler.tex"
+      ]
+    },
+    "BA_Melee_two_Tar": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_BA_Melee_two_Tar",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_ba_tar_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_melee_slash_tar_01.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_02.tex"
+      ]
+    },
+    "BA_Mis": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_BA_Mis",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/aura_self.tex",
+        "assets/characters/samira/skins/skin30/particles/color-rampdown32_03.tex",
+        "assets/characters/samira/skins/skin30/particles/distort-pinch.tex",
+        "assets/characters/samira/skins/skin30/particles/flame_trail_gradient.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_dot.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_hit2ball32_02.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_noise02.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_sparks.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_trail_flame.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_trail_flame_2.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_air_swoosh_grad01.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_flame_trail.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_missile_head_2.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_muzzle_flash.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_smoke_erode.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_trail_sharp.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_trail_sharp_02.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_noise_06.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_02.tex"
+      ]
+    },
+    "BA_Muzzle": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_BA_Mis",
+      "emitters": [
+        "Temp_Mesh8",
+        "Temp_Mesh9"
+      ],
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_muzzle_flash.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_noise_06.tex"
+      ]
+    },
+    "BA_Projectile": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_BA_Mis",
+      "emitters": [
+        "HugeGlow1",
+        "MisHEAD_Bloom2",
+        "MisHEAD_Bloom3",
+        "Trail_Flame3",
+        "Trail_Flame4",
+        "Trail_Flame5",
+        "HugeGlow2",
+        "Temp_Mesh10",
+        "Temp_Mesh11",
+        "Distort_PINCH",
+        "Trail_Flame6",
+        "Trail_Flame7",
+        "ball",
+        "ball1",
+        "Slayer_spark_shoot_up",
+        "ball2",
+        "Glow",
+        "Glow_ground",
+        "Trail_Flame8",
+        "Trail_Flame9",
+        "Trail_Flame10"
+      ],
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/aura_self.tex",
+        "assets/characters/samira/skins/skin30/particles/color-rampdown32_03.tex",
+        "assets/characters/samira/skins/skin30/particles/distort-pinch.tex",
+        "assets/characters/samira/skins/skin30/particles/flame_trail_gradient.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_dot.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_hit2ball32_02.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_noise02.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_sparks.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_trail_flame.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_trail_flame_2.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_air_swoosh_grad01.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_flame_trail.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_missile_head_2.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_smoke_erode.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_trail_sharp.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_trail_sharp_02.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_noise_06.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_02.tex"
+      ]
+    },
+    "BA_Tar": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_BA_Tar",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/common_jayce_aura.tex",
+        "assets/characters/samira/skins/skin30/particles/hit_bits.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_death_sparks.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_impact_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_muzzleflash_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_embers.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_02.tex"
+      ]
+    },
+    "E_Air_Trail": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_E_Air_Trail",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/3026_itemscolor-hold.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_aa_air_swoosh.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_dash_cone.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_rocks.tex"
+      ]
+    },
+    "E_DashTrail": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_E_DashTrail",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/aura_self.tex",
+        "assets/characters/samira/skins/skin30/particles/common_color-rampdown.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_e_dash.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_aa_air_swoosh.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_dash_cone.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_dash_streaks.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_white_rgb.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_emote_dash_dirttrail.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_p_screen_flames_soft.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_cas_distort.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_buffer_ground_indicator.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_muzzleflash_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_distortion_soundwaves_01.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_embers.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_throw_sparks.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_02.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_03.tex"
+      ]
+    },
+    "E_Q_Buffer_Target": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_E_Q_Buffer_Target",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_impact_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_outer_flare_erode.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_outer_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_taunt_star.tex"
+      ]
+    },
+    "E_R_Dash_Trail": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_E_R_Dash_Trail",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/aura_self.tex",
+        "assets/characters/samira/skins/skin30/particles/common_color-rampdown.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_e_dash.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_aa_air_swoosh.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_dash_cone.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_dash_streaks.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_white_rgb.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_emote_dash_dirttrail.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_p_screen_flames_soft.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_cas_distort.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_buffer_ground_indicator.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_muzzleflash_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_distortion_soundwaves_01.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_embers.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_throw_sparks.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_02.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_03.tex"
+      ]
+    },
+    "E_dash_hit": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_E_dash_hit",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_outer_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_taunt_star.tex"
+      ]
+    },
+    "Q_EBufferCast": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_Q_EBufferCast",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_e_dash.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_ground_cracks.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_mine_mesh.skn",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_p_buffer_ground_erode.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_horizontal_grad.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_melee_border.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_q_ground_mult.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_buffer_ground_indicator.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_cracks_mult.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_02.tex"
+      ]
+    },
+    "Q_E_Buffer_Center_Explosions_Child": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_Q_E_Buffer_Center_Explosions_Child",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/3026_itemscolor-hold.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_ba_tar_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_aa_block_flash.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_emote_dash_dirttrail.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_hit_shockwave.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_hit_shockwave_dark.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_hit_shockwave_erosion.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_hit_shockwave_largeshape.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_passive_flipbook02.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q2_mis_energy.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_grenades.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_smoke_erode.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_muzzleflash_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_embers.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_rocks.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_02.tex",
+        "assets/characters/samira/skins/skin30/particles/saucer5.scb"
+      ]
+    },
+    "Q_Melee_AOE": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_Q_Melee_AOE",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/3026_itemscolor-hold.tex",
+        "assets/characters/samira/skins/skin30/particles/color-rampdown32_03.tex",
+        "assets/characters/samira/skins/skin30/particles/color-rampup32.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_distort-soft-shockwave.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_swipe.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_swipe_erode.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_air_swoosh_grad01.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_white_rgb.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_passive_swipe_edge.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_cas_distort.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_horizontal_grad.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_melee_border.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_melee_border_burn_in.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_melee_hitbox.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_melee_hitbox_swipe_02.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_screen_flames.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_screen_flames_02.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_cracks_mult.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_distortion_soundwaves_01.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_rocks.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_noise_08.tex"
+      ]
+    },
+    "Q_Melee_Tar": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_Q_Melee_Tar",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_slashtar_01.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_02.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_03.tex"
+      ]
+    },
+    "Q_Mis": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_Q_Mis",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/aura_self.tex",
+        "assets/characters/samira/skins/skin30/particles/color-rampdown32_03.tex",
+        "assets/characters/samira/skins/skin30/particles/common_glow-soft.tex",
+        "assets/characters/samira/skins/skin30/particles/distort-pinch.tex",
+        "assets/characters/samira/skins/skin30/particles/q_head.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_q_swirls.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_aa_bullet_glow.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_air_swoosh.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_smoke_trail.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_impact_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_white_rgb.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_flame_trail.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_morgw_meshmult.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_noisec.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_p_screen_flames_soft.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_cas_distort.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_missile_head_2.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_muzzle_flash.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_muzzleflashcore.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_smoke_erode.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_sphere_01.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_trail_sharp.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_trail_sharp_02.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeburstmesh01.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeshapesmesh01.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeshapesmesh02.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeshapesmesherosion.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_buffer_ground_indicator.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_flare_ray.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_trail01c.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_distortion_soundwaves_01.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_embers.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_noise_06.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_03.tex",
+        "assets/characters/samira/skins/skin30/particles/skin30_energy_ray.tex",
+        "assets/shared/particles/bigglow02_2.tex"
+      ]
+    },
+    "Q_Miss_Dissipation": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_Q_Miss_Dissipation",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_rocks.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_03.tex"
+      ]
+    },
+    "Q_Muzzle": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_Q_Mis",
+      "emitters": [
+        "Temp_Mesh3"
+      ],
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_muzzle_flash.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_muzzleflashcore.scb"
+      ]
+    },
+    "Q_Projectile": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_Q_Mis",
+      "emitters": [
+        "Temp_GroundGlow",
+        "Substractive",
+        "Temp_GroundGlow2",
+        "Temp_GroundGlow3",
+        "CORE_PARENT",
+        "bullet_core2",
+        "ground light",
+        "Sparks1",
+        "Temp_GroundGlow4",
+        "Distort",
+        "air streaks",
+        "embers",
+        "ProjectedLight",
+        "HugeGlow",
+        "MisHEAD_Bloom1",
+        "MisHEAD_Bloom2",
+        "MisHEAD_Bloom4",
+        "ProjectedLight_",
+        "Distort_PINCH",
+        "OrbHead1",
+        "Trail_Flame1",
+        "Conemesh_Color",
+        "Conemesh_Color1",
+        "Conemesh_Color2",
+        "OrbHead2",
+        "Temp_Mesh16",
+        "Temp_Mesh17",
+        "Trail_Flame2",
+        "Trail_Flame3",
+        "Trail_Flame4",
+        "smoke trail1"
+      ],
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/aura_self.tex",
+        "assets/characters/samira/skins/skin30/particles/color-rampdown32_03.tex",
+        "assets/characters/samira/skins/skin30/particles/common_glow-soft.tex",
+        "assets/characters/samira/skins/skin30/particles/distort-pinch.tex",
+        "assets/characters/samira/skins/skin30/particles/q_head.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_q_swirls.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_aa_bullet_glow.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_air_swoosh.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_smoke_trail.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_impact_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_white_rgb.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_flame_trail.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_morgw_meshmult.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_noisec.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_p_screen_flames_soft.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_cas_distort.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_missile_head_2.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_smoke_erode.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_sphere_01.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_trail_sharp.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_trail_sharp_02.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeburstmesh01.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeshapesmesh01.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeshapesmesh02.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeshapesmesherosion.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_buffer_ground_indicator.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_flare_ray.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_trail01c.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_distortion_soundwaves_01.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_embers.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_noise_06.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_03.tex",
+        "assets/characters/samira/skins/skin30/particles/skin30_energy_ray.tex",
+        "assets/shared/particles/bigglow02_2.tex"
+      ]
+    },
+    "Q_Tar": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_Q_Tar",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/aura_self.tex",
+        "assets/characters/samira/skins/skin30/particles/color-rampdown32_03.tex",
+        "assets/characters/samira/skins/skin30/particles/common_jayce_aura.tex",
+        "assets/characters/samira/skins/skin30/particles/distort-pinch.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_air_swoosh_grad02.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_impact_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ring_glow.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_embers.tex"
+      ]
+    },
+    "R_FakeMissiles_GroundHits": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_R_FakeMissiles_GroundHits",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_ba_tar_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_aa_block_flash.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_emote_dash_dirttrail.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_hit_shockwave_erosion.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_hit_shockwave_largeshape.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_passive_flipbook02.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q2_mis_energy.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_smoke_erode.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_embers.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_rocks.tex",
+        "assets/characters/samira/skins/skin30/particles/saucer5.scb"
+      ]
+    },
+    "R_FakeMissiles_GroundHits_Blue": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_R_FakeMissiles_GroundHits_Blue",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_ba_tar_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_aa_block_flash.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_emote_dash_dirttrail.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_hit_shockwave_erosion.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_hit_shockwave_largeshape.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_passive_flipbook02.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q2_mis_energy.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_smoke_erode.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_embers.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_rocks.tex",
+        "assets/characters/samira/skins/skin30/particles/saucer5.scb"
+      ]
+    },
+    "R_Gun_Blue_Muzzle": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_R_Gun_Blue_Muzzle",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_embers.tex",
+        "assets/shared/particles/bigglow02_2.tex"
+      ]
+    },
+    "R_Gun_Red_Muzzle": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_R_Gun_Red_Muzzle",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_embers.tex",
+        "assets/shared/particles/bigglow02_2.tex"
+      ]
+    },
+    "R_Mis_Gun_Blue": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_R_Mis_Gun_Blue",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_p_screen_flames_soft.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_gunflash_blue.scb",
+        "assets/characters/samira/skins/skin30/samira_skin30_guns_tx_cm.tex"
+      ]
+    },
+    "R_Mis_Gun_Red": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_R_Mis_Gun_Red",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_p_screen_flames_soft.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_gunflash_red.scb",
+        "assets/characters/samira/skins/skin30/samira_skin30_guns_tx_cm.tex"
+      ]
+    },
+    "R_Range_Indicator_Self": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_R_Range_Indicator_Self",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_passive_hit_lens_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_aa_bullet_glow.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_smoke_trail.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_emote_dash_dirttrail.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_p_screen_flames_soft.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_screen_flames.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_fakemissiles.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_muzzleflash_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_outeredge_01.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_ring_highlights.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ring_glow.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_z_gradient_06.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_z_gradient_08.tex",
+        "assets/characters/samira/skins/skin30/particles/skin30_energy_ray.tex",
+        "assets/shared/particles/bigglow02_2.tex"
+      ]
+    },
+    "R_SwordSpin": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_R_SwordSpin",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_p_tracer.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_passive_juggle_cylinder.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_passive_juggle_plane.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_passive_swipe_edge.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_horizontal_grad.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_swipe_filler.tex",
+        "assets/characters/samira/skins/skin30/particles/skin30_energy_ray.tex"
+      ]
+    },
+    "R_Tar": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_R_Tar",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/common_jayce_aura.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_death_sparks.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_outer_flare_erode.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_muzzleflash_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_outer_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_embers.tex"
+      ]
+    },
+    "R_Tracer_Flash": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_R_Tracer_Flash",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_embers.tex",
+        "assets/shared/particles/bigglow02_2.tex"
+      ]
+    },
+    "R_mis": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_R_mis",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/common_glow-soft.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_ba_tar_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_aa_air_swoosh.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_animeburstmesh01.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_smoke_trail.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_gradient.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_p_tracer.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_blade_trail.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_missile_head_2.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_smoke_erode.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeshapes02.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_animeshapes02_erode.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_buffer_ground_indicator.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_muzzleflash_funnel.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_muzzleflashcore.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_smokeerosiont.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_embers.tex"
+      ]
+    },
+    "W_CircleCut": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_W_CircleCut",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_swipe.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_swipe_erode.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_white_rgb.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_passive_swipe_edge.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_cas_distort.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_horizontal_grad.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_cracks_mult.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_muzzleflash_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_swipe_filler.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_trail01c.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_distortion_soundwaves_01.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_juggle_cylinder.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_juggle_plane.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_throw_sparks.tex"
+      ]
+    },
+    "W_Missile_Block_Beam": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_W_Missile_Block_Beam",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_aa_vertical_gradient.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_bullet.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_impact_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_bullet_trail_beam.tex",
+        "assets/characters/samira/skins/skin30/particles/skin30_energy_ray.tex"
+      ]
+    },
+    "W_Missle_Block": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_W_Missle_Block",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/3026_itemscolor-hold.tex"
+      ]
+    },
+    "W_Missle_Block_Child": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_W_Missle_Block_Child",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/aura_self.tex",
+        "assets/characters/samira/skins/skin30/particles/cirlcle_01.tex",
+        "assets/characters/samira/skins/skin30/particles/orianna_skin30_ba_distort-wave.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_aa_block_flash.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_impact_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ring_glow.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_deflectionripples.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_embers.tex",
+        "assets/characters/samira/skins/skin30/particles/sivir_skin30_w_buf_distort.tex"
+      ]
+    },
+    "W_SwordTrail": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_W_SwordTrail",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_smoke_trail.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_e_air_swoosh_grad01.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_flame_trail.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_p_screen_flames_soft.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_smoke_erode.tex"
+      ]
+    },
+    "W_Ult_Block_Child": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_W_Ult_Block_Child",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/aura_self.tex",
+        "assets/characters/samira/skins/skin30/particles/cirlcle_01.tex",
+        "assets/characters/samira/skins/skin30/particles/common_jayce_aura.tex",
+        "assets/characters/samira/skins/skin30/particles/orianna_skin30_ba_distort-wave.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_ba_tar_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_passive_hit_lens_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_aa_block_flash.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_aa_vertical_gradient.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_emote_shimmer.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_p_buffer_ground_erode.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ring_glow.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_deflectionripples.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_embers.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_muzzleflash_funnel.scb",
+        "assets/characters/samira/skins/skin30/particles/sivir_skin30_w_buf_distort.tex",
+        "assets/characters/samira/skins/skin30/particles/skin30_energy_ray.tex"
+      ]
+    },
+    "W_Ult_block": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_W_Ult_block",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/3026_itemscolor-hold.tex"
+      ]
+    },
+    "W_Zone": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_W_Zone",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_passive_hit_lens_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_smoke_trail.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_emote_dash_dirttrail.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_screen_flames.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_outeredge_01.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ring_glow.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_windwall.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_z_gradient_06.tex"
+      ]
+    },
+    "W_tar": {
+      "definition": "Characters/Samira/Skins/Skin30/Particles/Samira_Skin30_W_tar",
+      "assets": [
+        "assets/characters/samira/skins/skin30/particles/samira_ba_tar_flare.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_alpha_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_ba_sharp_ray.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_q_horizontal_grad.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_r_muzzleflash_backdrop.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_slash_tar.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_slashtar_01.scb",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_w_throw_sparks.tex",
+        "assets/characters/samira/skins/skin30/particles/samira_skin30_z_spritesheet_03.tex"
+      ]
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "python_files_parsed": 65,
+  "lua_files_compiled": 52,
+  "syntax_failures": [],
+  "identity_ok": true,
+  "missing_literal_include_modules": [],
+  "upstream_check_project_exit_code": 1,
+  "upstream_check_project_log": "work/native-check.log",
+  "samira_assets_imported": false,
+  "samira_gameplay_implemented": false,
+  "live_game_test": false,
+  "installable": false
+}

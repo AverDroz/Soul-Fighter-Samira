@@ -1,0 +1,28 @@
+{
+  "version": "0.3.0",
+  "checked": "2026-11-16T00:59:20.1718266+06:00",
+  "installed": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\The Binding of Isaac Rebirth\\mods\\samira_testroom",
+  "backup": "C:\\Users\\Mortem ad Deos\\samira айзек\\work\\before-playable-samira-0.3.0-20261116-005919",
+  "installedFilesVerifiedSha256": 82,
+  "checks": [
+    "combat",
+    "items",
+    "weapons",
+    "kills",
+    "style",
+    "items_room",
+    "inventory",
+    "inventory_hud",
+    "style_hud"
+  ],
+  "result": "passed",
+  "vfx": "passed by subagent, including offscreen GPU render and hotbar overlap check",
+  "nativeEngineTest": "Pending user playtest. Game not launched by agent.",
+  "rendererPid": 22960,
+  "knownLimits": [
+    "Epic Fetus marker/rocket ancestry and native timing require live validation",
+    "Arbitrary third-party or delayed synergies retain native behavior but are not all verified for Q attribution",
+    "Boss E refresh is deferred until room clear to avoid multipart reset farming",
+    "Without companion renderer, native fallback supplies idle/walk but not full Soul Fighter VFX/audio"
+  ]
+}

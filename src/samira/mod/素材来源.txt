@@ -1,0 +1,33 @@
+本项目为非官方同人 Mod，与 Riot Games 无隶属关系。
+Samira原始模型，纹理和骨骼动画属于 Riot Games。
+原始动画模型导出来源：Khada
+https://modelviewer.lol/model-viewer?id=266000
+https://cdn.modelviewer.lol/lol/models/aatrox/266000/model.glb
+
+当前版本使用独立 Companion 以 GPU 实时绘制模型、骨骼动作、特效与 HUD；以撒负责玩法结算。
+开发时导出的二维精灵保留为游戏内回退/过场素材。玩家无需安装模型工具或开发 Python。
+早期 Lua 三角面实验属于历史方案，当前安装方法以 README-FIRST.txt、README-Companion.txt 为准。
+
+底部 HUD 边框、生命条、头像与技能图标属于 Riot Games。
+使用 2026-10-31 取得的 CommunityDragon latest 客户端资源：
+https://raw.communitydragon.org/latest/game/assets/ux/lol/clarity_hudatlas.png
+https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champions/266.json
+详细源文件地址与 SHA256 保存在开发目录 reference/hud/sources.json。
+HUD 排列与缩放为以撒窗口适配；技能、装备商店、合成与撤回已经接入。
+
+早期初始房间曾使用 Riot 官方黑白英文版 PNG；当前已改为操作教程，不再绘制该 Logo。
+名字使用 Riot 官方 Beaufort for LoL 字体栅格化为菜单文字。
+官方资源页面：https://www.leagueoflegends.com/en-us/league-of-legends-downloads/
+Logo 包：https://cmsassets.rgpub.io/sanity/files/dsfx7636/news/e5e422d3f01fde527f48ef6ed0ab49edd54aba01.zip
+字体包：https://cmsassets.rgpub.io/sanity/files/dsfx7636/news/4e0e30c1ebe0e4f8e86c80d45c9ce96ff469689f.zip
+角色选人纸张和箭头复用以撒原版资源，Samira立绘复用本项目现有模型导出素材。
+Q/W 范围贴图、命中光效、R 恐惧光效和鼠标图像使用 Riot 原始资源，通过 CommunityDragon 取得：
+https://raw.communitydragon.org/latest/game/assets/characters/aatrox/skins/base/particles/
+https://raw.communitydragon.org/latest/game/assets/ux/cursors/
+各文件地址与 SHA256 见开发目录 reference/combat/sources.json。
+原始贴图与已提取的客户端粒子配置用于外部绘制；运动、持续时间和伤害范围由本 Mod 适配，不是完整移植 LoL 粒子引擎。
+收剑、拔剑、技能、大招、表情及死亡动作复用模型中的原始骨骼动画。
+原版技能音效和中英文语音已导入；仅过滤Samira玩家的以撒角色声音，环境和敌人等游戏声音保留。
+0.7.55 对语音做 32 kHz / PCM16 重采样，保留声道；部分 PNG 仅做逐像素一致的无损编码优化。原素材出处不变。
+原版物品说明使用 EID 静态描述，作者与来源见 EID-CREDITS.txt。
+当前版本与安装/操作信息见 README-FIRST.txt；开发模板与历史测试记录不随玩家包分发。
