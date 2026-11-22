@@ -473,7 +473,7 @@ mod:AddCallback(ModCallbacks.MC_POST_NIGHTMARE_SCENE_RENDER, hideDuringCinematic
 
 -- Register item damage hooks after the dash guard so a protected dash never
 -- spends an item shield. Items stay native collectibles in the run inventory.
-ControlsSettings.init(mod, Combat, itemPlayer, InventoryHUD.statsSummary)
+ControlsSettings.init(mod, Combat, itemPlayer, InventoryHUD.statsSummary, Inventory)
 Items.init(mod, game, itemPlayer, ControlsSettings.attachToSave, Yone)
 Inventory.init(mod, game, itemPlayer, Items)
 InventoryHUD.init(game, Inventory)

@@ -107,18 +107,34 @@ local function placement(room, player, ignore, count, nearPlayer)
     return positions
 end
 
-local function shopInventory(seed, player)
+local function shopInventory(seed, player, count, reserved)
+    local needed = {}
+    local function collect(entry)
+        if not entry or needed[entry.id] then return end
+        needed[entry.id] = true
+        for _, id in ipairs(entry.item.components or {}) do collect(byRiotId[id]) end
+    end
+    for _, entry in ipairs(entries) do
+        if not entry.item.component and (not runtime.shopEligible or runtime.shopEligible(player, entry.item.riotId)) then
+            collect(entry)
+        end
+    end
     local pool = {}
     for _, entry in ipairs(entries) do
-        if not runtime.shopEligible or runtime.shopEligible(player, entry.item.riotId) then
+        if entry.item.component and needed[entry.id] and not (reserved and reserved[entry.id]) then
             pool[#pool + 1] = entry
         end
     end
-    if #pool < SHOP_BONUS_COUNT then return nil end
+    count = math.min(count or SHOP_BONUS_COUNT, #pool)
+    if count == 0 then return nil end
     local rng = RNG()
     rng:SetSeed(math.max(1, seed), 35)
-    local selected = {}
-    for i = 1, SHOP_BONUS_COUNT do
+    local selected, basic = {}, {}
+    for index, entry in ipairs(pool) do
+        if not entry.item.components then basic[#basic + 1] = index end
+    end
+    if #basic > 0 then selected[1] = table.remove(pool, basic[rng:RandomInt(#basic) + 1]) end
+    for i = #selected + 1, count do
         selected[i] = table.remove(pool, rng:RandomInt(#pool) + 1)
     end
     return selected
@@ -172,6 +188,31 @@ local function placePedestals(player, selected, previous, ignored, priced)
     return ids
 end
 
+local function restoreStock(room, player, state)
+    local legacy, keep, reserved, ignored, positions = {}, {}, {}, {}, {}
+    for _, entity in ipairs(Isaac.FindByType(pickupType, collectibleVariant, -1, false, false)) do
+        local pickup = entity:ToPickup()
+        local key = tostring(pickup.InitSeed)
+        local entry = byCollectible[pickup.SubType]
+        if entry and state.stocked[key] == pickup.SubType then
+            if entry.item.component then
+                pickup.AutoUpdatePrice, pickup.Price = false, entry.item.price
+                keep[key], reserved[pickup.SubType] = pickup.SubType, true
+            else
+                legacy[#legacy + 1], positions[#positions + 1] = pickup, pickup.Position
+                ignored[pickup.Index] = true
+            end
+        end
+    end
+    if #legacy == 0 then return end
+    local replacements = shopInventory(room:GetSpawnSeed(), player, #legacy, reserved)
+    local restocked = replacements and spawn(replacements, positions, shopSlots(#replacements, ignored))
+    if replacements and not restocked then return false end
+    for _, pickup in ipairs(legacy) do pickup:Remove() end
+    for _, pickup in ipairs(restocked or {}) do keep[tostring(pickup.InitSeed)] = pickup.SubType end
+    state.stocked = keep
+end
+
 local function updateShop()
     local player = getPlayer()
     if not player then return end
@@ -179,20 +220,13 @@ local function updateShop()
     if room:GetType() ~= RoomType.ROOM_SHOP or not room:IsClear() or game:IsGreedMode() then return end
     local key = roomKey()
     if checkedRoom == key then return end
-    checkedRoom = key
     loadCatalog()
     local state = roomState()
     if state.stocked then
-        for _, entity in ipairs(Isaac.FindByType(pickupType, collectibleVariant, -1, false, false)) do
-            local pickup = entity:ToPickup()
-            local entry = byCollectible[pickup.SubType]
-            if entry and state.stocked[tostring(pickup.InitSeed)] == pickup.SubType then
-                pickup.AutoUpdatePrice = false
-                pickup.Price = entry.item.price
-            end
-        end
+        if restoreStock(room, player, state) ~= false then checkedRoom = key end
         return
     end
+    checkedRoom = key
     if not room:IsFirstVisit() then return end
     state.stocked = placePedestals(player, shopInventory(room:GetSpawnSeed(), player), {}, {}, true)
     if not state.stocked then
@@ -458,10 +492,10 @@ function RoomItems.init(mod, ownerGame, playerProvider, itemRuntime)
         eidHidden = {}
         checkedRoom, pageOverride, pageKeyDown, cardsHidden = nil, nil, nil, nil
     end)
-    Console.RegisterCommand('samiraitems', 'Spawn a page of Samira collectibles', 'samiraitems [1-4]', false, AutocompleteType.NONE)
+    Console.RegisterCommand('samiraitems', 'Spawn a page of Samira collectibles', 'samiraitems [page]', false, AutocompleteType.NONE)
     Console.RegisterCommand('samiraitem', 'Spawn a Samira collectible', 'samiraitem <Riot item ID>', false, AutocompleteType.NONE)
     Console.RegisterCommand('samirashop', 'Spawn a paid Samira test assortment', 'samirashop', false, AutocompleteType.NONE)
-    Console.RegisterCommand('yoneitems', 'Spawn a page of League collectibles', 'yoneitems [1-4]', false, AutocompleteType.NONE)
+    Console.RegisterCommand('yoneitems', 'Spawn a page of League collectibles', 'yoneitems [page]', false, AutocompleteType.NONE)
     Console.RegisterCommand('yoneitem', 'Spawn a League collectible for a test', 'yoneitem <Riot item ID>', false, AutocompleteType.NONE)
     Console.RegisterCommand('yoneshop', 'Spawn a paid Yone test assortment', 'yoneshop', false, AutocompleteType.NONE)
 end

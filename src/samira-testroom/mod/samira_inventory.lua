@@ -6,6 +6,7 @@ local droppedVarData = 0x53414D49
 local game, getPlayer, items
 local entriesByCollectible, entriesByRiot
 local pending
+local crafting = false
 
 local function storage()
     local state = items.getInventoryState()
@@ -163,6 +164,129 @@ function Inventory.drop(p, index)
     return dropSlot(p, state, index or state.selected)
 end
 
+-- Include dependencies of allowed finished items even when that intermediate is
+-- not itself on the character's finished-item list.
+local function allowedRecipes(p)
+    local allowed = {}
+    local function visit(id)
+        if allowed[id] then return end
+        local row = entriesByRiot[id]
+        if not row or not row.components or #row.components == 0 then return end
+        allowed[id] = true
+        for _, ingredient in ipairs(row.components) do visit(ingredient) end
+    end
+    for _, row in ipairs(catalog) do
+        if row.components and #row.components > 0 and items.shopEligible(p, row.riotId) then
+            visit(row.riotId)
+        end
+    end
+    return allowed
+end
+
+local function ingredients(state, p, row)
+    local available, chosen, missing = {}, {}, {}
+    for index = 1, slotCount do
+        local slot = state.entries[tostring(index)]
+        local entry = slot and entriesByRiot[slot.riotId]
+        if entry then
+            local id = slot.riotId
+            available[id] = available[id] or {count = nativeCount(p, entry), slots = {}}
+            local group = available[id]
+            if #group.slots < group.count then group.slots[#group.slots + 1] = index end
+        end
+    end
+    for _, id in ipairs(row.components) do
+        local group = available[id]
+        if group and #group.slots > 0 then
+            chosen[#chosen + 1] = table.remove(group.slots, 1)
+        else
+            missing[#missing + 1] = id
+        end
+    end
+    table.sort(chosen)
+    return chosen, missing
+end
+
+-- Each recipe exposes a row, its duplicate-preserving missing IDs, and cost.
+function Inventory.recipes(p)
+    if not managed(p) then return {} end
+    local state, result, allowed = storage(), {}, allowedRecipes(p)
+    for _, raw in ipairs(catalog) do
+        local row = entriesByRiot[raw.riotId]
+        if row and allowed[row.riotId] then
+            local _, missing = ingredients(state, p, row)
+            result[#result + 1] = {row = row, missing = missing, combinePrice = row.combinePrice or 0}
+        end
+    end
+    return result
+end
+
+function Inventory.craft(p, riotId)
+    if not managed(p) then return false, 'player' end
+    if game:GetRoom():GetType() ~= RoomType.ROOM_SHOP then return false, 'room' end
+    local row = entriesByRiot[riotId]
+    if not row or not allowedRecipes(p)[riotId] then return false, 'recipe' end
+    local cost = row.combinePrice
+    if type(cost) ~= 'number' or cost < 0 or cost % 1 ~= 0 then return false, 'recipe' end
+    if p:GetNumCoins() < cost then return false, 'coins' end
+    local state = reconcile(p)
+    local indices, missing = ingredients(state, p, row)
+    if #missing > 0 or #indices == 0 then return false, 'ingredients' end
+
+    local originalMax, originalRed, originalCoins = p:GetMaxHearts(), p:GetHearts(), p:GetNumCoins()
+    local removed, resultAdded = {}, false
+    local function restoreHealth()
+        if usesRedContainers(p) then
+            local delta = originalMax - p:GetMaxHearts()
+            if delta > 0 then addCapacity(p, delta) elseif delta < 0 then undoCapacity(p, -delta) end
+            p:AddHearts(math.min(originalRed, p:GetEffectiveMaxHearts()) - p:GetHearts())
+        end
+    end
+    local function rollback()
+        if p:GetNumCoins() ~= originalCoins then pcall(p.AddCoins, p, originalCoins - p:GetNumCoins()) end
+        if resultAdded then pcall(p.RemoveCollectible, p, row.collectibleId) end
+        for i = #removed, 1, -1 do pcall(p.AddCollectible, p, removed[i].collectibleId, 0, false) end
+        restoreHealth()
+        state.observedMax = p:GetMaxHearts()
+    end
+    crafting = true
+    local ok, success = pcall(function()
+        local owed = 0
+        for _, index in ipairs(indices) do
+            local slot = state.entries[tostring(index)]
+            local ingredient = entriesByRiot[slot.riotId]
+            local before, maxBefore = nativeCount(p, ingredient), p:GetMaxHearts()
+            local removedOk = pcall(p.RemoveCollectible, p, ingredient.collectibleId)
+            local after = nativeCount(p, ingredient)
+            if after == before - 1 then removed[#removed + 1] = ingredient end
+            if not removedOk or after ~= before - 1 then return false end
+            owed = owed + math.max(0, (slot.hearts or 0) - math.max(0, maxBefore - p:GetMaxHearts()))
+        end
+        undoCapacity(p, owed)
+        local before, maxBefore = nativeCount(p, row), p:GetMaxHearts()
+        local addOk = pcall(p.AddCollectible, p, row.collectibleId, 0, false)
+        resultAdded = nativeCount(p, row) == before + 1
+        if not addOk or not resultAdded then return false end
+        local granted = 0
+        if usesRedContainers(p) then
+            granted = math.min(capacity(row), math.max(0, p:GetMaxHearts() - maxBefore))
+            addCapacity(p, capacity(row) - granted)
+            granted = math.max(0, p:GetMaxHearts() - maxBefore)
+            p:AddHearts(math.min(originalRed, p:GetEffectiveMaxHearts()) - p:GetHearts())
+        end
+        p:AddCoins(-cost)
+        if p:GetNumCoins() ~= originalCoins - cost then return false end
+        for _, index in ipairs(indices) do state.entries[tostring(index)] = nil end
+        state.entries[tostring(indices[1])] = {riotId = row.riotId, hearts = granted}
+        state.observedMax = p:GetMaxHearts()
+        return true
+    end)
+    if not ok or not success then rollback() end
+    crafting = false
+    if not ok or not success then return false, 'native' end
+    return true
+end
+
 function Inventory.update(p)
     if not managed(p) then return end
     local state = reconcile(p)
@@ -178,6 +302,7 @@ function Inventory.update(p)
 end
 
 local function beforeAdd(_, id, charge, firstTime, slot, varData, p)
+    if crafting then return end
     local row = entriesByCollectible[id]
     if not row or not managed(p) then return end
     reconcile(p)
@@ -192,6 +317,7 @@ local function beforeAdd(_, id, charge, firstTime, slot, varData, p)
 end
 
 local function afterAdd(_, id, _, _, _, _, p)
+    if crafting then return end
     local row = entriesByCollectible[id]
     if not row or not managed(p) then return end
     local acquisition = pending

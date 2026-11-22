@@ -65,7 +65,8 @@ def build(output, *, include_local_yone=False):
                 copy(f"assets/yone-local/audio/{name}", f"companion/assets/yone-local/audio/{name}")
         if (ROOT / "assets/yone-local/yone-portrait.png").is_file():
             copy("assets/yone-local/yone-portrait.png", "samira_testroom/resources/gfx/samira/yone-portrait.png")
-    for name in ("yone-ability-icons.lock.json", "yone-spirit-audio.lock.json"):
+    for name in ("yone-ability-icons.lock.json", "yone-spirit-audio.lock.json", "components-data.lock.json",
+                 "components-icons.lock.json"):
         copy(f"docs/{name}", f"provenance/{name}")
     for source, target in (("export-launcher.cmd", "launch.cmd"), ("export-launcher.ps1", "launcher.ps1"), ("export-INSTALL.txt", "INSTALL.txt")):
         copy(f"tools/{source}", target)
@@ -82,6 +83,7 @@ def build(output, *, include_local_yone=False):
         "Asset provenance is retained in companion/assets/samira-soul-fighter manifests.\n"
         "Yone ability icon provenance: provenance/yone-ability-icons.lock.json.\n"
         "Yone spirit warning provenance: provenance/yone-spirit-audio.lock.json.\n"
+        "Riot Data Dragon component sources: provenance/components-data.lock.json and provenance/components-icons.lock.json.\n"
         "Python and dependency notices/licenses accompany companion/python.\n"
         "Liberation font license: samira_testroom/resources/font/LIBERATION-LICENSE.txt.\n"
         "No blanket license is granted for third-party materials.\n"

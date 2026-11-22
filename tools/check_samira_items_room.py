@@ -60,19 +60,20 @@ function RNG()
     }
 end
 
-local catalog, lookup, byId = include('samira_items_data'), {}, {}
+local catalog, lookup, byId, byRiot = include('samira_items_data'), {}, {}, {}
 local description = include('samira_item_description')
 local unwrapped = {GetStringWidthUTF8 = function() return 0 end}
 for i, item in ipairs(catalog) do
     lookup[item.collectibleName] = i + 1000
     byId[i + 1000] = item
+    byRiot[item.riotId] = item
     local stats, passive = description.lines(unwrapped, item, 1)
     local segments = 0
     local text = table.concat(stats, ' ')
     for _ in string.gmatch(text, ' · ') do segments = segments + 1 end
     local fields = 0
     for _ in pairs(item.stats) do fields = fields + 1 end
-    assert(segments + 1 == fields, item.name .. ' is missing a stat')
+    assert((text == '' and 0 or segments + 1) == fields, item.name .. ' is missing a stat')
     assert(table.concat(passive, ' '):find(item.descriptionRu, 1, true))
     if item.riotId == 3031 then
         assert(text:find('Множитель крита +0,3×', 1, true))
@@ -217,12 +218,20 @@ greed = false
 update()
 assert(not normal.removed and not heart.removed and not freeReward.removed and not questPedestal.removed and not device.removed)
 assert(normal.Price == 15 and heart.Price == 5 and normal.ShopItemId == 0 and heart.ShopItemId == 1)
-assert(table.concat(rngBounds, ',') == '46,45,44,43')
+local buyable, basic = 0, 0
+for _, item in ipairs(catalog) do
+    if item.component then
+        buyable = buyable + 1
+        if not item.components then basic = basic + 1 end
+    end
+end
+assert(table.concat(rngBounds, ',') == table.concat({basic, buyable - 1, buyable - 2, buyable - 3}, ','))
 local firstShop, ids, slots = {}, {}, {[0] = true, [1] = true, [8] = true}
 for _, e in ipairs(roomEntities()) do
     if byId[e.SubType] then
         firstShop[#firstShop + 1] = e
         local item = byId[e.SubType]
+        assert(item.component, 'a finished item appeared on a paid pedestal')
         assert(e.Price == item.price and not e.AutoUpdatePrice and not ids[e.SubType] and not slots[e.ShopItemId])
         assert(e.Position:Distance(Vector(80, 200)) >= 78)
         for _, existing in ipairs({normal, heart, freeReward, questPedestal, device}) do
@@ -234,6 +243,7 @@ for _, e in ipairs(roomEntities()) do
     end
 end
 assert(#firstShop == 4)
+assert(not byId[firstShop[1].SubType].components, 'stock did not reserve a basic component')
 
 EID = {}
 shop.render(player)
@@ -298,9 +308,15 @@ enter(6)
 entities = {}
 local legacy = entity(5, 100, firstShop[2].SubType, Vector(200, 200), 99)
 legacy.ShopItemId = 2
-shops['shop:6'] = {stocked = {[tostring(legacy.InitSeed)] = legacy.SubType}}
+local oldItem = entity(5, 100, lookup['Samira: Infinity Edge'], Vector(240, 200), 99)
+oldItem.ShopItemId = 8
+shops['shop:6'] = {stocked = {[tostring(legacy.InitSeed)] = legacy.SubType,
+    [tostring(oldItem.InitSeed)] = oldItem.SubType, ['already bought'] = oldItem.SubType}}
 update()
-assert(#roomEntities() == 1 and legacy.Price == byId[legacy.SubType].price and not legacy.removed)
+assert(#roomEntities() == 2 and oldItem.removed and legacy.Price == byId[legacy.SubType].price
+    and not legacy.removed)
+for _, pickup in ipairs(roomEntities()) do assert(byId[pickup.SubType].component) end
+assert(not shops['shop:6'].stocked['already bought'], 'restocked a previously purchased sale')
 
 -- Profile filtering affects newly generated bonus offers, not native stock,
 -- and persisted bonus offers survive later predicate changes.
@@ -310,11 +326,20 @@ local vanillaYone, heartYone = fakeVanilla()
 local allowed = {}
 for i = 1, 4 do allowed[catalog[i].riotId] = true end
 runtime.shopEligible = function(_, riotId) return allowed[riotId] == true end
+local dependencies = {}
+local function collectDependencies(item)
+    for _, id in ipairs(item.components or {}) do
+        dependencies[id] = true
+        collectDependencies(byRiot[id])
+    end
+end
+for id in pairs(allowed) do collectDependencies(byRiot[id]) end
 update()
 local curated = {}
 for _, e in ipairs(roomEntities()) do
     if byId[e.SubType] then
-        assert(allowed[byId[e.SubType].riotId]); curated[#curated + 1] = e
+        local item = byId[e.SubType]
+        assert(item.component and dependencies[item.riotId]); curated[#curated + 1] = e
     end
 end
 assert(#curated == 4 and not vanillaYone.removed and not heartYone.removed)
@@ -330,7 +355,7 @@ entities, roomType = {}, 1
 local unrelated = entity(5, 100, 90, Vector(280, 160), 0)
 local foe = entity(50, 0, 0, Vector(360, 240), 0)
 local showcased = {}
-for page = 1, 4 do
+for page = 1, math.ceil(#catalog / 12) do
     run('samiraitems', tostring(page))
     local count = 0
     for _, e in ipairs(roomEntities()) do
@@ -368,7 +393,7 @@ local backpack = {x = 86, width = 147, y = 244, height = 22}
 for _, width in ipairs({480, 640}) do
     screenWidth, renderedItems = width, {}
     reservedStyle = {x = width - 79, y = 172, width = 51, height = 34}
-    for page = 1, 4 do
+    for page = 1, math.ceil(#catalog / 12) do
         run('samiraitems', tostring(page))
         enter(4)
         keyDown = false

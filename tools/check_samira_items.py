@@ -1,6 +1,9 @@
 """Exercise the native Samira item callbacks against the generated catalog."""
 from pathlib import Path
 import sys
+import json
+import hashlib
+from PIL import Image
 from xml.etree import ElementTree
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -11,13 +14,46 @@ MOD = ROOT / 'src/samira-testroom/mod'
 # Passive items resolve through the engine's collectible subdirectory.
 native_items = ElementTree.parse(MOD / 'content/items.xml').getroot()
 assert native_items.attrib['gfxroot'] == 'gfx/items/'
-assert len(native_items) == 46
+# The first 46 IDs and names are persistent save identifiers.
+lock = json.loads((ROOT / 'docs/components-data.lock.json').read_text(encoding='utf8'))
+icon_lock = json.loads((ROOT / 'docs/components-icons.lock.json').read_text(encoding='utf8'))
+assert len(native_items) == len(lock['entries']) == 73
+assert [int(item.attrib['id']) for item in native_items] == list(range(1, 74))
+for index, riot_id in enumerate(lock['original_ids']):
+    assert native_items[index].attrib['gfx'] == f'samira_item_{riot_id}.png'
+    assert native_items[index].attrib['name'] == 'Samira: ' + lock['entries'][str(riot_id)]['name_en']
+for icon in icon_lock['icons']:
+    riot_id = icon['riot_id']
+    source = ROOT / 'assets/samira-items/components' / f'{riot_id}.png'
+    target = MOD / 'resources/gfx/items/collectibles' / f'samira_item_{riot_id}.png'
+    assert hashlib.sha256(source.read_bytes()).hexdigest() == icon['source_sha256']
+    assert hashlib.sha256(target.read_bytes()).hexdigest() == icon['output_sha256']
+    with Image.open(target) as image:
+        assert image.size == (32, 32) and image.mode == 'RGBA'
+        assert image.getchannel('A').getbbox() is not None
 for native_item in native_items:
     assert native_item.tag == 'passive'
     icon = MOD / 'resources' / native_items.attrib['gfxroot'] / 'collectibles' / native_item.attrib['gfx']
     assert icon.is_file(), f"Native item texture missing: {icon}"
 
 lua = LuaRuntime()
+catalog = lua.execute((MOD / 'samira_items_data.lua').read_text(encoding='utf8'))
+rows = {row['riotId']: row for row in catalog.values()}
+assert set(rows) == {int(key) for key in lock['entries']}
+original_ids = set(lock['original_ids'])
+for key, entry in lock['entries'].items():
+    riot_id = int(key)
+    row = rows[riot_id]
+    assert bool(row['component']) == (riot_id not in original_ids or riot_id == 1001)
+    recipe = entry['from']
+    actual = list(row['components'].values()) if row['components'] is not None else []
+    assert actual == recipe, (riot_id, actual, recipe)
+    if recipe:
+        assert all(part in rows for part in recipe)
+        assert row['combinePrice'] == max(0, row['price'] - sum(rows[part]['price'] for part in recipe))
+    else:
+        assert row['combinePrice'] is None
+
 lua.globals().itemsSource = (MOD / 'samira_items.lua').read_text(encoding='utf8')
 lua.globals().catalogSource = (MOD / 'samira_items_data.lua').read_text(encoding='utf8')
 lua.globals().styleSource = (MOD / 'samira_style.lua').read_text(encoding='utf8')
@@ -25,6 +61,8 @@ lua.globals().yoneCombatSource = (MOD / 'yone_combat.lua').read_text(encoding='u
 lua.globals().yoneArtifactsSource = (MOD / 'yone_artifacts.lua').read_text(encoding='utf8')
 lua.execute(r'''
 local catalog = assert(load(catalogSource))()
+local byRiot = {}
+for _, row in ipairs(catalog) do assert(not byRiot[row.riotId]); byRiot[row.riotId] = row end
 local Style = assert(load(styleSource))()
 function include(name)
     if name == 'samira_items_data' then return catalog end
@@ -252,7 +290,7 @@ local function enemy(seed, x, y)
     return result
 end
 
-assert(#catalog == 46)
+assert(#catalog == 73)
 for _, row in ipairs(catalog) do
     start({row.riotId})
     local foe = enemy(4, 30, 0)
@@ -778,5 +816,58 @@ fire('MC_POST_GAME_STARTED',true)
 Items.restoreCombatCooldowns()
 assert(yoneRoutes.restored.saved.q == 17, 'Yone cooldowns must restore')
 
-print('Passed 46 item stat checks, native weapon damage and Style, combat scenarios, and persistence.')
+-- Components share timers with their upgrades, and their bonuses apply only
+-- to accepted direct hits. Repeated hits in one action must not multiply on-hit.
+start({1043})
+foe = enemy(1001)
+local multi = Items.newAttack(p, 'attack', clock)
+close(hit(foe, nil, multi), p.Damage + .3, 'Recurve first attack')
+close(hit(foe, nil, multi), p.Damage, 'Recurve one bonus per action')
+close(hit(foe, 'q'), p.Damage, 'Recurve excludes abilities')
+
+start({3057, 3078})
+foe = enemy(1002)
+Items.onCast(p, 'q', clock)
+close(hit(foe, 'attack'), p.Damage + 3, 'shared Spellblade uses stronger upgrade')
+Items.onCast(p, 'q', clock)
+close(hit(foe, 'attack'), p.Damage, 'shared Spellblade cooldown')
+start({3057})
+foe = enemy(1003)
+Items.onCast(p, 'q', clock)
+close(hit(foe, 'attack'), p.Damage + 1, 'Sheen Spellblade')
+
+start({3144, 3179})
+foe = enemy(1004)
+close(hit(foe, 'q'), p.Damage + 1.5, 'shared bonus uses stronger upgrade')
+close(hit(foe, 'q'), p.Damage, 'shared bonus cooldown')
+
+start({3123})
+foe = enemy(1005)
+hit(foe, 'q')
+step(30)
+close(foe.hits[2], p.Damage * .075, 'component bleed')
+fire('MC_PRE_GAME_EXIT', true)
+fire('MC_POST_GAME_STARTED', true)
+step(30)
+close(foe.hits[3], p.Damage * .075, 'component bleed survives save')
+
+start({3044})
+foe = enemy(1006)
+hit(foe, 'q')
+step()
+close(p.MoveSpeed, 1.04, 'Phage movement')
+step(60)
+close(p.MoveSpeed, 1, 'Phage movement expires')
+
+for _, pair in ipairs({{1006, 4}, {3801, 3}, {3083, 2}}) do
+    start({pair[1]}, 2, 6)
+    for i = 1, pair[2] do
+        if i > 1 then enter(i) end
+        clear = true
+        step()
+        assert(p.hp == (i == pair[2] and 3 or 2), 'shared clean-room regeneration')
+    end
+end
+
+print('Passed item stat checks, component effects, native weapon damage and Style, combat scenarios, and persistence.')
 ''')

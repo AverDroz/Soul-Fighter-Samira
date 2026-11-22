@@ -21,7 +21,7 @@ function Settings.hudScale()
     return hudPercent / 100
 end
 
-function Settings.init(mod, combat, player, inventorySummary)
+function Settings.init(mod, combat, player, inventorySummary, inventory)
     local menu, item, window = 'samiraControlsMenu', 'samiraControlsItem', 'samiraControlsWindow'
     local ownsOverlay, keyHeld, slotReady = false, false, false
     local function readSave()
@@ -102,6 +102,7 @@ function Settings.init(mod, combat, player, inventorySummary)
             previousSummary = text
         end
     end)
+    if inventory then include('samira_crafting_ui').init(window, player, inventory) end
     ImGui.AddButton(window, 'samiraControlsClose', 'Готово', close)
     mod:AddCallback(ModCallbacks.MC_POST_SAVESLOT_LOAD, function(_, _, selected, rawSlot)
         if selected and rawSlot ~= 0 then loadSlot() else slotReady = false end

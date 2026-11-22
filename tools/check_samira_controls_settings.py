@@ -122,4 +122,64 @@ saves[1]='broken'; toggle(true); assert(saves[1]=='broken' and mode==false and n
 toggle(0,'samiraHudScale'); assert(saves[1]=='broken' and cfg.hudScale()==1.5 and ui.samiraHudScale==5)
 callbacks.MC_PRE_MOD_UNLOAD(nil,mod); assert(ui.samiraControlsMenu==nil and ui.samiraControlsWindow==nil)
 ''')
-print("Passed menu wiring, held F9, immediate switches, save preservation, reload, slots and malformed data.")
+lua.globals().craft_source = source.with_name('samira_crafting_ui.lua').read_text(encoding='utf-8')
+lua.execute(r'''
+local piece = {riotId = 1036, name = 'Длинный меч'}
+local second = {riotId = 1037, name = 'Кирка'}
+local output = {riotId = 3133, name = 'Молот', components = {1036, 1036, 1037}}
+local other = {riotId = 3078, name = 'Союз', components = {3133}}
+function include(name)
+    assert(name == 'samira_items_data')
+    return {piece, second, output, other}
+end
+local text, inputs, options = {}, {}, {}
+local owner, inShop, assembled = {GetNumCoins = function() return 9 end}, false, 0
+RoomType = {ROOM_SHOP = 2}
+Game = function() return {GetRoom = function()
+    return {GetType = function() return inShop and RoomType.ROOM_SHOP or 0 end}
+end} end
+ImGuiData.Options = 2
+ImGui = {
+    AddElement = function() end,
+    AddCombobox = function(_, key, _, run) inputs[key] = run end,
+    AddButton = function(_, key, _, run) inputs[key] = run end,
+    AddCallback = function(key, _, run) inputs[key] = run end,
+    AddText = function() end,
+    UpdateText = function(key, value) text[key] = value end,
+    UpdateData = function(key, kind, value)
+        if kind == ImGuiData.Options then options[key] = value end
+    end,
+}
+local current = owner
+assert(load(craft_source))().init('window', function() return current end, {
+    recipes = function(p)
+        if not p then return {} end
+        return {{row = output, missing = assembled == 0 and {1036} or {}, combinePrice = 3},
+            {row = other, missing = {3133}, combinePrice = 8}}
+    end,
+    craft = function(p, id)
+        assert(p == owner and id == output.riotId)
+        if not inShop then return false, 'room' end
+        assembled = assembled + 1
+        return true
+    end,
+})
+inputs.samiraCraftInfo()
+assert(#options.samiraCraftChoice == 2)
+assert(text.samiraCraftInfo:find('2× Длинный меч', 1, true))
+assert(text.samiraCraftInfo:find('Не хватает: Длинный меч', 1, true))
+inputs.samiraCraftChoice(1)
+inputs.samiraCraftInfo()
+assert(text.samiraCraftInfo:find('Доплата: 8 мон.', 1, true))
+inputs.samiraCraftChoice(0)
+inputs.samiraCraftApply()
+assert(assembled == 0 and text.samiraCraftFeedback == 'Собирать можно в магазине.')
+inShop = true
+inputs.samiraCraftApply()
+inputs.samiraCraftInfo()
+assert(assembled == 1 and text.samiraCraftInfo:find('Все компоненты в рюкзаке.', 1, true))
+current = nil
+inputs.samiraCraftInfo()
+assert(#options.samiraCraftChoice == 1 and options.samiraCraftChoice[1] == 'Нет доступных рецептов')
+''')
+print("Passed settings, slot saves and the crafting menu.")

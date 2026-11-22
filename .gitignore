@@ -5,6 +5,8 @@ assets/yone-local/
 !assets/samira-items/
 assets/samira-items/*
 !assets/samira-items/isaac-atlas.png
+!assets/samira-items/components/
+!assets/samira-items/components/*.png
 !assets/samira-soul-fighter/
 assets/samira-soul-fighter/*
 !assets/samira-soul-fighter/manifest.json

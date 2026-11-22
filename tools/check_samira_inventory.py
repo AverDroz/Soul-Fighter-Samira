@@ -12,6 +12,14 @@ lua.globals().inventorySource = (MOD / 'samira_inventory.lua').read_text(encodin
 lua.globals().catalogSource = (MOD / 'samira_items_data.lua').read_text(encoding='utf8')
 lua.execute(r'''
 local catalog = assert(load(catalogSource))()
+-- Controlled recipes exercise transaction semantics independently of catalogue changes.
+for _, row in ipairs({
+    {riotId=900001, collectibleName='Fixture A', stats={health_red_hearts=1}, component=true},
+    {riotId=900002, collectibleName='Fixture B', stats={}, component=true},
+    {riotId=900003, collectibleName='Fixture result', stats={health_red_hearts=2}, components={900001,900001,900002}, combinePrice=7},
+    {riotId=900004, collectibleName='Fixture intermediate', stats={}, components={900002}, combinePrice=2},
+    {riotId=900005, collectibleName='Fixture restricted', stats={}, components={900004}, combinePrice=1},
+}) do catalog[#catalog+1]=row end
 local names, capacities = {}, {}
 for _, row in ipairs(catalog) do
     names[row.collectibleName] = row.riotId
@@ -22,14 +30,17 @@ function GetPtrHash(entity) return entity end
 Vector = {Zero = {X = 0, Y = 0}}
 EntityType = {ENTITY_PICKUP = 5}
 PickupVariant = {PICKUP_COLLECTIBLE = 100}
+RoomType = {ROOM_SHOP = 2}
 ModCallbacks = {MC_PRE_ADD_COLLECTIBLE = 1, MC_POST_ADD_COLLECTIBLE = 2, MC_POST_GAME_STARTED = 3}
 
 local callbacks, spawned, failSpawn = {}, {}, false
+local roomType, failRemove, failAdd = 2, false, false
 local p = {Position = Vector.Zero}
 local state = {}
 local function activate()
     p.count, p.red, p.max, p.coins = {}, 6, 6, 99
     p.removeNativeHealth = false
+    roomType, failRemove, failAdd = 2, false, false
     spawned, state, failSpawn = {}, {}, false
     callbacks[3]()
 end
@@ -57,16 +68,25 @@ function p:AddMaxHearts(add)
     self.red = math.min(self.max, self.red)
 end
 function p:AddHearts(add) self.red = math.max(0, math.min(self.max, self.red + add)) end
+function p:GetNumCoins() return self.coins end
+function p:AddCoins(n) self.coins = self.coins + n end
+function p:AddCollectible(id)
+    if failAdd then failAdd = false; return end
+    callbacks[1](nil,id,0,false,0,0,self)
+    self.count[id] = self:GetCollectibleNum(id) + 1
+    callbacks[2](nil,id,0,false,0,0,self)
+end
 function p:RemoveCollectible(id)
+    if failRemove then failRemove = false; return end
     self.count[id] = self:GetCollectibleNum(id) - 1
     if self.removeNativeHealth then self:AddMaxHearts(-(capacities[id] or 0)) end
 end
 
-local room = {FindFreePickupSpawnPosition = function() return Vector.Zero end}
+local room = {FindFreePickupSpawnPosition = function() return Vector.Zero end, GetType = function() return roomType end}
 local Inventory = assert(load(inventorySource))()
 Inventory.init({AddCallback = function(_, id, cb) callbacks[id] = cb end},
     {GetRoom = function() return room end}, function() return p end,
-    {getInventoryState = function() return state end})
+    {getInventoryState = function() return state end, shopEligible = function(_, id) return id ~= 900004 end})
 
 local function acquire(id, paid, pedestal, forceFresh)
     local price = paid or 0
@@ -177,6 +197,36 @@ p.max, p.red = 10, 7
 Inventory.update(p)
 assert(Inventory.slots(p)[1].riotId == 1001 and Inventory.slots(p)[3].riotId == 2501)
 assert(Inventory.drop(p, 3) and p.max == 6 and p.red == 6 and p:GetCollectibleNum(5) == 4)
+
+activate()
+for _, id in ipairs({900001,1001,900001,900002,3006,3008}) do acquire(id) end
+p.red = 4
+local recipes = Inventory.recipes(p)
+local found, intermediate = false, false
+for _, recipe in ipairs(recipes) do
+    if recipe.row.riotId == 900003 then found = #recipe.missing == 0 and recipe.combinePrice == 7 end
+    if recipe.row.riotId == 900004 then intermediate = true end
+end
+assert(found and intermediate)
+roomType = 1
+assert(not Inventory.craft(p, 900003))
+roomType = 2
+p.coins = 6
+assert(not Inventory.craft(p, 900003) and p:GetCollectibleNum(900001) == 2)
+p.coins = 99
+failRemove = true
+assert(not Inventory.craft(p, 900003) and p:GetCollectibleNum(900001) == 2 and p.red == 4 and p.coins == 99)
+failAdd = true
+assert(not Inventory.craft(p, 900003) and p:GetCollectibleNum(900001) == 2 and p.red == 4 and p.coins == 99)
+assert(Inventory.craft(p, 900003))
+assert(Inventory.slots(p)[1].riotId == 900003 and Inventory.slots(p)[2].riotId == 1001
+    and not Inventory.slots(p)[3] and not Inventory.slots(p)[4] and Inventory.slots(p)[5].riotId == 3006
+    and p:GetCollectibleNum(900001) == 0 and p:GetCollectibleNum(900003) == 1 and p.coins == 92 and p.red == 4)
+assert(not Inventory.craft(p, 900003))
+activate()
+p.count[900001], p.count[900002] = 2, 1
+p.max, p.red = 10, 3
+assert(Inventory.craft(p, 900003) and p.red == 3 and p:GetCollectibleNum(900003) == 1)
 
 print('Passed six-slot replacement, native purchases, duplicate and ordinary items, drop/re-pick, D4 and continue checks.')
 ''')

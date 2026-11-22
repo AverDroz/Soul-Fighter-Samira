@@ -222,6 +222,7 @@ local function save(shouldSave)
                     steelNear = enemy.steelNear,
                     bleedEnd = enemy.bleedEnd and math.max(0, enemy.bleedEnd - clock),
                     bleedNext = enemy.bleedNext and math.max(0, enemy.bleedNext - clock),
+                    bleedPower = enemy.bleedPower,
                     cleave = enemy.cleave, cleaveEnd = enemy.cleaveEnd and math.max(0, enemy.cleaveEnd - clock),
                     ruinedKing = enemy.ruinedKing,
                 }
@@ -427,7 +428,7 @@ end
 function Items.onCast(p, key, tick)
     local owned = state(p)
     clock = tick
-    if owned[3078] and ready('spellblade') then
+    if (owned[3078] or owned[3057]) and ready('spellblade') then
         room.spellblade = true
         start('spellbladeExpires', 120)
     end
@@ -493,6 +494,7 @@ local function enemyState(entity)
             result.steelNear, result.cleave, result.ruinedKing = saved.steelNear, saved.cleave or 0, saved.ruinedKing
             if saved.bleedEnd and saved.bleedEnd > 0 then
                 result.bleedEnd, result.bleedNext = restored + saved.bleedEnd, restored + saved.bleedNext
+                result.bleedPower = saved.bleedPower or .15
             end
             if saved.cleaveEnd then result.cleaveEnd = restored + saved.cleaveEnd end
         end
@@ -504,7 +506,8 @@ end
 local function buffSpeed(owned, stats, native)
     local flat, percent = stats.move_speed_flat or 0, stats.move_speed_pct or 0
     if activeStats and room then
-        if owned[3071] and live('cleaverSpeed') then flat = flat + .06 end
+        if owned[3071] and live('cleaverSpeed') then flat = flat + .06
+        elseif owned[3044] and live('cleaverSpeed') then flat = flat + .04 end
         if owned[3073] and live('hexplate') then percent = percent + 10 end
         if owned[3171] and live('crimson') then percent = percent + 8 end
         if owned[3095] and live('stormrazor') then percent = percent + 20 end
@@ -622,14 +625,17 @@ local function prepareDamage(p, entity, amount, ctx, ranged)
         modified = modified * 1.5
     end
     if first and isAA then
+        if owned[1043] then modified = modified + .3 end
         if owned[3153] then modified = modified + .25 * p.Damage end
         if owned[6672] and (run.krakenHits + 1) % 3 == 0 then modified = modified + .5 * p.Damage end
         if owned[3181] and (run.hullHits + 1) % 5 == 0 then modified = modified + 4 end
-        if owned[3078] and room.spellblade and live('spellbladeExpires') and ready('spellblade') then
-            plan.spellblade, modified = true, modified + 3
+        if (owned[3078] or owned[3057]) and room.spellblade and live('spellbladeExpires') and ready('spellblade') then
+            plan.spellblade, modified = true, modified + (owned[3078] and 3 or 1)
         end
     end
-    if owned[3179] and ready('umbral') then plan.umbral, modified = true, modified + 1.5 end
+    if (owned[3179] or owned[3144]) and ready('umbral') then
+        plan.umbral, modified = true, modified + (owned[3179] and 1.5 or .5)
+    end
     if ranged and first and room.energized and owned[room.energized] then
         plan.energized = room.energized
         if plan.energized == 6699 then modified = modified + .4 * p.Damage end
@@ -817,10 +823,16 @@ local function finishDamage(p, entity, amount, source, extraSource)
     if plan.bastion then start('bastion', 240) end
     if plan.umbral then start('umbral', 240) end
     if plan.bastionBoss then room.bastionBosses[plan.bastionBoss] = true end
-    if owned[3033] or owned[6609] then
-        if clock > (enemy.bleedEnd or -1) then enemy.bleedNext = clock + 30 end
+    if owned[3033] or owned[6609] or owned[3123] then
+        local power = (owned[3033] or owned[6609]) and .15 or .075
+        if clock > (enemy.bleedEnd or -1) then
+            enemy.bleedNext, enemy.bleedPower = clock + 30, power
+        else
+            enemy.bleedPower = math.max(enemy.bleedPower or .15, power)
+        end
         enemy.bleedEnd = clock + 90
     end
+    if owned[3044] then start('cleaverSpeed', 60) end
     if owned[3071] then
         if plan.firstTarget then
             enemy.cleave = math.min(5, (clock < (enemy.cleaveEnd or 0) and enemy.cleave or 0) + 1)
@@ -971,9 +983,10 @@ local function roomCleared(p, owned)
         run.hubris = run.hubris + 1
         reevaluate(p, CacheFlag.CACHE_DAMAGE)
     end
-    if owned[3083] then
+    local regenClears = owned[3083] and 2 or owned[3801] and 3 or owned[1006] and 4
+    if regenClears then
         run.warmogClear = room.damaged and 0 or run.warmogClear + 1
-        if run.warmogClear >= 2 then
+        if run.warmogClear >= regenClears then
             run.warmogClear = 0
             heal(p, 1)
         end
@@ -1069,7 +1082,7 @@ local function updateTargets(p, owned, isCombat)
                 defeat(p, entity, enemy)
             elseif enemy.bleedNext and enemy.bleedNext <= clock and enemy.bleedNext <= enemy.bleedEnd then
                 enemy.bleedNext = enemy.bleedNext + 30
-                if validEnemy(entity) then entity:TakeDamage(.15 * p.Damage, 0, EntityRef(p), 0) end
+                if validEnemy(entity) then entity:TakeDamage((enemy.bleedPower or .15) * p.Damage, 0, EntityRef(p), 0) end
             end
         else
             room.enemies[key] = nil
@@ -1087,7 +1100,7 @@ local function updateMovement(p, owned)
 end
 
 local function cacheSignature(owned)
-    return (owned[3071] and live('cleaverSpeed') and 1 or 0)
+    return ((owned[3071] or owned[3044]) and live('cleaverSpeed') and 1 or 0)
         | (owned[3073] and live('hexplate') and 2 or 0)
         | (owned[3171] and live('crimson') and 4 or 0)
         | (owned[3095] and live('stormrazor') and 8 or 0)

@@ -49,7 +49,7 @@ DESCRIPTIONS = {
     3073: ("Ускоряет R. После R временно растут скорость и темп автоатак.", "Speed surge after R"),
     3078: ("После умения следующая автоатака +3 урона. КД 3 с.", "Ability primes a stronger attack"),
     3083: ("Доп. сердца за здоровье от предметов. Две зачистки без урона лечат ½ сердца.", "Heart synergy and clean-room healing"),
-    3084: ("Пробудь рядом 2 с: автоатака ×1,5. Четыре разные цели дают ½ сердца.", "Charge a strike and grow health"),
+    3084: ("Через 2 с рядом автоатака наносит ×1,5 урона. У Ёнэ срабатывает и от Q/Q3. Четыре разные цели дают ½ сердца.", "Charge a strike and grow health"),
     3085: ("Прямое попадание выпускает до 2 болтов в соседних врагов.", "Shots split into nearby foes"),
     3094: ("Движение заряжает выстрел: +1,2 урона и +35% дальности.", "Movement charges a long shot"),
     3095: ("Движение и атаки заряжают выстрел: +1,4 урона и всплеск скорости.", "Charged shots grant speed"),
@@ -71,7 +71,7 @@ DESCRIPTIONS = {
     6692: ("Два разных прямых попадания за 2 с дают щит. КД 12 с.", "Rapid mixed hits grant a shield"),
     6694: ("Умения замедляют врагов ниже половины HP на 30% на 1 с.", "Abilities slow injured targets"),
     6695: ("Автоатаки уничтожают вражеские снаряды.", "Attacks destroy hostile projectiles"),
-    6696: ("Урон R +20%.", "R damage up"),
+    6696: ("Урон R +20%. Ёнэ: убийства сокращают КД R на 3%, боссы — на 10% полного КД.", "R damage and Yone refund"),
     6697: ("Новая боевая комната без урона навсегда даёт +0,1 урона.", "Clean combat rooms build damage"),
     6699: ("Умение заряжает выстрел: +40% твоего урона и временная летальность.", "Ability primes a charged shot"),
 }
@@ -238,6 +238,9 @@ def main():
         "icons": [entry for entry, _ in icons],
     })
     print(f"Generated {len(items)} native collectibles and verified {len(icons)} Riot icon sources")
+    # Keep the crafting catalog when rebuilding the base atlas.
+    from build_item_components import main as build_components
+    build_components()
 
 
 if __name__ == "__main__":

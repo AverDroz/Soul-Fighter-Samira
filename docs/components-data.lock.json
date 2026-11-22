@@ -1,0 +1,1114 @@
+{
+  "version": "16.22.1",
+  "sources": {
+    "en": {
+      "url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/data/en_US/item.json",
+      "sha256": "053784ef35d61e167934c2ab6d33ba574da462b2dfa6902d2c7539daca181a6c"
+    },
+    "ru": {
+      "url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/data/ru_RU/item.json",
+      "sha256": "358c4f2f84ffb7fed8b194374fae5bfa4cce630b7380abb6e72c1fc601991756"
+    }
+  },
+  "original_ids": [
+    1001,
+    2501,
+    2512,
+    2517,
+    2520,
+    2523,
+    2525,
+    3006,
+    3008,
+    3009,
+    3031,
+    3032,
+    3033,
+    3036,
+    3046,
+    3053,
+    3071,
+    3072,
+    3073,
+    3078,
+    3083,
+    3084,
+    3085,
+    3094,
+    3095,
+    3153,
+    3158,
+    3161,
+    3170,
+    3171,
+    3172,
+    3179,
+    3181,
+    3814,
+    6609,
+    6610,
+    6672,
+    6673,
+    6675,
+    6676,
+    6692,
+    6694,
+    6695,
+    6696,
+    6697,
+    6699
+  ],
+  "entries": {
+    "1001": {
+      "name_en": "Boots",
+      "name_ru": "Ботинки",
+      "from": [],
+      "gold": 300,
+      "stats": {
+        "FlatMovementSpeedMod": 25
+      },
+      "description_en": "<mainText><stats><attention>25</attention> Move Speed</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>25</attention> скорости передвижения</stats><br><br></mainText>"
+    },
+    "1006": {
+      "name_en": "Rejuvenation Bead",
+      "name_ru": "Заживляющая бусина",
+      "from": [],
+      "gold": 300,
+      "stats": {},
+      "description_en": "<mainText><stats><attention>100%</attention> Base Health Regen</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>100%</attention> базового восстановления здоровья</stats><br><br></mainText>"
+    },
+    "1011": {
+      "name_en": "Giant's Belt",
+      "name_ru": "Пояс великана",
+      "from": [
+        1028
+      ],
+      "gold": 900,
+      "stats": {
+        "FlatHPPoolMod": 350
+      },
+      "description_en": "<mainText><stats><attention>350</attention> Health</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>350</attention> здоровья</stats><br><br></mainText>"
+    },
+    "1018": {
+      "name_en": "Cloak of Agility",
+      "name_ru": "Плащ ловкости",
+      "from": [],
+      "gold": 600,
+      "stats": {
+        "FlatCritChanceMod": 0.15
+      },
+      "description_en": "<mainText><stats><attention>15%</attention> Critical Strike Chance</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>15%</attention> шанса критического удара</stats><br><br></mainText>"
+    },
+    "1028": {
+      "name_en": "Ruby Crystal",
+      "name_ru": "Рубиновый кристалл",
+      "from": [],
+      "gold": 400,
+      "stats": {
+        "FlatHPPoolMod": 150
+      },
+      "description_en": "<mainText><stats><attention>150</attention> Health</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>150</attention> здоровья</stats><br><br></mainText>"
+    },
+    "1036": {
+      "name_en": "Long Sword",
+      "name_ru": "Длинный меч",
+      "from": [],
+      "gold": 350,
+      "stats": {
+        "FlatPhysicalDamageMod": 10
+      },
+      "description_en": "<mainText><stats><attention>10</attention> Attack Damage</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>10</attention> силы атаки</stats><br><br></mainText>"
+    },
+    "1037": {
+      "name_en": "Pickaxe",
+      "name_ru": "Кирка",
+      "from": [],
+      "gold": 875,
+      "stats": {
+        "FlatPhysicalDamageMod": 25
+      },
+      "description_en": "<mainText><stats><attention>25</attention> Attack Damage</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>25</attention> силы атаки</stats><br><br></mainText>"
+    },
+    "1038": {
+      "name_en": "B. F. Sword",
+      "name_ru": "Самый Лучший Меч",
+      "from": [],
+      "gold": 1300,
+      "stats": {
+        "FlatPhysicalDamageMod": 40
+      },
+      "description_en": "<mainText><stats><attention>40</attention> Attack Damage</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>40</attention> силы атаки</stats><br><br></mainText>"
+    },
+    "1042": {
+      "name_en": "Dagger",
+      "name_ru": "Кинжал",
+      "from": [],
+      "gold": 250,
+      "stats": {
+        "PercentAttackSpeedMod": 0.1
+      },
+      "description_en": "<mainText><stats><attention>10%</attention> Attack Speed</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>10%</attention> скорости атаки</stats><br><br></mainText>"
+    },
+    "1043": {
+      "name_en": "Recurve Bow",
+      "name_ru": "Изогнутый лук",
+      "from": [
+        1042
+      ],
+      "gold": 700,
+      "stats": {
+        "PercentAttackSpeedMod": 0.15
+      },
+      "description_en": "<mainText><stats><attention>15%</attention> Attack Speed</stats><br><br><passive>Sting</passive><br>Attacks deal <physicalDamage>15 bonus physical damage</physicalDamage> <OnHit>On-Hit</OnHit>.</mainText>",
+      "description_ru": "<mainText><stats><attention>15%</attention> скорости атаки</stats><br><br><passive>Жало</passive><br>Автоатаки дополнительно наносят <physicalDamage>15 физического урона</physicalDamage> <OnHit>при попадании</OnHit>.</mainText>"
+    },
+    "1053": {
+      "name_en": "Vampiric Scepter",
+      "name_ru": "Вампирский скипетр",
+      "from": [
+        1036
+      ],
+      "gold": 900,
+      "stats": {
+        "FlatPhysicalDamageMod": 15,
+        "PercentLifeStealMod": 0.07
+      },
+      "description_en": "<mainText><stats><attention>15</attention> Attack Damage<br><attention>7%</attention> Life Steal</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>15</attention> силы атаки<br><attention>7%</attention> вампиризма</stats><br><br></mainText>"
+    },
+    "2020": {
+      "name_en": "The Brutalizer",
+      "name_ru": "Изувер",
+      "from": [
+        2022,
+        1037
+      ],
+      "gold": 1337,
+      "stats": {
+        "FlatPhysicalDamageMod": 25
+      },
+      "description_en": "<mainText><stats><attention>25</attention> Attack Damage<br><attention>10</attention> Ability Haste<br><attention>5</attention> Lethality</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>25</attention> силы атаки<br><attention>10</attention> ускорения умений<br><attention>5</attention> смертоносности</stats><br><br></mainText>"
+    },
+    "2021": {
+      "name_en": "Tunneler",
+      "name_ru": "Бур",
+      "from": [
+        1036,
+        1028
+      ],
+      "gold": 1150,
+      "stats": {
+        "FlatHPPoolMod": 250,
+        "FlatPhysicalDamageMod": 15
+      },
+      "description_en": "<mainText><stats><attention>15</attention> Attack Damage<br><attention>250</attention> Health</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>15</attention> силы атаки<br><attention>250</attention> здоровья</stats><br><br></mainText>"
+    },
+    "2022": {
+      "name_en": "Glowing Mote",
+      "name_ru": "Светлячок",
+      "from": [],
+      "gold": 250,
+      "stats": {},
+      "description_en": "<mainText><stats><attention>5</attention> Ability Haste</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>5</attention> ускорения умений</stats><br><br></mainText>"
+    },
+    "2501": {
+      "name_en": "Overlord's Bloodmail",
+      "name_ru": "Кровавая кольчуга господина",
+      "from": [
+        2021,
+        2021
+      ],
+      "gold": 3300,
+      "stats": {
+        "FlatHPPoolMod": 550,
+        "FlatPhysicalDamageMod": 40
+      },
+      "description_en": "<mainText><stats><attention>40</attention> Attack Damage<br><attention>550</attention> Health</stats><br><br><passive>Tyranny</passive><br>Gain 2.5% of your <healing>bonus Health</healing> as <scaleAD>Attack Damage</scaleAD>. <br><br><passive>Retribution</passive><br>Gain up to 10% increased <scaleAD>Attack Damage</scaleAD> based on your percent missing Health. </mainText>",
+      "description_ru": "<mainText><stats><attention>40</attention> силы атаки<br><attention>550</attention> здоровья</stats><br><br><passive>Тирания</passive><br>Вы получаете <scaleAD>силу атаки</scaleAD> в размере 2.5% от <healing>дополнительного здоровья</healing>. <br><br><passive>Воздаяние</passive><br>Вы получаете до 10% <scaleAD>силы атаки</scaleAD> в зависимости от недостающего здоровья в процентах. </mainText>"
+    },
+    "2512": {
+      "name_en": "Fiendhunter Bolts",
+      "name_ru": "Стрелы борца с демонами",
+      "from": [
+        3086,
+        3144
+      ],
+      "gold": 2650,
+      "stats": {
+        "FlatCritChanceMod": 0.25,
+        "PercentAttackSpeedMod": 0.45,
+        "PercentMovementSpeedMod": 0.04
+      },
+      "description_en": "<mainText><stats><attention>45%</attention> Attack Speed<br><attention>25%</attention> Critical Strike Chance<br><attention>4%</attention> Move Speed</stats><br><br><passive>Night Vigil</passive><br>Gain 30 Ultimate Ability Haste.<br><br><passive>Opening Barrage</passive><br>After casting your Ultimate, your next 3 basic attacks gain <attackSpeed>50% Attack Speed</attackSpeed> and Critically Strike for 80% of your normal Critical Strike damage for 8 seconds. If an attack would already Critically Strike, instead it deals <trueDamage>15% bonus true damage</trueDamage>.</mainText>",
+      "description_ru": "<mainText><stats><attention>45%</attention> скорости атаки<br><attention>25%</attention> шанса критического удара<br><attention>4%</attention> скорости передвижения</stats><br><br><passive>Ночное бдение</passive><br>Вы получаете 30 ускорения абсолютного умения.<br><br><passive>Первый залп</passive><br>В течение 8 сек. после применения абсолютного умения для нескольких (3) ваших следующих автоатак <attackSpeed>скорость атаки повышается на 50%</attackSpeed>, и они наносят критический урон в размере 80% от обычного. Если автоатака уже должна была нанести критический урон, вместо этого она дополнительно наносит <trueDamage>15% чистого урона</trueDamage>.</mainText>"
+    },
+    "2517": {
+      "name_en": "Endless Hunger",
+      "name_ru": "Вечный голод",
+      "from": [
+        3133,
+        1037,
+        1036
+      ],
+      "gold": 3100,
+      "stats": {
+        "FlatPhysicalDamageMod": 65
+      },
+      "description_en": "<mainText><stats><attention>65</attention> Attack Damage<br><attention>5%</attention> Omnivamp<br><attention>20%</attention> Tenacity</stats><br><br><passive>Famine</passive><br>Gain Ability Haste based on your Bonus AD.<br><br><passive>Feast</passive><br>When a champion that you damaged recently dies, gain Omnivamp for a moderate duration. </mainText>",
+      "description_ru": "<mainText><stats><attention>65</attention> силы атаки<br><attention>5%</attention> всестороннего вытягивания жизни<br><attention>20%</attention> стойкости</stats><br><br><passive>Голод</passive><br>Вы получаете ускорение умений в зависимости от доп. силы атаки.<br><br><passive>Пиршество</passive><br>Если вражеский чемпион погибает вскоре после того, как вы нанесли ему урон, вы на некоторое время получаете всестор. вытягивание жизни. </mainText>"
+    },
+    "2520": {
+      "name_en": "Bastionbreaker",
+      "name_ru": "Гроза укреплений",
+      "from": [
+        2020,
+        3134
+      ],
+      "gold": 3000,
+      "stats": {
+        "FlatPhysicalDamageMod": 55
+      },
+      "description_en": "<mainText><stats><attention>55</attention> Attack Damage<br><attention>18</attention> Lethality<br><attention>15</attention> Ability Haste</stats><br><br><passive>Shaped Charge</passive> (0s)<br>Dealing Ability damage to a Champion or Epic Monster deals an additional <trueDamage> true damage</trueDamage>.<br><br><passive>Sabotage</passive><br>Taking down a champion within 3 seconds of damaging them grants Sabotage for 25000 seconds. While you have Sabotage, your next Attack against an Epic Monster or Turret deals an additional <trueDamage> true damage</trueDamage> over 3 seconds. </mainText>",
+      "description_ru": "<mainText><stats><attention>55</attention> силы атаки<br><attention>18</attention> смертоносности<br><attention>15</attention> ускорения умений</stats><br><br><passive>Направленный взрыв</passive> (0 сек.)<br>При нанесении урона умением чемпиону или эпическому монстру вы дополнительно наносите цели <trueDamage>0 ед. чистого урона</trueDamage>.<br><br><passive>Подрыв</passive><br>Если вражеский чемпион погибает в течение 3 сек. после того, как вы нанесли ему урон, вы получаете Подрыв на 25000 сек. Пока действует этот эффект, ваша следующая автоатака по эпическому монстру или башне дополнительно нанесет <trueDamage>0 ед. чистого урона</trueDamage> в течение 3 сек. </mainText>"
+    },
+    "2523": {
+      "name_en": "Hexoptics C44",
+      "name_ru": "Хекс-прицел С44",
+      "from": [
+        1037,
+        6670,
+        1036
+      ],
+      "gold": 2800,
+      "stats": {
+        "FlatCritChanceMod": 0.25,
+        "FlatPhysicalDamageMod": 55
+      },
+      "description_en": "<mainText><stats><attention>55</attention> Attack Damage<br><attention>25%</attention> Critical Strike Chance</stats><br><br><passive>Magnification</passive><br>Deal up to 10% increased damage with Attacks, based on how far away the enemy is (max damage at 500 range).<br><br><passive>Arcane Aim</passive><br>When a champion that you damaged within 3 seconds dies, gain 100 additional attack range for 8 seconds. </mainText>",
+      "description_ru": "<mainText><stats><attention>55</attention> силы атаки<br><attention>25%</attention> шанса критического удара</stats><br><br><passive>Приближение</passive><br>Вы наносите на 10% больше урона автоатаками в зависимости от того, насколько далеко от вас находится цель (максимальный урон наносится на расстоянии в 500 ед.).<br><br><passive>Магическое прицеливание</passive><br>Когда чемпион, которому вы нанесли урон в интервале 3 сек., погибает, ваша дальность атаки дополнительно увеличивается на 100 на 8 сек. </mainText>"
+    },
+    "2525": {
+      "name_en": "Protoplasm Harness",
+      "name_ru": "Протоплазменная портупея",
+      "from": [
+        3067,
+        1011
+      ],
+      "gold": 2600,
+      "stats": {
+        "FlatHPPoolMod": 600
+      },
+      "description_en": "<mainText><stats><attention>600</attention> Health<br><attention>20</attention> Ability Haste</stats><br><br><passive>Lifeline</passive> (0s)<br>Taking damage that would reduce your Health below 30% causes you to gain <health> maximum Health</health> for 5 seconds, then heal <health> Health</health> over the duration. While regenerating Health, you gain 15% increased Size, 10% Move Speed, and 25% Tenacity. </mainText>",
+      "description_ru": "<mainText><stats><attention>600</attention> здоровья<br><attention>20</attention> ускорения умений</stats><br><br><passive>Линия жизни</passive> (0 сек.)<br>При получении урона, после которого ваш уровень здоровья опускается ниже 30%, ваш <health>максимальный запас здоровья увеличивается на 0</health> на 5 сек., а затем вы восстанавливаете <health>0 здоровья</health> в ходе действия эффекта. Пока вы восстанавливаете здоровье, ваш размер увеличивается на 15%, скорость передвижения – на 10%, а стойкость – на 25%. </mainText>"
+    },
+    "3006": {
+      "name_en": "Berserker's Greaves",
+      "name_ru": "Наголенники берсерка",
+      "from": [
+        1001,
+        1042,
+        1042
+      ],
+      "gold": 1100,
+      "stats": {
+        "FlatMovementSpeedMod": 45,
+        "PercentAttackSpeedMod": 0.3
+      },
+      "description_en": "<mainText><stats><attention>30%</attention> Attack Speed<br><attention>45</attention> Move Speed</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>30%</attention> скорости атаки<br><attention>45</attention> скорости передвижения</stats><br><br></mainText>"
+    },
+    "3008": {
+      "name_en": "Gluttonous Greaves",
+      "name_ru": "Алчные наголенники",
+      "from": [
+        1001
+      ],
+      "gold": 1100,
+      "stats": {
+        "FlatMovementSpeedMod": 45
+      },
+      "description_en": "<mainText><stats><attention>45</attention> Move Speed<br><attention>4%</attention> Omnivamp</stats><br><br><passive>Slay</passive><br>Gain 0.6% Omnivamp on Champion takedown, stacking up to 10 times.</mainText>",
+      "description_ru": "<mainText><stats><attention>45</attention> скорости передвижения<br><attention>4%</attention> всестороннего вытягивания жизни</stats><br><br><passive>Бойня</passive><br>При участии в убийстве чемпиона вы получаете 0.6% всестор. вытягивания жизни (суммируется 10 р.).</mainText>"
+    },
+    "3009": {
+      "name_en": "Boots of Swiftness",
+      "name_ru": "Ботинки стремительности",
+      "from": [
+        1001
+      ],
+      "gold": 1000,
+      "stats": {
+        "FlatMovementSpeedMod": 55
+      },
+      "description_en": "<mainText><stats><attention>55</attention> Move Speed</stats><br><br><passive>Fleetfooted</passive><br>Reduce the effectiveness of <keyword>Slows</keyword> by 25%.</mainText>",
+      "description_ru": "<mainText><stats><attention>55</attention> скорости передвижения</stats><br><br><passive>Быстрые ноги</passive><br>Уменьшает эффективность <keyword>замедления</keyword> на 25%.</mainText>"
+    },
+    "3031": {
+      "name_en": "Infinity Edge",
+      "name_ru": "Грань Бесконечности",
+      "from": [
+        1038,
+        1037,
+        1018
+      ],
+      "gold": 3500,
+      "stats": {
+        "FlatCritChanceMod": 0.25,
+        "FlatPhysicalDamageMod": 75
+      },
+      "description_en": "<mainText><stats><attention>75</attention> Attack Damage<br><attention>25%</attention> Critical Strike Chance<br><attention>30%</attention> Critical Strike Damage</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>75</attention> силы атаки<br><attention>25%</attention> шанса критического удара<br><attention>30%</attention> критического урона</stats><br><br></mainText>"
+    },
+    "3032": {
+      "name_en": "Yun Tal Wildarrows",
+      "name_ru": "Дикие стрелы Юнталь",
+      "from": [
+        1038,
+        3144,
+        1036
+      ],
+      "gold": 3000,
+      "stats": {
+        "FlatPhysicalDamageMod": 50,
+        "PercentAttackSpeedMod": 0.45
+      },
+      "description_en": "<mainText><stats><attention>50</attention> Attack Damage<br><attention>45%</attention> Attack Speed<br><attention>0%</attention> Critical Strike Chance</stats><br><br><passive>Practice Makes Lethal</passive><br>On-Attack, gain Critical Strike Chance permanently up to 25%.<br><br><passive>Flurry</passive><br>On-Attacking an enemy champion, gain 30% Attack Speed for 6 seconds (30 second cooldown). <br>Attacks reduce this cooldown by 1 second, increased to 2 seconds for Critical Strikes.</mainText>",
+      "description_ru": "<mainText><stats><attention>50</attention> силы атаки<br><attention>45%</attention> скорости атаки<br><attention>0%</attention> шанса критического удара</stats><br><br><passive>Убийственная практика</passive><br>При применении автоатак вы навсегда получаете прибавку к шансу критического удара (максимум – 25%).<br><br><passive>Шквал</passive><br>При применении автоатак к вражескому чемпиону вы получаете 30% скорости атаки на 6 сек. (перезарядка – 30 сек.). <br>Автоатаки сокращают эту перезарядку на 1 сек. При критических ударах это значение увеличивается до 2 сек.</mainText>"
+    },
+    "3033": {
+      "name_en": "Mortal Reminder",
+      "name_ru": "Глашатай смерти",
+      "from": [
+        3123,
+        3035,
+        1018
+      ],
+      "gold": 3000,
+      "stats": {
+        "FlatCritChanceMod": 0.25,
+        "FlatPhysicalDamageMod": 35
+      },
+      "description_en": "<mainText><stats><attention>35</attention> Attack Damage<br><attention>30%</attention> Armor Penetration<br><attention>25%</attention> Critical Strike Chance</stats><br><br><passive>Grievous Wounds</passive><br>Dealing physical damage applies <keyword>40% Wounds</keyword> to enemy champions for 3 seconds.</mainText>",
+      "description_ru": "<mainText><stats><attention>35</attention> силы атаки<br><attention>30%</attention> пробивания брони<br><attention>25%</attention> шанса критического удара</stats><br><br><passive>Страшные раны</passive><br>При нанесении физического урона вражеским чемпионам накладывает на них <keyword>Раны (40%)</keyword> на 3 сек.</mainText>"
+    },
+    "3035": {
+      "name_en": "Last Whisper",
+      "name_ru": "Предсмертный шепот",
+      "from": [
+        1036,
+        1036
+      ],
+      "gold": 1450,
+      "stats": {
+        "FlatPhysicalDamageMod": 20
+      },
+      "description_en": "<mainText><stats><attention>20</attention> Attack Damage<br><attention>18%</attention> Armor Penetration</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>20</attention> силы атаки<br><attention>18%</attention> пробивания брони</stats><br><br></mainText>"
+    },
+    "3036": {
+      "name_en": "Lord Dominik's Regards",
+      "name_ru": "Поклон лорда Доминика",
+      "from": [
+        3035,
+        6670
+      ],
+      "gold": 3300,
+      "stats": {
+        "FlatCritChanceMod": 0.25,
+        "FlatPhysicalDamageMod": 35
+      },
+      "description_en": "<mainText><stats><attention>35</attention> Attack Damage<br><attention>35%</attention> Armor Penetration<br><attention>25%</attention> Critical Strike Chance</stats><br><br><passive>Giant Slayer</passive><br>Deal up to 15% bonus damage against champions based on their bonus Health. Maximum damage bonus reached at 1500 bonus Health.</mainText>",
+      "description_ru": "<mainText><stats><attention>35</attention> силы атаки<br><attention>35%</attention> пробивания брони<br><attention>25%</attention> шанса критического удара</stats><br><br><passive>Убийца великанов</passive><br>Вы дополнительно наносите вплоть до 15% урона чемпионам. Урон зависит от их дополнительного здоровья (максимальный урон наносится при 1500 дополнительного здоровья).</mainText>"
+    },
+    "3044": {
+      "name_en": "Phage",
+      "name_ru": "Поглотитель",
+      "from": [
+        1028,
+        1036
+      ],
+      "gold": 1100,
+      "stats": {
+        "FlatHPPoolMod": 200,
+        "FlatPhysicalDamageMod": 15
+      },
+      "description_en": "<mainText><stats><attention>15</attention> Attack Damage<br><attention>200</attention> Health</stats><br><br><passive>Rage</passive><br>Attacking grants <speed>Move Speed</speed> for 2 seconds.</mainText>",
+      "description_ru": "<mainText><stats><attention>15</attention> силы атаки<br><attention>200</attention> здоровья</stats><br><br><passive>Ярость</passive><br>Поражая врагов автоатаками, вы получаете <speed>скорость передвижения</speed> на 2 сек.</mainText>"
+    },
+    "3046": {
+      "name_en": "Phantom Dancer",
+      "name_ru": "Призрачный Танцор",
+      "from": [
+        1042,
+        3086,
+        1042
+      ],
+      "gold": 2650,
+      "stats": {
+        "FlatCritChanceMod": 0.25,
+        "PercentAttackSpeedMod": 0.65,
+        "PercentMovementSpeedMod": 0.1
+      },
+      "description_en": "<mainText><stats><attention>65%</attention> Attack Speed<br><attention>25%</attention> Critical Strike Chance<br><attention>10%</attention> Move Speed</stats><br><br><passive>Spectral Waltz</passive><br>Become <keyword>Ghosted</keyword>.</mainText>",
+      "description_ru": "<mainText><stats><attention>65%</attention> скорости атаки<br><attention>25%</attention> шанса критического удара<br><attention>10%</attention> скорости передвижения</stats><br><br><passive>Призрачный вальс</passive><br>Вы получаете <keyword>призрачность</keyword>.</mainText>"
+    },
+    "3051": {
+      "name_en": "Hearthbound Axe",
+      "name_ru": "Топор Теплолюбивых",
+      "from": [
+        1036,
+        1042,
+        1036
+      ],
+      "gold": 1200,
+      "stats": {
+        "FlatPhysicalDamageMod": 20,
+        "PercentAttackSpeedMod": 0.2
+      },
+      "description_en": "<mainText><stats><attention>20</attention> Attack Damage<br><attention>20%</attention> Attack Speed</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>20</attention> силы атаки<br><attention>20%</attention> скорости атаки</stats><br><br></mainText>"
+    },
+    "3053": {
+      "name_en": "Sterak's Gage",
+      "name_ru": "Испытание Стерака",
+      "from": [
+        1037,
+        2021,
+        1028
+      ],
+      "gold": 3200,
+      "stats": {
+        "FlatHPPoolMod": 400
+      },
+      "description_en": "<mainText><stats><attention>400</attention> Health<br><attention>20%</attention> Tenacity</stats><br><br><passive>The Claws that Catch</passive><br>Gain <scaleAD>bonus Attack Damage</scaleAD>.<br><br><passive>Lifeline</passive><br>Taking damage that would reduce your Health below 30% grants a <shield>decaying Shield</shield> for 4.5 seconds.</mainText>",
+      "description_ru": "<mainText><stats><attention>400</attention> здоровья<br><attention>20%</attention> стойкости</stats><br><br><passive>Цепкие когти</passive><br>Вы получаете <scaleAD>дополнительную силу атаки</scaleAD>.<br><br><passive>Линия жизни</passive><br>При получении урона, после которого ваш уровень здоровья опускается ниже 30%, вы получаете <shield>щит</shield> (прочность постепенно уменьшается) на 4.5 сек.</mainText>"
+    },
+    "3057": {
+      "name_en": "Sheen",
+      "name_ru": "Сияние",
+      "from": [
+        2022
+      ],
+      "gold": 900,
+      "stats": {},
+      "description_en": "<mainText><stats><attention>10</attention> Ability Haste</stats><br><br><passive>Spellblade</passive><br>After using an Ability, your next Attack deals <physicalDamage>bonus physical damage</physicalDamage> <OnHit>On-Hit</OnHit>.<br></mainText>",
+      "description_ru": "<mainText><stats><attention>10</attention> ускорения умений</stats><br><br><passive>Чародейский клинок</passive><br>Ваша следующая автоатака после применения умения наносит <physicalDamage>дополнительный физический урон</physicalDamage> <OnHit>при попадании</OnHit>.<br></mainText>"
+    },
+    "3066": {
+      "name_en": "Winged Moonplate",
+      "name_ru": "Крылья луны",
+      "from": [
+        1028
+      ],
+      "gold": 800,
+      "stats": {
+        "FlatHPPoolMod": 200,
+        "PercentMovementSpeedMod": 0.04
+      },
+      "description_en": "<mainText><stats><attention>200</attention> Health<br><attention>4%</attention> Move Speed</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>200</attention> здоровья<br><attention>4%</attention> скорости передвижения</stats><br><br></mainText>"
+    },
+    "3067": {
+      "name_en": "Kindlegem",
+      "name_ru": "Воспламеняющий камень",
+      "from": [
+        1028,
+        2022
+      ],
+      "gold": 800,
+      "stats": {
+        "FlatHPPoolMod": 200
+      },
+      "description_en": "<mainText><stats><attention>200</attention> Health<br><attention>10</attention> Ability Haste</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>200</attention> здоровья<br><attention>10</attention> ускорения умений</stats><br><br></mainText>"
+    },
+    "3071": {
+      "name_en": "Black Cleaver",
+      "name_ru": "Черная секира",
+      "from": [
+        3044,
+        3067,
+        1037
+      ],
+      "gold": 3000,
+      "stats": {
+        "FlatHPPoolMod": 400,
+        "FlatPhysicalDamageMod": 45
+      },
+      "description_en": "<mainText><stats><attention>45</attention> Attack Damage<br><attention>400</attention> Health<br><attention>20</attention> Ability Haste</stats><br><br><passive>Carve</passive><br>Dealing <physicalDamage>physical damage</physicalDamage> to champions reduces the target's <scaleArmor>Armor by 6%</scaleArmor> for 6 seconds. (stacks 5 times).<br><br><passive>Fervor</passive><br>Dealing <physicalDamage>physical damage</physicalDamage> grants <speed> Move Speed</speed> for 2 seconds.</mainText>",
+      "description_ru": "<mainText><stats><attention>45</attention> силы атаки<br><attention>400</attention> здоровья<br><attention>20</attention> ускорения умений</stats><br><br><passive>Прорезание</passive><br>Нанося <physicalDamage>физ. урон</physicalDamage> чемпиону, вы снижаете его <scaleArmor>броню на 6%</scaleArmor> на 6 сек. (суммируется до 5 р.).<br><br><passive>Пыл</passive><br>Нанося <physicalDamage>физ. урон</physicalDamage>, вы получаете <speed>0 скорости передвижения</speed> на 2 сек.</mainText>"
+    },
+    "3072": {
+      "name_en": "Bloodthirster",
+      "name_ru": "Кровопийца",
+      "from": [
+        1038,
+        1037,
+        1053
+      ],
+      "gold": 3400,
+      "stats": {
+        "FlatPhysicalDamageMod": 80,
+        "PercentLifeStealMod": 0.15
+      },
+      "description_en": "<mainText><stats><attention>80</attention> Attack Damage<br><attention>15%</attention> Life Steal</stats><br><br><passive>Ichorshield</passive><br>Convert excess healing from your Lifesteal to a <shield>Shield</shield>.</mainText>",
+      "description_ru": "<mainText><stats><attention>80</attention> силы атаки<br><attention>15%</attention> вампиризма</stats><br><br><passive>Ихоровый щит</passive><br>Избыточное лечение от вампиризма превращается в <shield>щит</shield>.</mainText>"
+    },
+    "3073": {
+      "name_en": "Experimental Hexplate",
+      "name_ru": "Экспериментальная хекстековая броня",
+      "from": [
+        2021,
+        1042,
+        3044
+      ],
+      "gold": 3000,
+      "stats": {
+        "FlatHPPoolMod": 450,
+        "FlatPhysicalDamageMod": 40,
+        "PercentAttackSpeedMod": 0.2
+      },
+      "description_en": "<mainText><stats><attention>40</attention> Attack Damage<br><attention>20%</attention> Attack Speed<br><attention>450</attention> Health</stats><br><br><passive>Hexcharged</passive><br>Gain 30 Ultimate Ability Haste.<br><br><passive>Overdrive</passive><br>After casting your Ultimate, gain <attackSpeed>% Attack Speed</attackSpeed> and <speed>% Move Speed</speed> for 8 seconds. </mainText>",
+      "description_ru": "<mainText><stats><attention>40</attention> силы атаки<br><attention>20%</attention> скорости атаки<br><attention>450</attention> здоровья</stats><br><br><passive>Хекстековый заряд</passive><br>Вы получаете 30 ускорения абс. умений.<br><br><passive>Перегрузка</passive><br>После применения абс. умения вы получаете <attackSpeed>0% скорости атаки</attackSpeed> и <speed>0% скорости передвижения</speed> на 8 сек. </mainText>"
+    },
+    "3078": {
+      "name_en": "Trinity Force",
+      "name_ru": "Тройственный Союз",
+      "from": [
+        3057,
+        3044,
+        3051
+      ],
+      "gold": 3333,
+      "stats": {
+        "FlatHPPoolMod": 333,
+        "FlatPhysicalDamageMod": 36,
+        "PercentAttackSpeedMod": 0.3
+      },
+      "description_en": "<mainText><stats><attention>36</attention> Attack Damage<br><attention>30%</attention> Attack Speed<br><attention>333</attention> Health<br><attention>15</attention> Ability Haste</stats><br><br><passive>Spellblade</passive><br>After using an Ability, your next Attack deals <physicalDamage>bonus physical damage</physicalDamage> <OnHit>On-Hit</OnHit>.<br> <br><passive>Quicken</passive><br>Attacking grants <speed>20 Move Speed</speed> for 2 seconds.</mainText>",
+      "description_ru": "<mainText><stats><attention>36</attention> силы атаки<br><attention>30%</attention> скорости атаки<br><attention>333</attention> здоровья<br><attention>15</attention> ускорения умений</stats><br><br><passive>Чародейский клинок</passive><br>Ваша следующая автоатака после применения умения наносит <physicalDamage>дополнительный физический урон</physicalDamage> <OnHit>при попадании</OnHit>.<br> <br><passive>Стремительность</passive><br>Применяя автоатаки, вы получаете <speed>20 скорости передвижения</speed> на 2 сек.</mainText>"
+    },
+    "3083": {
+      "name_en": "Warmog's Armor",
+      "name_ru": "Доспех Вармога",
+      "from": [
+        1011,
+        1011,
+        3801
+      ],
+      "gold": 3100,
+      "stats": {
+        "FlatHPPoolMod": 1000
+      },
+      "description_en": "<mainText><stats><attention>1000</attention> Health<br><attention>100%</attention> Base Health Regen</stats><br><br><passive>Warmog's Heart</passive> <br>If you have 2000 bonus Health and have not taken damage within 8 seconds, restore <healing></healing> Health per second.<br><br><passive>Warmog's Vitality</passive><br>Gain bonus Health equal to 12% of your Item Health (<healing>0</healing>).</mainText>",
+      "description_ru": "<mainText><stats><attention>1000</attention> здоровья<br><attention>100%</attention> базового восстановления здоровья</stats><br><br><passive>Сердце Вармога</passive> <br>Если у вас не менее 2000 дополнительного здоровья и вы не получаете урон в течение 8 сек., ежесекундно восстанавливает <healing>0</healing> здоровья.<br><br><passive>Живость Вармога</passive><br>Вы получаете дополнительное здоровье в размере 12% от здоровья, полученного от предметов (<healing>0</healing>).</mainText>"
+    },
+    "3084": {
+      "name_en": "Heartsteel",
+      "name_ru": "Сердце стали",
+      "from": [
+        1011,
+        3801,
+        1011
+      ],
+      "gold": 3000,
+      "stats": {
+        "FlatHPPoolMod": 900
+      },
+      "description_en": "<mainText><stats><attention>900</attention> Health<br><attention>100%</attention> Base Health Regen</stats><br><br><passive>Colossal Consumption</passive> (0s) per target<br>If an enemy champion is nearby for a few seconds, your next Attack against them deals <physicalDamage>70 plus 6%</physicalDamage> of your max Health as <physicalDamage>bonus physical damage</physicalDamage> and grants <scaleHealth>10%</scaleHealth> of the damage as <scaleHealth>max Health.</scaleHealth><br><br><passive>Goliath</passive><br>For each <scaleHealth>1000 max Health</scaleHealth>, gain 3% increased size, up to 30%. </mainText>",
+      "description_ru": "<mainText><stats><attention>900</attention> здоровья<br><attention>100%</attention> базового восстановления здоровья</stats><br><br><passive>Колоссальное поглощение</passive> (0 сек.) для каждой цели<br>Если вражеский чемпион находится рядом в течение нескольких секунд, ваша следующая автоатака против него дополнительно наносит <physicalDamage>физический урон</physicalDamage> в размере <physicalDamage>70 плюс 6% от вашего максимального запаса здоровья</physicalDamage> и увеличивает ваш <scaleHealth>максимальный запас здоровья</scaleHealth> на <scaleHealth>10%</scaleHealth> от этого урона.<br><br><passive>Голиаф</passive><br>За каждые <scaleHealth>1000 максимального запаса здоровья</scaleHealth> вы увеличиваетесь в размерах на 3% (максимальное увеличение – 30%). </mainText>"
+    },
+    "3085": {
+      "name_en": "Runaan's Hurricane",
+      "name_ru": "Ураган Рунаан",
+      "from": [
+        3086,
+        3144
+      ],
+      "gold": 2650,
+      "stats": {
+        "FlatCritChanceMod": 0.25,
+        "PercentAttackSpeedMod": 0.4,
+        "PercentMovementSpeedMod": 0.05
+      },
+      "description_en": "<mainText><stats><attention>40%</attention> Attack Speed<br><attention>25%</attention> Critical Strike Chance<br><attention>5%</attention> Move Speed</stats><br><br><passive>Wind's Fury</passive><br>Attacks fire bolts at 2 additional enemies near the target.<br>Each bolt deals <physicalDamage>physical damage</physicalDamage> and applies <OnHit>On-Hit</OnHit> effects.</mainText>",
+      "description_ru": "<mainText><stats><attention>40%</attention> скорости атаки<br><attention>25%</attention> шанса критического удара<br><attention>5%</attention> скорости передвижения</stats><br><br><passive>Ярость ветра</passive><br>Автоатаки выпускают заряды в 2 дополнительных врагов рядом с целью.<br>Каждый заряд наносит <physicalDamage>физический урон</physicalDamage> и накладывает эффекты <OnHit>при попадании</OnHit>.</mainText>"
+    },
+    "3086": {
+      "name_en": "Zeal",
+      "name_ru": "Рвение",
+      "from": [
+        1018,
+        1042
+      ],
+      "gold": 1200,
+      "stats": {
+        "FlatCritChanceMod": 0.15,
+        "PercentAttackSpeedMod": 0.15,
+        "PercentMovementSpeedMod": 0.04
+      },
+      "description_en": "<mainText><stats><attention>15%</attention> Attack Speed<br><attention>15%</attention> Critical Strike Chance<br><attention>4%</attention> Move Speed</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>15%</attention> скорости атаки<br><attention>15%</attention> шанса критического удара<br><attention>4%</attention> скорости передвижения</stats><br><br></mainText>"
+    },
+    "3094": {
+      "name_en": "Rapid Firecannon",
+      "name_ru": "Скорострельная пушка",
+      "from": [
+        3086,
+        3144
+      ],
+      "gold": 2650,
+      "stats": {
+        "FlatCritChanceMod": 0.25,
+        "PercentAttackSpeedMod": 0.35,
+        "PercentMovementSpeedMod": 0.04
+      },
+      "description_en": "<mainText><stats><attention>35%</attention> Attack Speed<br><attention>25%</attention> Critical Strike Chance<br><attention>4%</attention> Move Speed</stats><br><br><passive>Sharpshooter</passive><br>Your <keyword>Energized Attack</keyword> deals <magicDamage>40 bonus magic damage</magicDamage> and gains 35% bonus Attack Range.</mainText>",
+      "description_ru": "<mainText><stats><attention>35%</attention> скорости атаки<br><attention>25%</attention> шанса критического удара<br><attention>4%</attention> скорости передвижения</stats><br><br><passive>Орлиный глаз</passive><br>Ваши <keyword>заряженные автоатаки</keyword> дополнительно наносят <magicDamage>40 магического урона</magicDamage>. Кроме того, их дальность увеличивается на 35%.</mainText>"
+    },
+    "3095": {
+      "name_en": "Stormrazor",
+      "name_ru": "Грозовая бритва",
+      "from": [
+        1038,
+        1018,
+        3144
+      ],
+      "gold": 3200,
+      "stats": {
+        "FlatCritChanceMod": 0.25,
+        "FlatPhysicalDamageMod": 50,
+        "PercentAttackSpeedMod": 0.25
+      },
+      "description_en": "<mainText><stats><attention>50</attention> Attack Damage<br><attention>25%</attention> Attack Speed<br><attention>25%</attention> Critical Strike Chance</stats><br><br><passive>Energized</passive><br>Moving and Attacking generates an <keyword>Energized Attack</keyword>.<br><br><passive>Bolt</passive><br>Your <keyword>Energized Attack</keyword> applies <magicDamage> bonus magic damage</magicDamage> and grants <speed>45% Movement Speed</speed> for 1.5 seconds.<br></mainText>",
+      "description_ru": "<mainText><stats><attention>50</attention> силы атаки<br><attention>25%</attention> скорости атаки<br><attention>25%</attention> шанса критического удара</stats><br><br><passive>Заряженность</passive><br>Передвижение и автоатаки дают <keyword>заряды</keyword> энергии, которые усиливают атаки.<br><br><passive>Разряд</passive><br>Ваши <keyword>заряженные автоатаки</keyword> дополнительно наносят <magicDamage>0 ед. магического урона</magicDamage> и увеличивают вашу <speed>скорость передвижения на 45%</speed> на 1.5 сек.<br></mainText>"
+    },
+    "3123": {
+      "name_en": "Executioner's Calling",
+      "name_ru": "Призвание Палача",
+      "from": [
+        1036
+      ],
+      "gold": 800,
+      "stats": {
+        "FlatPhysicalDamageMod": 15
+      },
+      "description_en": "<mainText><stats><attention>15</attention> Attack Damage</stats><br><br><passive>Grievous Wounds</passive><br>Dealing physical damage to champions applies <keyword>40% Wounds</keyword> for 3 seconds.</mainText>",
+      "description_ru": "<mainText><stats><attention>15</attention> силы атаки</stats><br><br><passive>Страшные раны</passive><br>При нанесении физического урона чемпионам накладывает на них <keyword>Раны (40%)</keyword> на 3 сек.</mainText>"
+    },
+    "3133": {
+      "name_en": "Caulfield's Warhammer",
+      "name_ru": "Боевой молот Колфилда",
+      "from": [
+        1036,
+        2022,
+        1036
+      ],
+      "gold": 1050,
+      "stats": {
+        "FlatPhysicalDamageMod": 20
+      },
+      "description_en": "<mainText><stats><attention>20</attention> Attack Damage<br><attention>10</attention> Ability Haste</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>20</attention> силы атаки<br><attention>10</attention> ускорения умений</stats><br><br></mainText>"
+    },
+    "3134": {
+      "name_en": "Serrated Dirk",
+      "name_ru": "Зазубренный кинжал",
+      "from": [
+        1036,
+        1036
+      ],
+      "gold": 1000,
+      "stats": {
+        "FlatPhysicalDamageMod": 20
+      },
+      "description_en": "<mainText><stats><attention>20</attention> Attack Damage<br><attention>10</attention> Lethality</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>20</attention> силы атаки<br><attention>10</attention> смертоносности</stats><br><br></mainText>"
+    },
+    "3144": {
+      "name_en": "Scout's Slingshot",
+      "name_ru": "Рогатка скаута",
+      "from": [
+        1042,
+        1042
+      ],
+      "gold": 600,
+      "stats": {
+        "PercentAttackSpeedMod": 0.2
+      },
+      "description_en": "<mainText><stats><attention>20%</attention> Attack Speed</stats><br><br><passive>Bullseye</passive><br>Damaging a champion deals <magicDamage>bonus magic damage</magicDamage>. <br>Attacks reduce this cooldown by 1 second.</mainText>",
+      "description_ru": "<mainText><stats><attention>20%</attention> скорости атаки</stats><br><br><passive>В яблочко</passive><br>При нанесении урона чемпиону вы наносите ему <magicDamage>дополнительный магический урон</magicDamage>. <br>Автоатаки сокращают перезарядку этого эффекта на 1 сек.</mainText>"
+    },
+    "3153": {
+      "name_en": "Blade of The Ruined King",
+      "name_ru": "Клинок Падшего короля",
+      "from": [
+        1053,
+        1043,
+        1037
+      ],
+      "gold": 3200,
+      "stats": {
+        "FlatPhysicalDamageMod": 40,
+        "PercentAttackSpeedMod": 0.25,
+        "PercentLifeStealMod": 0.1
+      },
+      "description_en": "<mainText><stats><attention>40</attention> Attack Damage<br><attention>25%</attention> Attack Speed<br><attention>10%</attention> Life Steal</stats><br><br><passive>Mist's Edge</passive><br>Attacks deal <physicalDamage>a percentage</physicalDamage> of enemy's current Health as <physicalDamage>bonus physical damage</physicalDamage> <OnHit>On-Hit</OnHit>.<br><br><passive>Clawing Shadows</passive><br>Attacking a champion 3 times <status>Slows</status> them by 30% for 1 second.</mainText>",
+      "description_ru": "<mainText><stats><attention>40</attention> силы атаки<br><attention>25%</attention> скорости атаки<br><attention>10%</attention> вампиризма</stats><br><br><passive>Край тумана</passive><br>Автоатаки <OnHit>при попадании</OnHit> наносят <physicalDamage>дополнительный физический урон</physicalDamage> в размере <physicalDamage>части</physicalDamage> от текущего запаса здоровья цели.<br><br><passive>Цепкие тени</passive><br>Поразив чемпиона 3 автоатаками, вы <status>замедляете</status> его на 30% на 1 сек.</mainText>"
+    },
+    "3158": {
+      "name_en": "Ionian Boots of Lucidity",
+      "name_ru": "Ионийские сапоги просветления",
+      "from": [
+        1001,
+        2022
+      ],
+      "gold": 900,
+      "stats": {
+        "FlatMovementSpeedMod": 45
+      },
+      "description_en": "<mainText><stats><attention>10</attention> Ability Haste<br><attention>45</attention> Move Speed</stats><br><br><passive>Ionian Insight</passive><br>Gain 10 Summoner Spell Haste.<br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>10</attention> ускорения умений<br><attention>45</attention> скорости передвижения</stats><br><br><passive>Ионийская проницательность</passive><br>Вы получаете 10 ускорения заклинаний призывателя.<br><br></mainText>"
+    },
+    "3161": {
+      "name_en": "Spear of Shojin",
+      "name_ru": "Копье Седзина",
+      "from": [
+        1037,
+        2021,
+        1028
+      ],
+      "gold": 3100,
+      "stats": {
+        "FlatHPPoolMod": 450,
+        "FlatPhysicalDamageMod": 45
+      },
+      "description_en": "<mainText><stats><attention>45</attention> Attack Damage<br><attention>450</attention> Health</stats><br><br><passive>Dragonforce</passive> <br>Gain 25 Basic Ability Haste.<br><br><passive>Focused Will</passive> <br>Dealing damage with Abilities increases your Champion's Ability and Passive damage by 3% for 6 seconds. (stacks 4 times).</mainText>",
+      "description_ru": "<mainText><stats><attention>45</attention> силы атаки<br><attention>450</attention> здоровья</stats><br><br><passive>Сила дракона</passive> <br>Вы получаете 25 ускорения базовых умений.<br><br><passive>Концентрация</passive> <br>Когда вы наносите урон умениями, урон от ваших умений (в том числе пассивного) увеличивается на 3% на 6 сек. (прибавка суммируется до 4 раз).</mainText>"
+    },
+    "3170": {
+      "name_en": "Swiftmarch",
+      "name_ru": "Стремительный марш",
+      "from": [
+        3009
+      ],
+      "gold": 1000,
+      "stats": {
+        "FlatMovementSpeedMod": 65
+      },
+      "description_en": "<mainText><stats><attention>65</attention> Move Speed</stats><br><br><passive>Fleetfooted</passive><br>Reduce the effectiveness of <keyword>Slows</keyword> by 25%.<br><br><passive>Noxian Fervor</passive><br>Gain 5% of your <speed>Move Speed</speed> as Adaptive Force.</mainText>",
+      "description_ru": "<mainText><stats><attention>65</attention> скорости передвижения</stats><br><br><passive>Быстрые ноги</passive><br>Уменьшает эффективность <keyword>замедления</keyword> на 25%.<br><br><passive>Ноксианский пыл</passive><br>Вы получаете адаптивную силу в размере 5% от <speed>скорости передвижения</speed>.</mainText>"
+    },
+    "3171": {
+      "name_en": "Crimson Lucidity",
+      "name_ru": "Алое просветление",
+      "from": [
+        3158
+      ],
+      "gold": 900,
+      "stats": {
+        "FlatMovementSpeedMod": 45
+      },
+      "description_en": "<mainText><stats><attention>20</attention> Ability Haste<br><attention>45</attention> Move Speed</stats><br><br><passive>Ionian Insight</passive><br>Gain 20 Summoner Spell Haste.<br><br><passive>Noxian Haste</passive><br>Empowering or protecting allies with abilities, dealing damage to enemy Champions with abilities, or casting a Summoner Spell grants <speed> Move Speed</speed> for 4 seconds.<br><br><rules>Noxian Haste can only be triggered once per Ability cast.</rules></mainText>",
+      "description_ru": "<mainText><stats><attention>20</attention> ускорения умений<br><attention>45</attention> скорости передвижения</stats><br><br><passive>Ионийская проницательность</passive><br>Вы получаете 20 ускорения заклинаний призывателя.<br><br><passive>Ноксианское ускорение</passive><br>Когда вы усиливаете или защищаете союзников при помощи умений, наносите урон вражеским чемпионам при помощи умений или применяете заклинания призывателя, вы получаете <speed>0 скорости передвижения</speed> на 4 сек.<br><br><rules>Ноксианское ускорение срабатывает не более одного раза за применение умения.</rules></mainText>"
+    },
+    "3172": {
+      "name_en": "Gunmetal Greaves",
+      "name_ru": "Наголенники из орудийной стали",
+      "from": [
+        3006
+      ],
+      "gold": 1100,
+      "stats": {
+        "FlatMovementSpeedMod": 45,
+        "PercentAttackSpeedMod": 0.45,
+        "PercentLifeStealMod": 0.05
+      },
+      "description_en": "<mainText><stats><attention>45%</attention> Attack Speed<br><attention>45</attention> Move Speed<br><attention>5%</attention> Life Steal</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>45%</attention> скорости атаки<br><attention>45</attention> скорости передвижения<br><attention>5%</attention> вампиризма</stats><br><br></mainText>"
+    },
+    "3179": {
+      "name_en": "Umbral Glaive",
+      "name_ru": "Теневая глефа",
+      "from": [
+        3134,
+        3133
+      ],
+      "gold": 2800,
+      "stats": {
+        "FlatPhysicalDamageMod": 60
+      },
+      "description_en": "<mainText><stats><attention>60</attention> Attack Damage<br><attention>18</attention> Lethality<br><attention>15</attention> Ability Haste</stats><br><br><passive>Nightstalker</passive><br>After being unseen by enemies briefly, your next attack against a champion deals an additional <trueDamage>true damage</trueDamage>.<br><br><passive>Blackout</passive><br>When you are near enemy Stealth Wards and traps, reveal them briefly. While revealing wards, your attacks deal bonus damage to them.</mainText>",
+      "description_ru": "<mainText><stats><attention>60</attention> силы атаки<br><attention>18</attention> смертоносности<br><attention>15</attention> ускорения умений</stats><br><br><passive>Ночной охотник</passive><br>После того как вы проведете несколько секунд вне поля зрения врагов, ваша следующая автоатака по чемпиону дополнительно нанесет <trueDamage>чистый урон</trueDamage>.<br><br><passive>Затемнение</passive><br>Оказываясь возле Скрытых тотемов и ловушек, вы ненадолго раскрываете их. Вы наносите раскрытым тотемам дополнительный урон автоатаками.</mainText>"
+    },
+    "3181": {
+      "name_en": "Hullbreaker",
+      "name_ru": "Бортолом",
+      "from": [
+        2021,
+        3066,
+        1037
+      ],
+      "gold": 3000,
+      "stats": {
+        "FlatHPPoolMod": 500,
+        "FlatPhysicalDamageMod": 40,
+        "PercentMovementSpeedMod": 0.04
+      },
+      "description_en": "<mainText><stats><attention>40</attention> Attack Damage<br><attention>500</attention> Health<br><attention>4%</attention> Move Speed</stats><br><br><passive>Skipper</passive><br>Every fifth Attack against champions and epic monsters deals <physicalDamage>bonus physical damage</physicalDamage>, increased against Structures.<br><br><passive>Boarding Party</passive><br>Nearby allied siege and super minions gain <scaleArmor>Armor</scaleArmor> and <scaleMR>Magic Resist</scaleMR>.</mainText>",
+      "description_ru": "<mainText><stats><attention>40</attention> силы атаки<br><attention>500</attention> здоровья<br><attention>4%</attention> скорости передвижения</stats><br><br><passive>Шкипер</passive><br>Каждая 5-я автоатака против чемпионов или эпических монстров наносит <physicalDamage>дополнительный физический урон</physicalDamage>. Строения получают больше урона.<br><br><passive>Абордажная команда</passive><br>Союзные осадные миньоны и суперминьоны поблизости получают прибавку к <scaleArmor>броне</scaleArmor> и <scaleMR>сопротивлению магии</scaleMR>.</mainText>"
+    },
+    "3801": {
+      "name_en": "Crystalline Bracer",
+      "name_ru": "Кристаллические наручи",
+      "from": [
+        1028,
+        1006
+      ],
+      "gold": 800,
+      "stats": {
+        "FlatHPPoolMod": 200
+      },
+      "description_en": "<mainText><stats><attention>200</attention> Health<br><attention>100%</attention> Base Health Regen</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>200</attention> здоровья<br><attention>100%</attention> базового восстановления здоровья</stats><br><br></mainText>"
+    },
+    "3814": {
+      "name_en": "Edge of Night",
+      "name_ru": "Грань ночи",
+      "from": [
+        3134,
+        2021
+      ],
+      "gold": 3000,
+      "stats": {
+        "FlatHPPoolMod": 250,
+        "FlatPhysicalDamageMod": 50
+      },
+      "description_en": "<mainText><stats><attention>50</attention> Attack Damage<br><attention>15</attention> Lethality<br><attention>250</attention> Health</stats><br><br><passive>Annul</passive><br>Grants a Spell Shield that blocks the next enemy Ability.</mainText>",
+      "description_ru": "<mainText><stats><attention>50</attention> силы атаки<br><attention>15</attention> смертоносности<br><attention>250</attention> здоровья</stats><br><br><passive>Отвод</passive><br>Накладывает щит от заклинаний, который блокирует следующее вражеское умение.</mainText>"
+    },
+    "6609": {
+      "name_en": "Chempunk Chainsword",
+      "name_ru": "Нож-пила химпанка",
+      "from": [
+        3123,
+        1011,
+        3133
+      ],
+      "gold": 3000,
+      "stats": {
+        "FlatHPPoolMod": 450,
+        "FlatPhysicalDamageMod": 45
+      },
+      "description_en": "<mainText><stats><attention>45</attention> Attack Damage<br><attention>450</attention> Health<br><attention>15</attention> Ability Haste</stats><br><br><passive>Hackshorn</passive><br>Dealing physical damage applies <keyword>40% Wounds</keyword> to enemy champions for 3 seconds.</mainText>",
+      "description_ru": "<mainText><stats><attention>45</attention> силы атаки<br><attention>450</attention> здоровья<br><attention>15</attention> ускорения умений</stats><br><br><passive>Инфекция</passive><br>При нанесении физического урона вражеским чемпионам на них накладываются <keyword>Раны</keyword> (40%) на 3 сек.</mainText>"
+    },
+    "6610": {
+      "name_en": "Sundered Sky",
+      "name_ru": "Расколотое небо",
+      "from": [
+        2021,
+        3133
+      ],
+      "gold": 3100,
+      "stats": {
+        "FlatHPPoolMod": 400,
+        "FlatPhysicalDamageMod": 40
+      },
+      "description_en": "<mainText><stats><attention>40</attention> Attack Damage<br><attention>400</attention> Health<br><attention>10</attention> Ability Haste</stats><br><br><passive>Lightshield Strike</passive><br>Your first Attack against a champion <attention>Critically Strikes</attention> and <healing>restores Health</healing>.</mainText>",
+      "description_ru": "<mainText><stats><attention>40</attention> силы атаки<br><attention>400</attention> здоровья<br><attention>10</attention> ускорения умений</stats><br><br><passive>Удар Лайтшилда</passive><br>Первая автоатака против чемпиона становится <attention>критической</attention> и <healing>лечит</healing> вас.</mainText>"
+    },
+    "6670": {
+      "name_en": "Noonquiver",
+      "name_ru": "Полуденный колчан",
+      "from": [
+        1036,
+        1018
+      ],
+      "gold": 1300,
+      "stats": {
+        "FlatCritChanceMod": 0.2,
+        "FlatPhysicalDamageMod": 15
+      },
+      "description_en": "<mainText><stats><attention>15</attention> Attack Damage<br><attention>20%</attention> Critical Strike Chance</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>15</attention> силы атаки<br><attention>20%</attention> шанса критического удара</stats><br><br></mainText>"
+    },
+    "6672": {
+      "name_en": "Kraken Slayer",
+      "name_ru": "Убийца кракенов",
+      "from": [
+        6690,
+        3051,
+        1043
+      ],
+      "gold": 3000,
+      "stats": {
+        "FlatPhysicalDamageMod": 45,
+        "PercentAttackSpeedMod": 0.4,
+        "PercentMovementSpeedMod": 0.04
+      },
+      "description_en": "<mainText><stats><attention>45</attention> Attack Damage<br><attention>40%</attention> Attack Speed<br><attention>4%</attention> Move Speed</stats><br><br><passive>Bring It Down</passive><br>Every third Attack deals <physicalDamage>bonus physical damage</physicalDamage> <OnHit>On-Hit</OnHit>, increased based on their missing Health.</mainText>",
+      "description_ru": "<mainText><stats><attention>45</attention> силы атаки<br><attention>40%</attention> скорости атаки<br><attention>4%</attention> скорости передвижения</stats><br><br><passive>Тяжелая артиллерия</passive><br>Каждая 3-я автоатака наносит <physicalDamage>дополнительный физический урон</physicalDamage> <OnHit>при попадании</OnHit>. Этот урон увеличивается в зависимости от недостающего здоровья цели.</mainText>"
+    },
+    "6673": {
+      "name_en": "Immortal Shieldbow",
+      "name_ru": "Арбалет бессмертия",
+      "from": [
+        1037,
+        6670
+      ],
+      "gold": 3000,
+      "stats": {
+        "FlatCritChanceMod": 0.25,
+        "FlatPhysicalDamageMod": 55
+      },
+      "description_en": "<mainText><stats><attention>55</attention> Attack Damage<br><attention>25%</attention> Critical Strike Chance</stats><br><br><passive>Lifeline</passive><br>Taking damage that would reduce your Health below 30% grants a <shield>Shield</shield> for 3 seconds.</mainText>",
+      "description_ru": "<mainText><stats><attention>55</attention> силы атаки<br><attention>25%</attention> шанса критического удара</stats><br><br><passive>Линия жизни</passive><br>При получении урона, после которого ваш уровень здоровья опускается ниже 30%, вы получаете <shield>щит</shield> на 3 сек.</mainText>"
+    },
+    "6675": {
+      "name_en": "Navori Flickerblade",
+      "name_ru": "Летающий нож Навори",
+      "from": [
+        1042,
+        3086,
+        1042
+      ],
+      "gold": 2650,
+      "stats": {
+        "FlatCritChanceMod": 0.25,
+        "PercentAttackSpeedMod": 0.4,
+        "PercentMovementSpeedMod": 0.04
+      },
+      "description_en": "<mainText><stats><attention>40%</attention> Attack Speed<br><attention>25%</attention> Critical Strike Chance<br><attention>4%</attention> Move Speed</stats><br><br><passive>Transcendence</passive><br>Attacks reduce Basic Ability cooldowns by <attention>15%</attention> of their remaining cooldown.</mainText>",
+      "description_ru": "<mainText><stats><attention>40%</attention> скорости атаки<br><attention>25%</attention> шанса критического удара<br><attention>4%</attention> скорости передвижения</stats><br><br><passive>Божественность</passive><br>Ваши автоатаки сокращают оставшуюся перезарядку базовых умений на <attention>15%</attention>.</mainText>"
+    },
+    "6676": {
+      "name_en": "The Collector",
+      "name_ru": "Сборщик долгов",
+      "from": [
+        1037,
+        3134,
+        1018
+      ],
+      "gold": 3000,
+      "stats": {
+        "FlatCritChanceMod": 0.25,
+        "FlatPhysicalDamageMod": 50
+      },
+      "description_en": "<mainText><stats><attention>50</attention> Attack Damage<br><attention>10</attention> Lethality<br><attention>25%</attention> Critical Strike Chance</stats><br><br><passive>Death</passive><br>Your damage executes champions that are below 5% Health.<br><br><passive>Taxes</passive><br>Champion kills grant <gold>25 bonus gold</gold>.</mainText>",
+      "description_ru": "<mainText><stats><attention>50</attention> силы атаки<br><attention>10</attention> смертоносности<br><attention>25%</attention> шанса критического удара</stats><br><br><passive>Смерть</passive><br>Нанося урон, вы добиваете чемпионов, у которых осталось менее 5% здоровья.<br><br><passive>Долг</passive><br>Убийства чемпионов дополнительно приносят <gold>25 золота</gold>.</mainText>"
+    },
+    "6690": {
+      "name_en": "Rectrix",
+      "name_ru": "Рулевое перо",
+      "from": [
+        1036
+      ],
+      "gold": 775,
+      "stats": {
+        "FlatPhysicalDamageMod": 15,
+        "PercentMovementSpeedMod": 0.04
+      },
+      "description_en": "<mainText><stats><attention>15</attention> Attack Damage<br><attention>4%</attention> Move Speed</stats><br><br></mainText>",
+      "description_ru": "<mainText><stats><attention>15</attention> силы атаки<br><attention>4%</attention> скорости передвижения</stats><br><br></mainText>"
+    },
+    "6692": {
+      "name_en": "Eclipse",
+      "name_ru": "Затмение",
+      "from": [
+        3133,
+        1037,
+        1036
+      ],
+      "gold": 2900,
+      "stats": {
+        "FlatPhysicalDamageMod": 60
+      },
+      "description_en": "<mainText><stats><attention>60</attention> Attack Damage<br><attention>15</attention> Ability Haste</stats><br><br><passive>Ever Rising Moon</passive><br>Hitting a champion with 2 separate Attacks or Abilities within 2 seconds grants you a <shield>Shield</shield> for 2 seconds.</mainText>",
+      "description_ru": "<mainText><stats><attention>60</attention> силы атаки<br><attention>15</attention> ускорения умений</stats><br><br><passive>Восходящая луна</passive><br>При поражении чемпиона 2 отдельными автоатаками или умениями в течение 2 сек. вы получаете <shield>щит</shield> на 2 сек.</mainText>"
+    },
+    "6694": {
+      "name_en": "Serylda's Grudge",
+      "name_ru": "Злоба Серильды",
+      "from": [
+        3133,
+        3035
+      ],
+      "gold": 3000,
+      "stats": {
+        "FlatPhysicalDamageMod": 45
+      },
+      "description_en": "<mainText><stats><attention>45</attention> Attack Damage<br><attention>35%</attention> Armor Penetration<br><attention>15</attention> Ability Haste</stats><br><br><passive>Bitter Cold</passive><br>Damaging Abilities <status>Slow</status> enemies below 50% Health by 30% for 1 second.</mainText>",
+      "description_ru": "<mainText><stats><attention>45</attention> силы атаки<br><attention>35%</attention> пробивания брони<br><attention>15</attention> ускорения умений</stats><br><br><passive>Лютый холод</passive><br>Умения, наносящие урон, <status>замедляют</status> врагов, у которых осталось менее 50% здоровья, на 30% на 1 сек.</mainText>"
+    },
+    "6695": {
+      "name_en": "Serpent's Fang",
+      "name_ru": "Змеиный клык",
+      "from": [
+        3134,
+        1037
+      ],
+      "gold": 2500,
+      "stats": {
+        "FlatPhysicalDamageMod": 55
+      },
+      "description_en": "<mainText><stats><attention>55</attention> Attack Damage<br><attention>15</attention> Lethality</stats><br><br><passive>Shield Reaver</passive><br>Damaging an enemy champion reduces Shields they gain by % for 3 seconds. <br>If they were not already affected by <passive>Shield Reaver</passive>, reduce Shields on them by %.</mainText>",
+      "description_ru": "<mainText><stats><attention>55</attention> силы атаки<br><attention>15</attention> смертоносности</stats><br><br><passive>Уничтожитель щитов</passive><br>При нанесении урона вражескому чемпиону вы уменьшаете прочность накладываемых на него щитов на 0% на 3 сек. <br>Если на цель еще не действует <passive>Уничтожитель щитов</passive>, вы уменьшаете прочность наложенных на нее щитов на 0%.</mainText>"
+    },
+    "6696": {
+      "name_en": "Axiom Arc",
+      "name_ru": "Шакрам Аксиом",
+      "from": [
+        2020,
+        3133
+      ],
+      "gold": 2750,
+      "stats": {
+        "FlatPhysicalDamageMod": 55
+      },
+      "description_en": "<mainText><stats><attention>55</attention> Attack Damage<br><attention>18</attention> Lethality<br><attention>20</attention> Ability Haste</stats><br><br><passive>Flux</passive><br>When a champion that you damaged within 3 seconds dies, refund some of your Ultimate Ability's total cooldown.</mainText>",
+      "description_ru": "<mainText><stats><attention>55</attention> силы атаки<br><attention>18</attention> смертоносности<br><attention>20</attention> ускорения умений</stats><br><br><passive>Непрерывность</passive><br>Сокращает перезарядку абсолютного умения, если вражеский чемпион погибает в течение 3 сек. после того, как вы нанесли ему урон.</mainText>"
+    },
+    "6697": {
+      "name_en": "Hubris",
+      "name_ru": "Гордыня",
+      "from": [
+        3134,
+        3133
+      ],
+      "gold": 2800,
+      "stats": {
+        "FlatPhysicalDamageMod": 55
+      },
+      "description_en": "<mainText><stats><attention>55</attention> Attack Damage<br><attention>18</attention> Lethality<br><attention>10</attention> Ability Haste</stats><br><br><passive>Eminence</passive><br>When a champion that you damaged within 3 seconds dies, gain <physicalDamage> Attack Damage plus  per champion killed</physicalDamage> for 90 seconds.</mainText>",
+      "description_ru": "<mainText><stats><attention>55</attention> силы атаки<br><attention>18</attention> смертоносности<br><attention>10</attention> ускорения умений</stats><br><br><passive>Знаменитость</passive><br>Если вражеский чемпион погибает в течение 3 сек. после того, как вы нанесли ему урон, вы получаете <physicalDamage>силу атаки в размере 0 плюс 0 за каждого убитого чемпиона</physicalDamage> на 90 сек.</mainText>"
+    },
+    "6699": {
+      "name_en": "Voltaic Cyclosword",
+      "name_ru": "Электрический цикломеч",
+      "from": [
+        2020,
+        1036,
+        1036
+      ],
+      "gold": 3000,
+      "stats": {
+        "FlatPhysicalDamageMod": 55
+      },
+      "description_en": "<mainText><stats><attention>55</attention> Attack Damage<br><attention>10</attention> Lethality<br><attention>10</attention> Ability Haste</stats><br><br><passive>Galvanize</passive><br>Damaging an Enemy Champions with an ability triggers <keyword>Energized</keyword> if it is ready.<br><br><passive>Firmament</passive><br>Your <keyword>Energized Attack</keyword> deals <physicalDamage>% target's Current Health as bonus physical damage</physicalDamage> and grants you <scaleLethality>bonus Lethality</scaleLethality> for 4 seconds.</mainText>",
+      "description_ru": "<mainText><stats><attention>55</attention> силы атаки<br><attention>10</attention> смертоносности<br><attention>10</attention> ускорения умений</stats><br><br><passive>Электризация</passive><br>При нанесении вражескому чемпиону урона умением срабатывает <keyword>Заряженность</keyword>, если она готова.<br><br><passive>Небосклон</passive><br>Ваша <keyword>заряженная атака</keyword> наносит <physicalDamage>доп. физ. урон в размере доли тек. здоровья цели</physicalDamage> и дает вам <scaleLethality>доп. смертоносность</scaleLethality> на 4 сек.</mainText>"
+    }
+  }
+}

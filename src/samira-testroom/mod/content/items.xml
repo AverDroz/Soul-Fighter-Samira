@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='utf8'?>
 <items gfxroot="gfx/items/" version="1">
   <passive id="1" name="Samira: Boots" description="Speed up" gfx="samira_item_1001.png" quality="3" shopprice="5" />
   <passive id="2" name="Samira: Overlord's Bloodmail" description="Health and wounds fuel damage" gfx="samira_item_2501.png" quality="3" shopprice="24" maxhearts="4" hearts="4" />
@@ -46,4 +46,31 @@
   <passive id="44" name="Samira: Axiom Arc" description="R damage up" gfx="samira_item_6696.png" quality="3" shopprice="20" />
   <passive id="45" name="Samira: Hubris" description="Clean combat rooms build damage" gfx="samira_item_6697.png" quality="3" shopprice="20" />
   <passive id="46" name="Samira: Voltaic Cyclosword" description="Ability primes a charged shot" gfx="samira_item_6699.png" quality="3" shopprice="21" />
+  <passive id="47" name="Samira: Rejuvenation Bead" description="Component passive" gfx="samira_item_1006.png" quality="1" shopprice="2" />
+  <passive id="48" name="Samira: Giant's Belt" description="Crafting component" gfx="samira_item_1011.png" quality="1" shopprice="6" maxhearts="3" hearts="3" />
+  <passive id="49" name="Samira: Cloak of Agility" description="Crafting component" gfx="samira_item_1018.png" quality="1" shopprice="4" />
+  <passive id="50" name="Samira: Ruby Crystal" description="Crafting component" gfx="samira_item_1028.png" quality="1" shopprice="3" maxhearts="1" hearts="1" />
+  <passive id="51" name="Samira: Long Sword" description="Crafting component" gfx="samira_item_1036.png" quality="1" shopprice="2" />
+  <passive id="52" name="Samira: Pickaxe" description="Crafting component" gfx="samira_item_1037.png" quality="1" shopprice="6" />
+  <passive id="53" name="Samira: B. F. Sword" description="Crafting component" gfx="samira_item_1038.png" quality="1" shopprice="9" />
+  <passive id="54" name="Samira: Dagger" description="Crafting component" gfx="samira_item_1042.png" quality="1" shopprice="2" />
+  <passive id="55" name="Samira: Recurve Bow" description="Component passive" gfx="samira_item_1043.png" quality="1" shopprice="5" />
+  <passive id="56" name="Samira: Vampiric Scepter" description="Crafting component" gfx="samira_item_1053.png" quality="1" shopprice="6" />
+  <passive id="57" name="Samira: The Brutalizer" description="Crafting component" gfx="samira_item_2020.png" quality="1" shopprice="10" />
+  <passive id="58" name="Samira: Tunneler" description="Crafting component" gfx="samira_item_2021.png" quality="1" shopprice="8" maxhearts="2" hearts="2" />
+  <passive id="59" name="Samira: Glowing Mote" description="Crafting component" gfx="samira_item_2022.png" quality="1" shopprice="2" />
+  <passive id="60" name="Samira: Last Whisper" description="Crafting component" gfx="samira_item_3035.png" quality="1" shopprice="10" />
+  <passive id="61" name="Samira: Phage" description="Component passive" gfx="samira_item_3044.png" quality="1" shopprice="8" maxhearts="2" hearts="2" />
+  <passive id="62" name="Samira: Hearthbound Axe" description="Crafting component" gfx="samira_item_3051.png" quality="1" shopprice="9" />
+  <passive id="63" name="Samira: Sheen" description="Component passive" gfx="samira_item_3057.png" quality="1" shopprice="6" />
+  <passive id="64" name="Samira: Winged Moonplate" description="Crafting component" gfx="samira_item_3066.png" quality="1" shopprice="6" maxhearts="2" hearts="2" />
+  <passive id="65" name="Samira: Kindlegem" description="Crafting component" gfx="samira_item_3067.png" quality="1" shopprice="6" maxhearts="2" hearts="2" />
+  <passive id="66" name="Samira: Zeal" description="Crafting component" gfx="samira_item_3086.png" quality="1" shopprice="9" />
+  <passive id="67" name="Samira: Executioner's Calling" description="Component passive" gfx="samira_item_3123.png" quality="1" shopprice="6" />
+  <passive id="68" name="Samira: Caulfield's Warhammer" description="Crafting component" gfx="samira_item_3133.png" quality="1" shopprice="8" />
+  <passive id="69" name="Samira: Serrated Dirk" description="Crafting component" gfx="samira_item_3134.png" quality="1" shopprice="7" />
+  <passive id="70" name="Samira: Scout's Slingshot" description="Component passive" gfx="samira_item_3144.png" quality="1" shopprice="4" />
+  <passive id="71" name="Samira: Crystalline Bracer" description="Component passive" gfx="samira_item_3801.png" quality="1" shopprice="6" maxhearts="2" hearts="2" />
+  <passive id="72" name="Samira: Noonquiver" description="Crafting component" gfx="samira_item_6670.png" quality="1" shopprice="9" />
+  <passive id="73" name="Samira: Rectrix" description="Crafting component" gfx="samira_item_6690.png" quality="1" shopprice="6" />
 </items>
