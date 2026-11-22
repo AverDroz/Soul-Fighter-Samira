@@ -19,6 +19,8 @@ def main():
     lua.execute(mock_prelude() + r"""
 start()
 local combat = include('yone_combat')
+-- Projectile adaptation is covered by check_yone_artifacts.py.
+player.FireTear = false
 function player:IsFlying() return self.CanFly == true end
 local state = combat.new()
 local props = {}
@@ -425,6 +427,55 @@ assert(combat.q3Invulnerable(state, 8) and combat.q3Invulnerable(state, 14)
     and not combat.q3Invulnerable(state, 15), 'Q3 dash immunity timing incorrect')
 combat.resetRoom(state, 9)
 assert(not combat.q3Invulnerable(state, 9), 'Q3 immunity survived room reset')
+
+-- W ignores pits and internal walls, but cannot cross a gap outside the room.
+GridCollisionClass.COLLISION_PIT = 1
+for _, obstacle in ipairs({GridCollisionClass.COLLISION_PIT, GridCollisionClass.COLLISION_WALL}) do
+    wall = {}; wall[room:GetGridIndex(Vector(140,100))] = obstacle
+    state = combat.new(); player.Position = Vector(60,100); entities = {enemy(165,100,800)}
+    cast('w', 1); resolve(9)
+    assert(#entities[1].damage == 1, 'W must cross interior terrain')
+end
+wall = {}; room.IsPositionInRoom = function(self, point, margin)
+    if point.X > 120 and point.X < 150 then return false end
+    return baseInside(self, point, margin)
+end
+state = combat.new(); player.Position = Vector(60,100); entities = {enemy(165,100,801)}
+cast('w', 1); resolve(9)
+assert(#entities[1].damage == 0, 'W crossed exterior room gap')
+room.IsPositionInRoom = baseInside
+-- The room mock uses 40-unit indexed cells; one pit cell is traversable,
+-- two consecutive cells and solid terrain must stop before the hazard.
+for _, scenario in ipairs({{'one',1}, {'two',2}, {'wall',0}}) do
+    wall = {}; wall[room:GetGridIndex(Vector(140,100))] = scenario[2] == 0
+        and GridCollisionClass.COLLISION_WALL or GridCollisionClass.COLLISION_PIT
+    if scenario[2] == 2 then wall[room:GetGridIndex(Vector(180,100))] = GridCollisionClass.COLLISION_PIT end
+    state = combat.new(); state.qStacks = 2; player.Position = Vector(60,100); entities = {}
+    cast('q', 1); resolve(8)
+    if scenario[1] == 'one' then assert(player.Position.X > 180, 'Q3 failed to cross a single pit')
+    else assert(player.Position.X < 120, 'Q3 crossed a wall or two pit cells') end
+    assert(combat.clearPoint(room, player, player.Position), 'Q3 landed on unsafe terrain')
+end
+wall = {}
+state = combat.new(); state.qStacks = 2; player.Position = Vector(60,100)
+local lifted = enemy(100,100,802); entities = {lifted}
+cast('q', 1); resolve(8)
+local originalPosition = lifted.Position
+assert(combat.preNpcUpdate(state, lifted, 9) == true, 'Q3 did not stagger target')
+local render = combat.preNpcRender(state, lifted, Vector(3,4), 11)
+assert(render and render.Y < 4 and lifted.Position == originalPosition, 'Q3 lift must be visual only')
+assert(combat.preNpcRender(state, lifted, Vector(3,4), 20) == nil, 'lift did not expire')
+state = combat.new(); player.Position = Vector(60,100); local boss = enemy(130,100,803)
+function boss:IsBoss() return true end
+entities = {boss}; cast('r', 1); resolve(24)
+assert(combat.preNpcRender(state,boss,Vector(0,0),27) and not combat.preNpcUpdate(state,boss,27),
+    'boss must be lifted without stopping its updates')
+combat.resetRoom(state, 28)
+assert(not combat.preNpcRender(state,boss,Vector(0,0),28), 'reset left a lift on an entity')
+state = combat.new(); state.qStacks = 2; player.Position = Vector(60,100); entities={lifted}
+cast('q',1); resolve(8); lifted.InitSeed = lifted.InitSeed + 1
+assert(not combat.preNpcRender(state,lifted,Vector(0,0),9), 'reused entity inherited lift')
+
 """)
     print("PASS Yone strikes, spirit presentation, accepted damage marks, transitions and R line/pull")
 

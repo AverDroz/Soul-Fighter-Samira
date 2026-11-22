@@ -50,9 +50,11 @@ Isaac.GetTextWidth = function(text) return #text * 6 end
 Isaac.DrawLine = function() end
 KColor = Color
 local draws = {}
-local function captureHud()
+local function captureHud(cursor)
     local originalRender, originalScaled, originalLine = Isaac.RenderText, Isaac.RenderScaledText, Isaac.DrawLine
-    local text = {pips = 0, ring = 0, qRing = 0, icons = {}}
+    local originalCursor = input.cursor
+    if cursor then input.cursor = cursor end
+    local text = {pips = 0, ring = 0, qRing = 0, icons = {}, statMarks = {}, shield = 0}
     draws = text.icons
     Isaac.RenderText = function(label, x, y, r, g, b, a)
         text[label] = {x = x, y = y, scale = 1, color = {r, g, b, a}}
@@ -70,9 +72,20 @@ local function captureHud()
             and text.icons[1] and b.Y <= text.icons[1].y + text.icons[1].size + thickness then
             text.qRing = text.qRing + a:Distance(b)
         end
+        if color[1] == .74 and color[2] == .65 or color[1] == .97 and color[2] == .78 then
+            text.statMarks[#text.statMarks + 1] = a
+        end
+        if color[1] == .55 and color[2] == .87 then
+            local w = assert(text.icons[2], 'shield marker drawn away from W')
+            local s = w.size / 26
+            assert(a.X >= w.x + 17 * s and a.X <= w.x + w.size and a.Y >= w.y + 21 * s and a.Y <= w.y + 30 * s,
+                'shield marker fell outside the W corner badge')
+            text.shield = text.shield + 1
+        end
     end
     event('POST_RENDER')
     Isaac.RenderText, Isaac.RenderScaledText, Isaac.DrawLine = originalRender, originalScaled, originalLine
+    input.cursor = originalCursor
     draws = {}
     local previousX = -1
     for _, key in ipairs({'Q', 'W', 'E', 'R'}) do
@@ -87,11 +100,29 @@ local function captureHud()
         assert(icon.x >= 0 and icon.x + icon.size <= Isaac.GetScreenWidth()
             and icon.y >= 0 and icon.y + icon.size <= Isaac.GetScreenHeight(), 'ability image was clipped')
     end
-    assert(text.CRIT and text.DMG and text['ATK/s'] and text.MOVE and text.HASTE and text.RANGE,
-        'native combat panel is missing a stat')
-    assert(text.CRIT.x < text.Q.x and text.DMG.y > text.Q.y, 'stats did not share the ability panel')
-    assert(text.RANGE.x + 30 * text.RANGE.scale <= Isaac.GetScreenWidth(), 'stats fell outside the viewport')
     return text
+end
+
+local function checkStatGrid(hud, values)
+    local q = hud.icons[1]
+    local s = q.size / 26
+    local marks = {}
+    for _, start in ipairs(hud.statMarks) do
+        local col = math.floor((start.X - (q.x - 71 * s)) / (33 * s))
+        local row = math.floor((start.Y - (q.y - .5 * s)) / (10 * s))
+        assert(col >= 0 and col <= 1 and row >= 0 and row <= 2, 'stat icon fell outside the side panel')
+        marks[row * 2 + col + 1] = true
+    end
+    for i, label in ipairs(values) do
+        local value = assert(hud[label], 'missing Yone stat value ' .. label)
+        local col, row = (i - 1) % 2, math.floor((i - 1) / 2)
+        assert(marks[i], 'missing icon for stat cell ' .. i)
+        assert(math.abs(value.y - (q.y + (.6 + row * 10) * s)) < .001, 'stat value is on the wrong row')
+        local right = value.x + Isaac.GetTextWidth(label) * value.scale
+        assert(value.x >= right - 20 * s - .001 and value.x >= 0
+            and math.abs(right - (q.x - (41 - col * 33) * s)) < .001,
+            'stat value fell outside its cell')
+    end
 end
 local function statusOver(hud, label, index)
     local status, icon = hud[label], hud.icons[index]
@@ -129,38 +160,77 @@ assert(itemDriver() == player and itemUpdates > 0, 'ordinary Yone run did not bi
 assert(controlsOwner() == player, 'Yone could not open the shared F9 settings')
 local glyphLines = 0
 Isaac.DrawLine = function() glyphLines = glyphLines + 1 end
-local readyHud = captureHud()
+local readyHud = captureHud(Vector(0, 0))
 assert(glyphLines >= 8, 'ability panel did not draw its plate')
 assert(readyHud.icons[1].name == 'Q' and readyHud.icons[2].name == 'W'
     and readyHud.icons[3].name == 'E' and readyHud.icons[4].name == 'R' and readyHud.pips == 0)
-assert(readyHud['0%'] and readyHud['4.00'] and readyHud['2.00'] and readyHud['1.00'],
-    'panel did not show the starting combat stats')
+checkStatGrid(readyHud, {'4.00', '0%', '2.00', '0', '1.00', '69'})
+assert(not readyHud.CRIT and not readyHud.DMG and not readyHud['Critical strike chance'] and readyHud.shield == 0,
+    'idle HUD leaked labels or a W shield indicator')
 noItems.combatStats = function(owner)
     assert(owner == player)
     return .52, 17
 end
-player.MaxFireDelay, player.Damage, player.MoveSpeed = 5, 7.25, 1.23
-local boosted = captureHud()
-assert(boosted['52%'] and boosted['17'] and boosted['3.33'] and boosted['7.25'] and boosted['1.23'],
-    'panel did not refresh the effective combat stats')
-assert(not boosted['0%'] and boosted['52%'].x < boosted.Q.x, 'critical chance was not updated at its own position')
+player.MaxFireDelay, player.Damage, player.MoveSpeed, player.TearRange = 5, 7.25, 1.23, 365
+local boosted = captureHud(Vector(0, 0))
+checkStatGrid(boosted, {'7.25', '52%', '3.33', '17', '1.23', '77'})
+assert(not boosted['0%'] and boosted['52%'].color[1] > readyHud['0%'].color[1],
+    'current critical chance did not update or pick up its accent')
 noItems.combatStats = nil
-player.MaxFireDelay, player.Damage, player.MoveSpeed = 9, 4, 1
+player.MaxFireDelay, player.Damage, player.MoveSpeed, player.TearRange = 9, 4, 1, 250
 Isaac.DrawLine = function() end
-assert(readyHud.R.y + 8 < Isaac.GetScreenHeight() - 26, 'narrow ability row collided with the backpack')
-local width, height = Isaac.GetScreenWidth, Isaac.GetScreenHeight
-Isaac.GetScreenWidth, Isaac.GetScreenHeight = function() return 688 end, function() return 288 end
-local wideHud = captureHud()
-assert(wideHud.CRIT.x > 70 + 147 and wideHud.DMG.y > 288 - 26, 'wide ability panel did not clear the backpack')
-hudScale = 1.5
-local largeHud = captureHud()
-assert(largeHud.icons[1].size == 39 and largeHud.Q.scale == .94 * 1.5 and largeHud.CRIT.x > 70 + 147 * 1.5)
-Isaac.GetScreenWidth = function() return 480 end
-Options.Fullscreen = true
-largeHud = captureHud()
-assert(largeHud.DMG.y + 16 * largeHud.DMG.scale < 288 - 22 * 1.5 - 4, 'large panel did not wrap above the backpack')
-Options.Fullscreen, hudScale = false, 1
-Isaac.GetScreenWidth, Isaac.GetScreenHeight = width, height
+do
+    local width, height = Isaac.GetScreenWidth, Isaac.GetScreenHeight
+    local inventoryBounds = include('samira_inventory_hud').bounds
+    local values = {'4.00', '0%', '2.00', '0', '1.00', '69'}
+    local statLabels = {'Attack damage', 'Critical strike chance', 'Attacks per second',
+        'Ability haste', 'Movement speed', 'Attack range'}
+    local function checkHover(hud, i)
+        local value, label = hud[values[i]], statLabels[i]
+        local tooltip = captureHud(Vector(value.x + 1, value.y + 2))[label]
+        assert(tooltip, 'wrong tooltip for ' .. label)
+        assert(tooltip.x >= 3 and tooltip.x + Isaac.GetTextWidth(label) * tooltip.scale <= Isaac.GetScreenWidth() - 3
+            and tooltip.y >= 0 and tooltip.y + 8 * tooltip.scale < hud.icons[1].y - 5 * hud.icons[1].size / 26,
+            'stat tooltip overlapped the viewport edge or ability panel')
+    end
+    local function checkBackpackClearance(hud, wraps)
+        local backpack, q = inventoryBounds(player, hudScale), hud.icons[1]
+        local s = q.size / 26
+        if wraps then
+            assert(q.y + 34 * s <= backpack.y - 17 * backpack.scale - 3,
+                'ability panel collided with backpack drop hint while wrapped')
+        else
+            assert(q.x - 76 * s >= backpack.x + backpack.width + 6 and q.y + 34 * s >= backpack.y,
+                'ability panel did not clear the backpack beside it')
+        end
+    end
+    checkBackpackClearance(readyHud, true)
+    for i = 1, #values do checkHover(readyHud, i) end
+    hudScale = .75
+    noItems.combatStats = function() return 1, 17.5 end
+    local saturated = captureHud(Vector(0, 0))
+    checkStatGrid(saturated, {'4.00', '100%', '2.00', '17.5', '1.00', '69'})
+    assert(saturated.icons[1].size == 19.5 and saturated['100%'].scale > .5)
+    noItems.combatStats, hudScale = nil, 1
+    Isaac.GetScreenWidth, Isaac.GetScreenHeight = function() return 688 end, function() return 288 end
+    local wideHud = captureHud()
+    checkBackpackClearance(wideHud, false)
+    hudScale = 1.5
+    local largeHud = captureHud()
+    checkStatGrid(largeHud, values)
+    checkBackpackClearance(largeHud, false)
+    assert(largeHud.icons[1].size == 39 and largeHud.Q.scale == .94 * 1.5)
+    mirror = true
+    checkHover(largeHud, 2)
+    mirror = false
+    Isaac.GetScreenWidth = function() return 480 end
+    Options.Fullscreen = true
+    largeHud = captureHud()
+    checkBackpackClearance(largeHud, true)
+    checkHover(largeHud, 6)
+    Options.Fullscreen, hudScale = false, 1
+    Isaac.GetScreenWidth, Isaac.GetScreenHeight = width, height
+end
 local marker = Vector(75, 65)
 local function checkHeartsteelMarker(fraction, reflected, green)
     local originalLine = Isaac.DrawLine
@@ -349,8 +419,13 @@ assert(math.abs(cleave.arc[7][1] - cleave.target[1]) < .001
     and math.abs(cleave.arc[7][2] - cleave.target[2]) < .001, 'W arc and axial endpoint disagreed')
 local shieldHud = captureHud()
 sameSlots(readyHud, shieldHud)
-assert(statusOver(shieldHud, '6s', 2) and shieldHud.SHIELD,
+assert(statusOver(shieldHud, '6s', 2) and shieldHud.shield > 0,
     'W lost its cooldown or shield display')
+do
+    local w = shieldHud.icons[2]
+    local s = w.size / 26
+    assert(captureHud(Vector(w.x + 21 * s, w.y + 25 * s))['W shield active'], 'W shield lost its tooltip')
+end
 assert(event('ENTITY_TAKE_DMG', player, 1, DamageFlag.DAMAGE_FAKE, EntityRef(attacker)) == nil)
 assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(attacker)) == false)
 assert(player.shieldCooldown == 15)
@@ -812,6 +887,47 @@ for _ = 1, 170 do
 end
 assert(player.Position.X > 400 and math.abs(player.Position.Y - 100) < 10,
     'Yone did not detour around the obstacle before reaching the door')
+event('PRE_GAME_EXIT')
+-- Arrival can precede a missing or late level callback.
+event('POST_GAME_STARTED', false)
+tick()
+local recoveredSession, recoveredRoom = packet.session, packet.room
+function player:GetSprite()
+    return {GetAnimation = function() return playerAnimation end,
+        IsPlaying = function(_, clip) return clip == playerAnimation and animationPlaying end}
+end
+event('PRE_ROOM_EXIT', player, true)
+playerAnimation, animationPlaying = 'Trapdoor', true
+event('POST_NEW_ROOM')
+for _ = 1, 5 do tick() end
+assert(packet.room == recoveredRoom and packet.occluded,
+    'floor recovery exposed the trapdoor animation')
+animationPlaying = false
+for _ = 1, 5 do tick() end
+assert(packet.active and packet.session == recoveredSession and packet.room == recoveredRoom + 1
+    and not packet.transition and not packet.occluded, 'floor arrival did not recover without new-level callback')
+assert(event('PRE_PLAYER_RENDER', player, Vector.Zero) == nil,
+    'floor recovery reused the previous room renderer lease')
+ack = {version = 1, session = recoveredSession, room = packet.room, time = now,
+    display = packet.display.id, ready = true, visible = true,
+    capabilities = {yoneModel = true, yoneVfx = true, mastery = true}}
+tick(); tick()
+assert(event('PRE_PLAYER_RENDER', player, Vector.Zero) == false,
+    'floor recovery did not acquire a fresh renderer lease')
+event('POST_NEW_LEVEL')
+tick()
+assert(packet.room == recoveredRoom + 1 and not packet.occluded,
+    'late new-level callback duplicated or hid the recovered room')
+local seed = 101
+function room:GetSpawnSeed() return seed end
+event('PRE_ROOM_EXIT', player, true)
+for _ = 1, 3 do tick() end
+assert(packet.room == recoveredRoom + 1 and packet.occluded,
+    'floor recovery fired while still physically in the departure room')
+seed = 102
+for _ = 1, 5 do tick() end
+assert(packet.session == recoveredSession and packet.room == recoveredRoom + 2 and not packet.occluded,
+    'floor recovery required a room callback despite observing the new room')
 event('PRE_GAME_EXIT')
 """)
     print("PASS Yone registration, input, emotes, leases, HUD, floor lifecycle and console commands")

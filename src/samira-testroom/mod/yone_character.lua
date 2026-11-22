@@ -65,12 +65,12 @@ local function packet(payload)
     Isaac.DebugString('[SAMIRA_EXTERNAL] ' .. json.encode(payload))
 end
 
-local function obscured(game, state, player)
+local function obscured(game, state, player, ignoreDeparture)
     local sprite = player:GetSprite()
     local name = sprite:GetAnimation()
     local travel = name:find('Trapdoor', 1, true) ~= nil or name:find('Teleport', 1, true) ~= nil
         or name == 'LightTravel' or name == 'HoleIn' or name == 'FallIn'
-    return game:IsPaused() or ImGui.IsVisible() or state.leaving
+    return game:IsPaused() or ImGui.IsVisible() or (state.leaving and not ignoreDeparture)
         or RoomTransition.GetTransitionMode() ~= 0 or RoomTransition.IsRenderingBossIntro()
         or state.coverFrame == game:GetFrameCount() or player:IsDead()
         or travel and sprite:IsPlaying(name)
@@ -551,6 +551,15 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
         return Yone.player(game)
     end
 
+    mod:AddCallback(ModCallbacks.MC_PRE_NPC_UPDATE, function(_, npc)
+        if state then return Combat.preNpcUpdate(state.combat, npc, game:GetFrameCount()) end
+    end)
+    if ModCallbacks.MC_PRE_NPC_RENDER then
+        mod:AddCallback(ModCallbacks.MC_PRE_NPC_RENDER, function(_, npc, offset)
+            if state then return Combat.preNpcRender(state.combat, npc, offset, game:GetFrameCount()) end
+        end)
+    end
+
     local function sampleInput(room, allowed)
         sampleCommands(state, room, allowed, readR() == true)
     end
@@ -655,17 +664,33 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
         end
     end)
 
+    local enterRoom
     mod:AddCallback(ModCallbacks.MC_POST_UPDATE, function()
         local player = driver()
         if not player then
             -- A missing player or a temporarily unavailable run is not a
             -- character switch. Floor rebinding can outlast any wall timer.
-            if state and not state.floorRebinding and Isaac.IsInGame()
+            if state and not state.leaving and not state.floorRebinding and Isaac.IsInGame()
                 and game:GetNumPlayers() > 0 and Isaac.GetPlayer(0) then stop() end
             return
         end
         if not state then start(player) end
         local room, clock = game:GetRoom(), game:GetFrameCount()
+        -- A floor arrival may be observed without POST_NEW_LEVEL (or that
+        -- callback can arrive late). Never let the departure flag itself
+        -- prevent recovery once the new room is playable.
+        local roomChanged = state.departureRoomSeed ~= nil and room:GetSpawnSeed() ~= state.departureRoomSeed
+        if state.leaving and (state.floorRoomArrived or roomChanged) then
+            if player.ControlsEnabled ~= false and not obscured(game, state, player, true) then
+                state.floorReadyTicks = (state.floorReadyTicks or 0) + 1
+                if state.floorReadyTicks >= 2 then
+                    state.floorPending, state.floorRoomArrived, state.floorReadyTicks = nil, nil, nil
+                    enterRoom()
+                end
+            else
+                state.floorReadyTicks = nil
+            end
+        end
         if items and items.applyCooldownCheckpoint then items.applyCooldownCheckpoint(clock) end
         local allowed = canControl(game, state, player)
         sampleInput(room, allowed)
@@ -812,6 +837,8 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
     local function beginDeparture(player)
         if state.leaving then return end
         state.leaving, state.ackAt = true, nil
+        local room = game:GetRoom()
+        state.departureRoomSeed = room.GetSpawnSeed and room:GetSpawnSeed() or nil
         state.debugCommands, state.debugAnimation = nil, nil
         stopSpiritWarning(state)
         stopMoving(state)
@@ -834,10 +861,11 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
         end
     end)
 
-    local function enterRoom()
+    enterRoom = function()
         stopSpiritWarning(state)
         state.room = state.room + 1
         state.leaving, state.ackAt, state.emitAt, state.pollAt = nil, nil, nil, nil
+        state.departureRoomSeed, state.floorRoomArrived, state.floorReadyTicks = nil, nil, nil
         state.coverFrame, state.hurtUntil = nil, nil
         state.continuingRoom = nil
         state.debugCommands, state.debugAnimation = nil, nil
@@ -850,13 +878,14 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
     mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function()
         -- On a floor change this arrives before POST_NEW_LEVEL. Keep the old
         -- scene hidden while the new player and room are being bound.
-        if state and not state.floorPending then enterRoom() end
+        if not state then return end
+        if state.floorPending then state.floorRoomArrived = true else enterRoom() end
     end)
 
     mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, function()
         if not state then return end
         if state.floorPending or state.leaving then enterRoom() end
-        state.floorPending, state.coverFrame = nil, nil
+        state.floorPending, state.floorRoomArrived, state.floorReadyTicks, state.coverFrame = nil, nil, nil, nil
         state.floorRebinding = true
     end)
 

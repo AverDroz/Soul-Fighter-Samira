@@ -16,10 +16,11 @@ local maxMeleeRange = 100
 local spiritDuration, markDamage, wCosine, qStackDuration = 150, .30, .35, 180
 local spiritDash, q3Dash, spiritReturnFrames = 84, 156, 8
 local effectFrames, effectLimit, markerLimit = 21, 12, 24
+local airDuration, airHeight = 12, 24
 
 function Combat.new(items)
     return {ready = {}, qStacks = 0, secondBlade = false, face = Vector(0, 1),
-        effects = {}, effectSerial = 0, items = items}
+        effects = {}, effectSerial = 0, items = items, airborne = {}}
 end
 
 function Combat.chargeQ3(state, clock)
@@ -54,6 +55,89 @@ local function safeDestination(room, player, start, goal)
     return lastSafe
 end
 
+-- Q3 may bridge a single pit cell, but never stops in a pit or crosses solids.
+local function q3Destination(room, player, start, goal)
+    local delta, lastSafe, pitIndex = goal - start, start, nil
+    local radius = math.min(14, math.max(6, player.Size * .6))
+    local offsets = {Vector.Zero, Vector(radius, 0), Vector(-radius, 0), Vector(0, radius), Vector(0, -radius)}
+    local steps = math.max(1, math.ceil(delta:Length() / 4))
+    for step = 1, steps do
+        local point = start + delta * (step / steps)
+        if not room:IsPositionInRoom(point, radius) then break end
+        local blocked, pit = false, false
+        for _, offset in ipairs(offsets) do
+            local index = room:GetGridIndex(point + offset)
+            local cell = room:GetGridCollision(index)
+            if cell == GridCollisionClass.COLLISION_PIT and not player:IsFlying() then
+                if pitIndex and pitIndex ~= index then blocked = true; break end
+                pitIndex, pit = index, true
+            elseif cell ~= GridCollisionClass.COLLISION_NONE
+                and (not player:IsFlying() or cell >= GridCollisionClass.COLLISION_WALL) then
+                blocked = true; break
+            end
+        end
+        if blocked then break end
+        if not pit then lastSafe = point end
+    end
+    return lastSafe
+end
+
+local function withinRoom(room, start, goal)
+    local delta = goal - start
+    local steps = math.max(1, math.ceil(delta:Length()))
+    for step = 0, steps do
+        if not room:IsPositionInRoom(start + delta * (step / steps), 0) then return false end
+    end
+    return true
+end
+
+-- Render-only lift, retaining the Vector returned to native rendering. The
+-- entity's collision position and sprite offset remain owned by the game.
+local function airborneHeight(air, clock)
+    local t = math.max(0, math.min(1, (clock - air.at) / airDuration))
+    local function smooth(v) return v * v * (3 - 2 * v) end
+    if t < .25 then return air.from + (airHeight - air.from) * smooth(t / .25) end
+    return airHeight * (1 - smooth((t - .25) / .75))
+end
+
+local function activeAir(state, entity, clock)
+    local id = GetPtrHash(entity)
+    local air = state.airborne[id]
+    if air and (air.entity ~= entity or air.seed ~= entity.InitSeed or clock < air.at
+        or clock >= air.at + airDuration or not entity:Exists() or entity:IsDead()) then
+        state.airborne[id] = nil
+        return nil
+    end
+    return air
+end
+
+local function knockup(state, targets, clock)
+    for _, entity in ipairs(targets) do
+        if Combat.hostile(entity) and entity:ToNPC() then
+            local old = activeAir(state, entity, clock)
+            state.airborne[GetPtrHash(entity)] = {entity = entity, seed = entity.InitSeed,
+                at = clock, from = old and airborneHeight(old, clock) or 0}
+            if not entity:IsBoss() then entity.Velocity = Vector.Zero end
+        end
+    end
+end
+
+function Combat.preNpcUpdate(state, entity, clock)
+    if activeAir(state, entity, clock) and not entity:IsBoss() then
+        entity.Velocity = Vector.Zero
+        return true
+    end
+end
+
+function Combat.preNpcRender(state, entity, offset, clock)
+    local air = activeAir(state, entity, clock)
+    if air then
+        air.renderOffset = air.renderOffset or Vector(0, 0)
+        air.renderOffset.X, air.renderOffset.Y = offset.X, offset.Y - airborneHeight(air, clock)
+        return air.renderOffset
+    end
+end
+
 function Combat.clearSegment(room, player, start, goal)
     return safeDestination(room, player, start, goal):Distance(goal) < .5
 end
@@ -77,7 +161,7 @@ end
 function Combat.resetRoom(state, clock, relocate)
     releaseReturn(state, relocate)
     state.pending, state.action, state.spirit, state.shieldUntil = nil, nil, nil, nil
-    state.directImpact, state.effects, state.q3InvulnerableUntil = nil, {}, nil
+    state.directImpact, state.effects, state.q3InvulnerableUntil, state.airborne = nil, {}, nil, {}
     state.qStacks, state.qExpires = 0, nil
     if state.lastClock and clock < state.lastClock then
         for key, deadline in pairs(state.ready) do
@@ -237,7 +321,7 @@ local function damage(state, player, enemy, amount, strike)
         end
     end
     if strike then
-        Artifacts.onHit(player, strike, enemy)
+        Artifacts.acceptHit(strike)
         if state.items and state.items.onMelee and strike.kind == 'attack' and not strike.itemMelee then
             strike.itemMelee = true
             state.items.onMelee(player, nil, enemy)
@@ -266,7 +350,8 @@ local function blade(state, room, player, enemies, strike, width, reach, multipl
             local inRange = sweep and distance <= reach + enemy.Size and along >= distance * wCosine
                 or not sweep and along >= 0 and along <= reach + enemy.Size and across <= width + enemy.Size
                 and (not throughWalls or along <= reach)
-            if inRange and (throughWalls or room:CheckLine(origin, enemy.Position, 3, 0, false, false)) then
+            if inRange and (sweep and withinRoom(room, origin, enemy.Position)
+                or not sweep and (throughWalls or room:CheckLine(origin, enemy.Position, 3, 0, false, false))) then
                 candidates[#candidates + 1] = {entity = enemy, along = along, distance = sweep and distance or along,
                     seed = enemy.InitSeed}
             end
@@ -432,6 +517,7 @@ local function resolve(state, room, player, enemies, strike, clock)
         state.secondBlade = not state.secondBlade
         local reach = attackReach(player, items)
         blade(state, room, player, enemies, strike, 14, reach, state.secondBlade and 1 or 1.25)
+        Artifacts.fire(player, strike, start, reach, clock)
         effect(state, clock, strike.clip, start, start + facing * reach)
     elseif key == 'q' then
         local reach, contacts = footprint.reach, {}
@@ -440,14 +526,17 @@ local function resolve(state, room, player, enemies, strike, clock)
         end
         qObjects(room, player, enemies, strike, 1.4, contacts)
         breakProps(room, start, facing, footprint.width, reach)
+        Artifacts.fire(player, strike, start, reach, clock)
         effect(state, clock, key, start, start + facing * reach, nil, nil, contacts)
     elseif key == 'q3' then
         state.qStacks, state.qExpires = 0, nil
-        local reach, contacts = footprint.reach, {}
-        blade(state, room, player, enemies, strike, footprint.width, reach, 1.6, false, nil, true, contacts)
+        local reach, contacts, targets = footprint.reach, {}, {}
+        blade(state, room, player, enemies, strike, footprint.width, reach, 1.6, false, targets, true, contacts)
+        knockup(state, targets, clock)
         qObjects(room, player, enemies, strike, 1.6, contacts)
         breakProps(room, start, facing, footprint.width, reach)
-        teleport(player, safeDestination(room, player, start, start + facing * math.min(q3Dash, reach)))
+        Artifacts.fire(player, strike, start, reach, clock)
+        teleport(player, q3Destination(room, player, start, start + facing * math.min(q3Dash, reach)))
         state.q3InvulnerableUntil = clock + 7
         effect(state, clock, key, start, start + facing * reach, nil, player.Position, contacts)
     elseif key == 'w' then
@@ -468,6 +557,7 @@ local function resolve(state, room, player, enemies, strike, clock)
         local destination = landing(room, player, start, start + facing * math.min(footprint.reach, hit and far + 23 or footprint.reach))
         teleport(player, destination)
         pullFoes(room, targets, destination - facing * 10)
+        knockup(state, targets, clock)
         for index = 1, #contacts do
             local enemy = targets[index]
             if enemy:Exists() then contacts[index] = Vector(enemy.Position.X, enemy.Position.Y) end
@@ -479,6 +569,7 @@ end
 function Combat.update(state, room, player, enemies, clock)
     if state.lastClock and clock < state.lastClock then Combat.resetRoom(state, clock, true) end
     state.lastClock = clock
+    for _, air in pairs(state.airborne) do activeAir(state, air.entity, clock) end
     if state.qExpires and clock >= state.qExpires then state.qStacks, state.qExpires = 0, nil end
     if state.returning then advanceReturn(state, room, player, clock) end
     local strike = state.pending

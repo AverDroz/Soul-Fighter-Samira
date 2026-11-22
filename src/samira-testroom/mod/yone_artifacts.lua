@@ -1,6 +1,8 @@
--- Adapt tear-specific collectibles to Yone's direct blade impacts. The caller
--- shares one context across all targets and consumes it only after acceptance.
+-- Blade damage stays immediate. A short native volley carries the effects
+-- which Isaac applies to tears, including luck rolls and third-party flags.
 local Artifacts = {}
+local rainbowMotion = {'TEAR_WIGGLE', 'TEAR_PULSE', 'TEAR_SPIRAL', 'TEAR_SQUARE', 'TEAR_FLAT'}
+local volleyBudget, volleyLimit = .28, 6
 
 local function owns(player, name)
     local id = CollectibleType[name]
@@ -29,23 +31,111 @@ function Artifacts.multiplier(player, hit)
     return 1 + math.min(.75, bonus)
 end
 
-local function roll(player, name, chance)
-    local hasItem, id = owns(player, name)
-    return hasItem and player:GetCollectibleRNG(id):RandomFloat() < chance
+function Artifacts.acceptHit(hit)
+    if eligible(hit) then hit.artifactHit = true end
 end
 
-function Artifacts.onHit(player, hit, enemy)
-    if not eligible(hit) then return end
-    hit.artifactHit = true
-    local source = EntityRef(player)
-    local dot = math.max(0, player.Damage or 0) * .3
-    if roll(player, 'COLLECTIBLE_COMMON_COLD', .15) then enemy:AddPoison(source, 43, dot) end
-    if roll(player, 'COLLECTIBLE_FIRE_MIND', .15) then enemy:AddBurn(source, 43, dot) end
-    if roll(player, 'COLLECTIBLE_SPIDER_BITE', .15) then
-        enemy:AddSlowing(source, 45, .7, Color(1, 1, 1, 1))
+local function shotAngles(player)
+    if not player.GetMultiShotParams or not WeaponType then return {0} end
+    local params = player:GetMultiShotParams(WeaponType.WEAPON_TEARS)
+    if not params then return {0} end
+    local count = math.max(1, math.min(volleyLimit, params:GetNumTears()))
+    local step = math.max(5, math.min(18, params:GetSpreadAngle(WeaponType.WEAPON_TEARS)))
+    local angles = {}
+    for shot = 1, count do
+        local angle = (shot - (count + 1) / 2) * step
+        if params:IsCrossEyed() then angle = angle + (shot % 2 == 1 and -30 or 30) end
+        angles[#angles + 1] = angle
     end
-    if not enemy:IsBoss() and roll(player, 'COLLECTIBLE_MOMS_CONTACTS', .10) then
-        enemy:AddFreeze(source, 30)
+    if params:IsShootingBackwards() then angles[#angles + 1] = 180 end
+    if params:IsShootingSideways() then
+        angles[#angles + 1], angles[#angles + 2] = -90, 90
+    end
+    local randomShots = math.min(params:GetNumRandomDirTears(), volleyLimit - #angles)
+    if randomShots > 0 then
+        local rng = player:GetCollectibleRNG(CollectibleType.COLLECTIBLE_EYE_SORE)
+        for _ = 1, randomShots do angles[#angles + 1] = rng:RandomInt(360) end
+    end
+    return angles
+end
+
+local function hasRainbow(player)
+    return TrinketType and TrinketType.TRINKET_RAINBOW_WORM and player.GetTrinketMultiplier
+        and player:GetTrinketMultiplier(TrinketType.TRINKET_RAINBOW_WORM) > 0
+end
+
+local function addRainbowMotion(player, tear, clock)
+    for _, name in ipairs(rainbowMotion) do
+        if tear:HasTearFlags(TearFlags[name]) then return end
+    end
+    if tear:HasTearFlags(TearFlags.TEAR_BIG_SPIRAL) then return end
+    local index = (math.floor(clock / 90) + player.InitSeed) % #rainbowMotion + 1
+    tear:AddTearFlags(TearFlags[rainbowMotion[index]])
+end
+
+local function modifiedTear(player, tear, damageScale)
+    return tear.TearFlags ~= TearFlags.TEAR_NORMAL
+        or tear.Variant ~= TearVariant.BLUE and tear.Variant ~= TearVariant.BLOOD
+        or math.abs(tear.CollisionDamage - player.Damage * damageScale) > .01
+end
+
+local function fireLaser(player, origin, facing, reach)
+    if not player.GetWeapon or not WeaponType then return false end
+    local weapon = player:GetWeapon(1)
+    local kind = weapon and weapon:GetWeaponType()
+    local laser
+    if kind == WeaponType.WEAPON_BRIMSTONE then
+        laser = player:FireBrimstone(facing, player, .18)
+    elseif kind == WeaponType.WEAPON_LASER then
+        laser = player:FireTechLaser(origin, LaserOffset.LASER_TECH1_OFFSET, facing, true, true, player, .28)
+    elseif kind == WeaponType.WEAPON_TECH_X then
+        laser = player:FireTechXLaser(origin, facing * 10, 17, player, .20)
+        if laser then laser:GetData().YoneTearRange = {origin = origin, reach = reach} end
+        return laser ~= nil
+    end
+    if not laser then return false end
+    laser.DisableFollowParent = true
+    laser.Position = origin
+    laser:SetMaxDistance(reach)
+    laser.Timeout = math.min(laser.Timeout, 6)
+    return true
+end
+
+function Artifacts.fire(player, strike, origin, reach, clock)
+    if not player.FireTear or not TearFlags or not TearVariant or reach <= 0 then return end
+    if fireLaser(player, origin, strike.facing, reach) then return end
+    local rainbow = hasRainbow(player)
+    local angles = shotAngles(player)
+    local count = math.min(volleyLimit, #angles)
+    local multiplier = (count > 1 and .20 or volleyBudget) / count
+    local speed = 9 * math.max(.55, math.min(2.2, player.ShotSpeed))
+    for index = 1, count do
+        local velocity = strike.facing:Rotated(angles[index]) * speed
+        local tear = player:FireTear(origin, velocity, true, false, false, player, multiplier)
+        if tear and tear:Exists() then
+            if rainbow then addRainbowMotion(player, tear, clock) end
+            if rainbow or #angles > 1 or modifiedTear(player, tear, multiplier) then
+                tear:GetData().YoneTearRange = {origin = origin, reach = reach}
+            else
+                tear:Remove()
+            end
+        end
+    end
+end
+
+local function boundProjectile(entity)
+    local range = entity:GetData().YoneTearRange
+    if range and entity.Position:Distance(range.origin) > range.reach then entity:Die() end
+end
+
+function Artifacts.init(mod)
+    if ModCallbacks.MC_POST_TEAR_UPDATE then
+        mod:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, function(_, tear)
+            if not tear.StickTarget then boundProjectile(tear) end
+        end)
+    end
+    if ModCallbacks.MC_POST_LASER_UPDATE then
+        mod:AddCallback(ModCallbacks.MC_POST_LASER_UPDATE, function(_, laser) boundProjectile(laser) end)
     end
 end
 

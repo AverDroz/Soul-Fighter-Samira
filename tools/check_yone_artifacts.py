@@ -1,4 +1,5 @@
-"""Test Yone's bounded native collectible adaptations without a running game."""
+"""Check native Yone tear handoff, retained effects and its damage budget."""
+
 from pathlib import Path
 from lupa.lua54 import LuaRuntime
 
@@ -8,72 +9,149 @@ MODULE = ROOT / 'src/samira-testroom/mod/yone_artifacts.lua'
 
 def main():
     lua = LuaRuntime()
-    lua.execute(r'''
+    lua.globals().source = MODULE.read_text(encoding='utf-8')
+    lua.execute(r"""
+local a = assert(load(source))()
 CollectibleType = {COLLECTIBLE_20_20=1, COLLECTIBLE_INNER_EYE=2, COLLECTIBLE_MUTANT_SPIDER=3,
- COLLECTIBLE_MOMS_KNIFE=4, COLLECTIBLE_COMMON_COLD=5, COLLECTIBLE_FIRE_MIND=6,
- COLLECTIBLE_SPIDER_BITE=7, COLLECTIBLE_MOMS_CONTACTS=8}
-function EntityRef(p) return p end
-function Color(...) return {...} end
-player = {TearRange=260, Damage=4, owned={}, rolls={}}
-function player:HasCollectible(id) return self.owned[id] == true end
-function player:GetCollectibleRNG(id)
- return {RandomFloat = function() self.rolls[id]=(self.rolls[id] or 0)+1; return 0 end}
+    COLLECTIBLE_MOMS_KNIFE=4, COLLECTIBLE_EYE_SORE=5}
+TrinketType = {TRINKET_RAINBOW_WORM=64}
+TearVariant = {BLUE=0, BLOOD=1, TOOTH=2}
+TearFlags = {TEAR_NORMAL=0, TEAR_WIGGLE=1, TEAR_PULSE=2, TEAR_SPIRAL=4, TEAR_SQUARE=8, TEAR_FLAT=16,
+    TEAR_BIG_SPIRAL=32, TEAR_HOMING=64, TEAR_UNRECOGNIZED=1<<55}
+WeaponType = {WEAPON_TEARS=1, WEAPON_BRIMSTONE=2, WEAPON_LASER=3, WEAPON_TECH_X=9}
+LaserOffset = {LASER_TECH1_OFFSET=0}
+ModCallbacks = {MC_POST_TEAR_UPDATE=1, MC_POST_LASER_UPDATE=2}
+local methods = {}
+local meta = {__index=methods}
+function Vector(x,y) return setmetatable({X=x,Y=y}, meta) end
+function meta.__mul(v, n) return Vector(v.X*n,v.Y*n) end
+function methods:Rotated(d)
+    local c,s = math.cos(math.rad(d)), math.sin(math.rad(d))
+    return Vector(self.X*c-self.Y*s, self.X*s+self.Y*c)
 end
-enemy = {effects={}, boss=false}
-function enemy:IsBoss() return self.boss end
-function enemy:AddPoison(_,d,v) self.effects.poison={d,v} end
-function enemy:AddBurn(_,d,v) self.effects.burn={d,v} end
-function enemy:AddSlowing(_,d,v) self.effects.slow={d,v} end
-function enemy:AddFreeze(_,d) self.effects.freeze=d end
-''')
-    lua.globals().artifacts = lua.execute(MODULE.read_text(encoding='utf-8'))
-    lua.execute(r'''
-local a=artifacts
-local h={kind='attack', artifactHit=false}
-assert(a.range(player)==1 and a.multiplier(player,h)==1)
-player.TearRange=9999; assert(a.range(player)==1.35)
-player.TearRange=-100; assert(a.range(player)==.85)
-player.TearRange=nil; assert(a.range(player)==1)
-player.owned[4]=true; assert(a.range(player)>1 and a.range(player)<=1.35)
-player.owned[1]=true
-assert(math.abs(a.multiplier(player,h)-1.4)<.0001)
-player.owned[2]=true; player.owned[3]=true
-assert(math.abs(a.multiplier(player,h)-1.75)<.0001)
-for _, kind in ipairs({'w','r','e_return'}) do
- local x={kind=kind}; assert(a.multiplier(player,x)==1)
- a.onHit(player,x,enemy); assert(not x.artifactHit)
+function methods:Distance(other) return math.sqrt((self.X-other.X)^2+(self.Y-other.Y)^2) end
+local origin, facing = Vector(1, 1), Vector(1, 0)
+local p = {Damage=4, TearRange=260, ShotSpeed=1, owned={}, InitSeed=0,
+    flags=0, variant=0, fired={}, rainbow=0, shots=1, weapon=1}
+function p:HasCollectible(id) return self.owned[id] == true end
+function p:GetTrinketMultiplier(id) assert(id==64); return self.rainbow end
+function p:GetMultiShotParams(kind)
+    assert(kind == 1)
+    return {
+        GetNumTears=function() return self.shots end,
+        GetSpreadAngle=function() return 10 end,
+        IsCrossEyed=function() return false end,
+        IsShootingBackwards=function() return self.backwards end,
+        IsShootingSideways=function() return false end,
+        GetNumRandomDirTears=function() return 0 end,
+    }
 end
-for id=5,8 do player.owned[id]=true end
-a.onHit(player,h,enemy)
-assert(h.artifactHit and a.multiplier(player,h)==1)
-assert(enemy.effects.poison and enemy.effects.burn and enemy.effects.slow and enemy.effects.freeze)
-assert(enemy.effects.poison[1] <= 60 and enemy.effects.poison[2] <= player.Damage)
-assert(enemy.effects.burn[1] <= 60 and enemy.effects.burn[2] <= player.Damage)
-for id=5,8 do assert(player.rolls[id]==1) end
-a.onHit(player,h,enemy)
-for id=5,8 do assert(player.rolls[id]==1) end
-enemy.boss=true; enemy.effects={}
-local bossHit={kind='q'}; a.onHit(player,bossHit,enemy)
-assert(enemy.effects.freeze == nil and player.rolls[8] == 1)
-assert(enemy.effects.poison and enemy.effects.burn and enemy.effects.slow)
-for _, kind in ipairs({'attack','q','q3'}) do
- local x={kind=kind}; assert(a.multiplier(player,x)>1); a.onHit(player,x,enemy); assert(x.artifactHit)
+function p:GetWeapon(slot)
+    assert(slot==1)
+    return {GetWeaponType=function() return self.weapon end}
 end
--- Rolls outside the proc chance must not apply effects; owning no items must
--- not consume any RNG, and a consumed multi-target action cannot proc again.
-enemy.boss=false; enemy.effects={}
-function player:GetCollectibleRNG(id)
- return {RandomFloat = function() self.rolls[id]=(self.rolls[id] or 0)+1; return .99 end}
+local function entity()
+    local e = {data={}}
+    function e:GetData() return self.data end
+    function e:Exists() return not self.removed end
+    function e:Remove() self.removed = true end
+    function e:Die() self.died = true end
+    return e
 end
-local failedRoll={kind='q'}; a.onHit(player,failedRoll,enemy)
-assert(failedRoll.artifactHit and next(enemy.effects)==nil)
-player.owned={}; player.rolls={}; enemy.effects={}
-local noItems={kind='q3'}; a.onHit(player,noItems,enemy)
-assert(noItems.artifactHit and next(player.rolls)==nil and next(enemy.effects)==nil)
-assert(a.multiplier(player,{kind='attack'})==1)
+function p:FireTear(pos, vel, canBeEye, ignoreTractor, canEndStreak, owner, multiplier)
+    assert(canBeEye and not ignoreTractor and not canEndStreak and owner==self)
+    local tore = entity()
+    tore.Position, tore.Velocity, tore.TearFlags, tore.Variant = pos,vel,self.flags,self.variant
+    tore.CollisionDamage = self.Damage * multiplier
+    function tore:HasTearFlags(flag) return self.TearFlags & flag == flag end
+    function tore:AddTearFlags(flag) self.TearFlags = self.TearFlags | flag end
+    self.fired[#self.fired+1] = tore
+    return tore
+end
+function p:FireBrimstone(heading, owner, multiplier)
+    assert(heading==facing and owner==self and multiplier==.18)
+    local laser = entity()
+    laser.Timeout = 19
+    function laser:SetMaxDistance(n) self.distance = n end
+    self.fired[#self.fired+1] = laser
+    return laser
+end
+function p:FireTechLaser(pos, offset, heading, left, oneHit, owner, multiplier)
+    assert(pos == origin and offset == 0 and left and oneHit and multiplier == .28)
+    return self:FireBrimstone(heading, owner, .18)
+end
+function p:FireTechXLaser(pos, vel, radius, owner, multiplier)
+    assert(pos==origin and vel.X==10 and radius==17 and owner==self and multiplier==.20)
+    return self:FireBrimstone(facing, owner, .18)
+end
 
-''')
-    print('PASS Yone collectible range, multi-shot, single-use statuses and boss freeze')
+local callbacks={}
+a.init({AddCallback=function(_, which, callback) callbacks[which]=callback end})
+local function fire(kind, clock, reach)
+    p.fired={}
+    a.fire(p, {kind=kind, facing=facing}, origin, reach or 70, clock)
+    return p.fired
+end
+local base = fire('attack', 0)
+assert(#base==1 and base[1].removed, 'ordinary blade left an extra tear')
+p.rainbow=2
+for _, kind in ipairs({'attack','q','q3'}) do
+    local early, late = fire(kind, 15)[1], fire(kind, 105)[1]
+    assert(early:Exists() and late:Exists() and early.TearFlags ~= late.TearFlags, 'missing Rainbow Worm rotation')
+    assert(early:GetData().YoneTearRange.reach==70)
+end
+p.flags=TearFlags.TEAR_BIG_SPIRAL | TearFlags.TEAR_HOMING
+local native = fire('q', 120, 124)[1]
+assert(native.TearFlags == p.flags, 'native worm motion or homing was overwritten')
+p.rainbow=0
+p.flags=TearFlags.TEAR_UNRECOGNIZED
+local flagged = fire('q', 0, 124)[1]
+assert(flagged:Exists() and flagged.TearFlags==p.flags, 'generic native effect was discarded')
+flagged.Position = Vector(125,1)
+callbacks[1](nil,flagged)
+assert(not flagged.died, 'shot was clipped inside strike reach')
+flagged.Position = Vector(126,1)
+flagged.StickTarget = {}
+callbacks[1](nil,flagged)
+assert(not flagged.died, 'bounded projectile cancelled a stuck native effect')
+flagged.StickTarget = nil
+callbacks[1](nil,flagged)
+assert(flagged.died, 'range cap did not end the extra shot')
+p.flags, p.variant=0, TearVariant.TOOTH
+assert(fire('q3',0)[1]:Exists(), 'tear variant effect was discarded')
+p.shots, p.variant, p.backwards=4,TearVariant.BLUE,true
+local volley, total = fire('attack',0), 0
+assert(#volley==5 and volley[1].Velocity.Y<0 and volley[4].Velocity.Y>0 and volley[5].Velocity.X<0)
+for _, tear in ipairs(volley) do
+    assert(tear:Exists())
+    total=total+tear.CollisionDamage
+end
+assert(math.abs(total / p.Damage - .20)<.00001, 'multi-shot blew past the aggregate damage budget')
+p.shots=20
+assert(#fire('q',0)==6, 'volley cap ignored')
+for _, kind in ipairs({WeaponType.WEAPON_BRIMSTONE, WeaponType.WEAPON_LASER}) do
+    p.weapon = kind
+    local laser = fire('q',0,124)
+    assert(#laser == 1 and laser[1].distance == 124 and laser[1].Timeout == 6
+        and laser[1].DisableFollowParent and laser[1].Position == origin)
+end
+p.weapon=WeaponType.WEAPON_TECH_X
+local ring = fire('q',0,124)[1]
+ring.Position = Vector(126,1)
+callbacks[2](nil,ring)
+assert(ring.died)
+
+local hit = {kind='q'}
+assert(a.range(p)==1 and a.multiplier(p,hit)==1)
+p.TearRange=9999; assert(a.range(p)==1.35)
+p.TearRange=-100; assert(a.range(p)==.85)
+p.TearRange=260; p.owned[4]=true; assert(a.range(p)>1 and a.range(p)<=1.35)
+p.owned[1]=true; assert(math.abs(a.multiplier(p,hit)-1.4)<.0001)
+p.owned[2]=true; p.owned[3]=true; assert(math.abs(a.multiplier(p,hit)-1.75)<.0001)
+a.acceptHit(hit); assert(a.multiplier(p,hit)==1)
+assert(a.multiplier(p,{kind='w'})==1)
+""")
+    print('PASS Yone native tear flags, Rainbow Worm, multishot budget, beams and reach')
 
 
 if __name__ == '__main__':

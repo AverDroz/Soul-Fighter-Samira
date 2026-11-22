@@ -286,6 +286,7 @@ local function tear(npc, ctx, amount)
 end
 local function enemy(seed, x, y)
     local result = entity(seed, EntityType.ENEMY, x, y)
+    function result:ToNPC() return self end
     list[#list + 1] = result
     return result
 end
