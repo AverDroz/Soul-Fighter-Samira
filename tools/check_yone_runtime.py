@@ -91,11 +91,68 @@ assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(attacker)) == false)
 assert(player.shieldCooldown == 15)
 assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(attacker)) == nil)
 
+-- Floor exits have their own player-exit callback, and new-room can fire
+-- before the new-level callback while the old cutscene is still rendering.
+local doorRoom = packet.room
+local playerAnimation, animationPlaying = 'Trapdoor', true
+function player:GetSprite()
+    return {
+        GetAnimation = function() return playerAnimation end,
+        IsPlaying = function(_, clip) return clip == playerAnimation and animationPlaying end,
+    }
+end
+event('PRE_ROOM_EXIT', player, true)
+event('POST_NIGHTMARE_SCENE_SHOW')
+assert(packet.active and packet.transition, 'floor exit did not publish the transition')
+kind = 0
+tick()
+assert(packet.active and packet.session == session, 'temporary player rebinding stopped the Yone session')
+event('POST_NEW_ROOM')
+kind = 130
+event('POST_NIGHTMARE_SCENE_RENDER')
+assert(packet.room == doorRoom and packet.occluded, 'published the floor room before level arrival')
+kind = 0
+event('POST_NEW_LEVEL')
+tick()
+assert(packet.active, 'new level callback raced player rebinding')
+kind = 130
+event('POST_NIGHTMARE_SCENE_RENDER')
+assert(packet.occluded, 'model painted over the last nightmare frame')
+animationPlaying = false
+tick()
+assert(packet.session == session and packet.room == doorRoom + 1 and not packet.occluded
+    and not packet.transition, 'Yone did not resume after the floor and finished trapdoor clip')
+assert(event('PRE_PLAYER_RENDER', player, Vector.Zero) == nil, 'old level ACK hid the native body')
+ack.room, ack.time = packet.room, now
+tick(); tick()
+assert(event('PRE_PLAYER_RENDER', player, Vector.Zero) == false, 'new level never acquired the model lease')
+playerAnimation = 'Walk'
+tick('KEY_W')
+assert(packet.clip == 'idle', 'W cooldown was lost during floor rebinding')
+tick('KEY_Q')
+assert(packet.clip == 'q', 'combat input did not recover after the floor')
+
+-- The level callback is sufficient even if room entry did not reach this
+-- update path and Isaac briefly reports that the run is unavailable.
+local firstFloorRoom = packet.room
+local inGame = Isaac.IsInGame
+renderOnly('KEY_R')
+event('PRE_ROOM_EXIT', player, true)
+Isaac.IsInGame = function() return false end
+tick()
+event('POST_NEW_LEVEL')
+tick()
+Isaac.IsInGame = inGame
+tick()
+assert(packet.active and packet.session == session and packet.room == firstFloorRoom + 1
+    and not packet.occluded, 'direct level arrival did not rebind the same run')
+assert(packet.clip == 'idle', 'a queued ability leaked to the next floor')
+
 kind = 0
 tick()
 assert(packet.active == false, 'fallback scene was not closed on character change')
 """)
-    print("PASS Yone registration, input, emotes, independent leases and room lifecycle")
+    print("PASS Yone registration, input, emotes, independent leases and room/floor lifecycle")
 
 
 if __name__ == "__main__":

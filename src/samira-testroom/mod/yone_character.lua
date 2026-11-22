@@ -6,6 +6,7 @@ local json = require('json')
 local playerType
 local badge
 local fps, leaseMs = 30, 500
+local floorRebindMs = 650
 local numberKeys = {Keyboard.KEY_1, Keyboard.KEY_2, Keyboard.KEY_3, Keyboard.KEY_4, Keyboard.KEY_5, Keyboard.KEY_6}
 local controls = {
     {'q', Keyboard.KEY_Q}, {'w', Keyboard.KEY_W}, {'e', Keyboard.KEY_E}, {'r', Keyboard.KEY_R},
@@ -39,17 +40,19 @@ local function packet(payload)
     Isaac.DebugString('[SAMIRA_EXTERNAL] ' .. json.encode(payload))
 end
 
-local function obscured(game, state, player, now)
-    local name = player:GetSprite():GetAnimation()
+local function obscured(game, state, player)
+    local sprite = player:GetSprite()
+    local name = sprite:GetAnimation()
+    local travel = name:find('Trapdoor', 1, true) ~= nil or name:find('Teleport', 1, true) ~= nil
+        or name == 'LightTravel' or name == 'HoleIn' or name == 'FallIn'
     return game:IsPaused() or ImGui.IsVisible() or state.leaving
         or RoomTransition.GetTransitionMode() ~= 0 or RoomTransition.IsRenderingBossIntro()
-        or now < (state.coverUntil or 0) or player:IsDead()
-        or name:find('Trapdoor', 1, true) ~= nil or name:find('Teleport', 1, true) ~= nil
-        or name == 'LightTravel' or name == 'HoleIn' or name == 'FallIn'
+        or state.coverFrame == game:GetFrameCount() or player:IsDead()
+        or travel and sprite:IsPlaying(name)
 end
 
 local function canControl(game, state, player)
-    return player.ControlsEnabled ~= false and not obscured(game, state, player, Isaac.GetTime())
+    return player.ControlsEnabled ~= false and not obscured(game, state, player)
 end
 
 local function playMasterySound()
@@ -171,7 +174,7 @@ end
 
 local function emit(game, state, player, force)
     local now = Isaac.GetTime()
-    local hidden = obscured(game, state, player, now)
+    local hidden = obscured(game, state, player)
     if not force and state.emitAt and now - state.emitAt < 30 and hidden == state.wasHidden then return end
     state.emitAt, state.wasHidden = now, hidden
     state.seq = state.seq + 1
@@ -281,7 +284,11 @@ function Yone.init(mod, game)
 
     mod:AddCallback(ModCallbacks.MC_POST_UPDATE, function()
         local player = driver()
-        if not player then stop(); return end
+        if not player then
+            if state and (state.floorPending or Isaac.GetTime() < (state.floorRebindUntil or 0)) then return end
+            stop()
+            return
+        end
         if not state then start() end
         local room, clock = game:GetRoom(), game:GetFrameCount()
         local allowed = canControl(game, state, player)
@@ -294,6 +301,7 @@ function Yone.init(mod, game)
             end
             return
         end
+        state.floorRebindUntil = nil
 
         local enemies = Isaac.GetRoomEntities()
         Combat.update(state.combat, room, player, enemies, clock)
@@ -352,7 +360,7 @@ function Yone.init(mod, game)
         if not current or current.Index ~= player.Index then return end
         local now = Isaac.GetTime()
         state.capture, state.captureAt = Isaac.WorldToRenderPosition(player.Position) + offset, now
-        if obscured(game, state, player, now) then state.ackAt = nil; return end
+        if obscured(game, state, player) then state.ackAt = nil; return end
         readAck(state, now)
         if leased(state, 'modelReady', now) then return false end
     end)
@@ -388,27 +396,55 @@ function Yone.init(mod, game)
         end
     end)
 
-    mod:AddCallback(ModCallbacks.MC_PRE_CHANGE_ROOM, function()
-        local player = state and driver()
-        if not player then return end
+    local function beginDeparture(player)
+        if state.leaving then return end
         state.leaving, state.ackAt = true, nil
         stopMoving(state)
         Combat.resetRoom(state.combat, game:GetFrameCount())
         Emotes.cancel(state.emotes, true)
         emit(game, state, player, true)
+    end
+
+    mod:AddCallback(ModCallbacks.MC_PRE_CHANGE_ROOM, function()
+        local player = state and driver()
+        if player then beginDeparture(player) end
     end)
-    mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function()
-        if not state then return end
+
+    mod:AddCallback(ModCallbacks.MC_PRE_ROOM_EXIT, function(_, player, newLevel)
+        if state and newLevel and Yone.is(player) then
+            state.floorPending = true
+            beginDeparture(player)
+        end
+    end)
+
+    local function enterRoom()
         state.room = state.room + 1
         state.leaving, state.ackAt, state.captureAt, state.emitAt, state.pollAt = nil, nil, nil, nil, nil
+        state.coverFrame, state.hurtUntil = nil, nil
+        state.commands = {}
         stopMoving(state)
         Combat.resetRoom(state.combat, game:GetFrameCount())
         Emotes.cancel(state.emotes, true)
+    end
+
+    mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function()
+        -- On a floor change this arrives before POST_NEW_LEVEL. Keep the old
+        -- scene hidden while the new player and room are being bound.
+        if state and not state.floorPending then enterRoom() end
+    end)
+
+    mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, function()
+        if not state then return end
+        if state.floorPending or state.leaving then enterRoom() end
+        state.floorPending, state.coverFrame = nil, nil
+        state.floorRebindUntil = Isaac.GetTime() + floorRebindMs
     end)
     local function hideDuringCutscene()
         local player = state and driver()
         if not player then return end
-        state.coverUntil, state.ackAt = Isaac.GetTime() + 650, nil
+        -- The game clock is held during the nightmare. A final render can
+        -- arrive after level entry, but must not hide the first gameplay tick.
+        state.coverFrame, state.ackAt = game:GetFrameCount(), nil
         emit(game, state, player)
     end
     mod:AddCallback(ModCallbacks.MC_POST_NIGHTMARE_SCENE_SHOW, hideDuringCutscene)
