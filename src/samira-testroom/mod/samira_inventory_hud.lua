@@ -85,7 +85,7 @@ local function draw(message, x, y, scale, color)
     font:DrawStringScaledUTF8(message, x, y, TEXT_SCALE * scale, TEXT_SCALE * scale, color, 0, false)
 end
 
-local function tooltip(item, bounds, dropHintVisible, full)
+local function tooltip(item, bounds, dropHintVisible, full, avoid)
     local layout = tooltipLayouts[item]
     if not layout then
         local width = (WIDTH - 12) / TEXT_SCALE
@@ -100,6 +100,10 @@ local function tooltip(item, bounds, dropHintVisible, full)
     end
     local baseHeight = full and layout.height or layout.compactHeight
     local bottom = bounds.y - (dropHintVisible and 21 or 5) * bounds.scale
+    if avoid and bounds.x + bounds.width > avoid.x and bounds.x < avoid.x + avoid.width
+        and bottom > avoid.y then
+        bottom = avoid.y - 3
+    end
     local scale = math.min(bounds.scale, math.max(0, bottom - 2) / baseHeight)
     if scale <= 0 then return end
     local height = baseHeight * scale
@@ -136,7 +140,7 @@ function InventoryHUD.statsSummary(player)
         .. '\n\n' .. table.concat(rows, '\n\n')
 end
 
-function InventoryHUD.render(player, requestedScale)
+function InventoryHUD.render(player, requestedScale, avoid)
     setupColors()
     local bounds = InventoryHUD.bounds(player, requestedScale)
     local scale, size = bounds.scale, bounds.height
@@ -159,9 +163,9 @@ function InventoryHUD.render(player, requestedScale)
     if not font then return end
     local dropHintVisible = slots[selected] ~= nil
     if hover and slots[hover] then
-        tooltip(slots[hover], bounds, dropHintVisible, true)
+        tooltip(slots[hover], bounds, dropHintVisible, true, avoid)
     elseif dropHintVisible then
-        tooltip(slots[selected], bounds, true, false)
+        tooltip(slots[selected], bounds, true, false, avoid)
     end
     if dropHintVisible then
         local hint = 'X · выбросить выбранное'

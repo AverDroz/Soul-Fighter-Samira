@@ -481,7 +481,7 @@ local function charge(entity)
         if targetStatus.position == entity.Position then return targetStatus.fraction end
     end
 end
-local second = enemy(302, 60, 0)
+local second = enemy(302, 78, 0)
 local first = enemy(301, 25, 0)
 step(30)
 close(charge(first), .5, 'nearby target displays a partially charged strike')
@@ -495,13 +495,13 @@ strike('q', 6)
 close(second.hits[1], p.Damage * 1.4, 'a charged second target cannot proc Heartsteel')
 assert(sounds == 1 and charge(second) == 1)
 first.Position = Vector(25, 90)
-local third = enemy(303, 70, 0)
+local third = enemy(303, 80, 0)
 step(60)
 strike('q', 6)
 close(second.hits[2], p.Damage * 1.4 * 1.5, 'Yone Q procs Heartsteel on its first target')
 close(third.hits[1], p.Damage * 1.4, 'Yone Q does not proc Heartsteel twice')
 assert(sounds == 2)
-second.Position = Vector(60, 90)
+second.Position = Vector(78, 90)
 step(30)
 fight.qStacks = 2
 strike('q', 7, 'q3')
@@ -737,20 +737,24 @@ appliedAt=nil; Items.applyCooldownCheckpoint(1542); assert(appliedAt==nil, 'chec
 -- Yone-specific profile applies only to Yone; Samira assertions above ran
 -- against the same registered callbacks and must remain untouched.
 start({3031}, 6, 6); p.yone=true; random=.49
+assert(Items.combatStats(p) == .50, 'crit display did not use the doubled chance')
 for _,kind in ipairs({'attack','q','q3'}) do
     assert(Items.newAttack(p,kind,clock).crit, 'Yone must double crit chance for '..kind)
 end
 random=.51
 assert(not Items.newAttack(p,'attack',clock).crit, 'Yone crit chance exceeded the doubled rate')
 p.yone=false; random=.49
+assert(Items.combatStats(p) == .25, 'Samira stat query inherited Yone passive')
 assert(not Items.newAttack(p,'attack',clock).crit, 'Samira inherited Yone passive')
 start({3031,6675},6,6); p.yone=true; random=.99
 local before=rolls
+assert(Items.combatStats(p) == 1, 'crit display exceeded 100%')
 assert(Items.newAttack(p,'q',clock).crit and rolls==before, 'Yone crit did not cap at 100%')
 start({3031,3032},6,6); p.yone=true; random=0
 local dummy=enemy(890)
 for i=1,5 do hit(dummy,'attack') end
 random=.51
+assert(Items.combatStats(p) == .52, 'crit display ignored the live stacks from Yun Tal')
 assert(Items.newAttack(p,'q',clock).crit, 'Yun Tal crit bonus was not doubled')
 before=rolls
 assert(not Items.newAttack(p,'r',clock).crit and rolls==before, 'Yun Tal enabled a Yone R crit roll')

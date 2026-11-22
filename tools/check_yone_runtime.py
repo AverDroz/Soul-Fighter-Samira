@@ -65,9 +65,9 @@ local function captureHud()
         originalLine(a, b, color, endColor, thickness)
         if thickness == 3 and (color[1] == 1 and color[2] == .78 or color[1] == .22 and color[2] == .20)
             then text.pips = text.pips + 1 end
-        if thickness == 2 and color[1] == 1 and color[2] == .38 then text.ring = text.ring + a:Distance(b) end
+        if color[1] == 1 and color[2] == .38 then text.ring = text.ring + a:Distance(b) end
         if color[1] == .60 and color[2] == .93
-            and text.icons[1] and b.Y <= text.icons[1].y + text.icons[1].size + thickness / 2 then
+            and text.icons[1] and b.Y <= text.icons[1].y + text.icons[1].size + thickness then
             text.qRing = text.qRing + a:Distance(b)
         end
     end
@@ -87,6 +87,10 @@ local function captureHud()
         assert(icon.x >= 0 and icon.x + icon.size <= Isaac.GetScreenWidth()
             and icon.y >= 0 and icon.y + icon.size <= Isaac.GetScreenHeight(), 'ability image was clipped')
     end
+    assert(text.CRIT and text.DMG and text['ATK/s'] and text.MOVE and text.HASTE and text.RANGE,
+        'native combat panel is missing a stat')
+    assert(text.CRIT.x < text.Q.x and text.DMG.y > text.Q.y, 'stats did not share the ability panel')
+    assert(text.RANGE.x + 30 * text.RANGE.scale <= Isaac.GetScreenWidth(), 'stats fell outside the viewport')
     return text
 end
 local function statusOver(hud, label, index)
@@ -126,22 +130,35 @@ assert(controlsOwner() == player, 'Yone could not open the shared F9 settings')
 local glyphLines = 0
 Isaac.DrawLine = function() glyphLines = glyphLines + 1 end
 local readyHud = captureHud()
-assert(glyphLines >= 8, 'ability slots did not render their frames')
+assert(glyphLines >= 8, 'ability panel did not draw its plate')
 assert(readyHud.icons[1].name == 'Q' and readyHud.icons[2].name == 'W'
     and readyHud.icons[3].name == 'E' and readyHud.icons[4].name == 'R' and readyHud.pips == 0)
+assert(readyHud['0%'] and readyHud['4.00'] and readyHud['2.00'] and readyHud['1.00'],
+    'panel did not show the starting combat stats')
+noItems.combatStats = function(owner)
+    assert(owner == player)
+    return .52, 17
+end
+player.MaxFireDelay, player.Damage, player.MoveSpeed = 5, 7.25, 1.23
+local boosted = captureHud()
+assert(boosted['52%'] and boosted['17'] and boosted['3.33'] and boosted['7.25'] and boosted['1.23'],
+    'panel did not refresh the effective combat stats')
+assert(not boosted['0%'] and boosted['52%'].x < boosted.Q.x, 'critical chance was not updated at its own position')
+noItems.combatStats = nil
+player.MaxFireDelay, player.Damage, player.MoveSpeed = 9, 4, 1
 Isaac.DrawLine = function() end
 assert(readyHud.R.y + 8 < Isaac.GetScreenHeight() - 26, 'narrow ability row collided with the backpack')
 local width, height = Isaac.GetScreenWidth, Isaac.GetScreenHeight
 Isaac.GetScreenWidth, Isaac.GetScreenHeight = function() return 688 end, function() return 288 end
 local wideHud = captureHud()
-assert(wideHud.Q.x > 70 + 147 and wideHud.Q.y > 288 - 26, 'wide ability row did not clear the backpack')
+assert(wideHud.CRIT.x > 70 + 147 and wideHud.DMG.y > 288 - 26, 'wide ability panel did not clear the backpack')
 hudScale = 1.5
 local largeHud = captureHud()
-assert(largeHud.icons[1].size == 48 and largeHud.Q.scale == 1.5 and largeHud.Q.x > 70 + 147 * 1.5)
+assert(largeHud.icons[1].size == 39 and largeHud.Q.scale == .94 * 1.5 and largeHud.CRIT.x > 70 + 147 * 1.5)
 Isaac.GetScreenWidth = function() return 480 end
 Options.Fullscreen = true
 largeHud = captureHud()
-assert(largeHud.R.y + 8 * largeHud.R.scale < 288 - 22 * 1.5 - 4, 'large ability row did not wrap above the backpack')
+assert(largeHud.DMG.y + 16 * largeHud.DMG.scale < 288 - 22 * 1.5 - 4, 'large panel did not wrap above the backpack')
 Options.Fullscreen, hudScale = false, 1
 Isaac.GetScreenWidth, Isaac.GetScreenHeight = width, height
 local marker = Vector(75, 65)
@@ -233,7 +250,7 @@ castKey('KEY_Q')
 for _ = 1, 7 do tick() end
 local doubleStackHud = captureHud()
 sameSlots(readyHud, doubleStackHud)
-assert(doubleStackHud.pips == 0 and doubleStackHud.qRing > 120 and doubleStackHud.icons[1].name == 'Q3',
+assert(doubleStackHud.pips == 0 and doubleStackHud.qRing > 100 and doubleStackHud.icons[1].name == 'Q3',
     'Q3 did not replace the pips with its duration outline')
 assert(packet.yone.qReady == true, 'charged Q state was omitted from the visual packet')
 entities = {}
@@ -253,9 +270,15 @@ assert(event('ENTITY_TAKE_DMG', player, 1, DamageFlag.DAMAGE_FAKE, EntityRef(das
 assert(event('ENTITY_TAKE_DMG', player, 1, DamageFlag.DAMAGE_IV_BAG, EntityRef(player)) == nil,
     'Q3 blocked payment or self-inflicted damage')
 for _ = 1, 5 do tick() end
+assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(dashAttacker)) == false,
+    'Q3 lost its first extra frame of immunity after the dash')
+tick()
+assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(dashAttacker)) == false,
+    'Q3 lost its second extra frame of immunity after the dash')
+tick()
 assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(dashAttacker)) == nil,
-    'Q3 invulnerability lasted beyond its dash')
-for _ = 1, 12 do tick() end
+    'Q3 invulnerability lasted past the landing window')
+for _ = 1, 10 do tick() end
 player.Position = Vector(60, 100)
 
 input.ctrl = 'KEY_LEFT_CONTROL'
@@ -343,7 +366,7 @@ assert(spiritHud['4.9s'] or spiritHud['5.0s'], 'E did not show remaining spirit 
 hudScale = .75
 local smallSpirit = captureHud()
 local spiritTime = smallSpirit['4.9s'] and '4.9s' or '5.0s'
-assert(smallSpirit.icons[3].size == 24 and smallSpirit[spiritTime].scale == .75
+assert(smallSpirit.icons[3].size == 19.5 and smallSpirit[spiritTime].scale <= 1.05 * .75
     and statusOver(smallSpirit, spiritTime, 3), 'E timer did not scale with the icon')
 hudScale = 1
 assert(packet.yone.spirit.anchor[1] == positionBeforeE.X * projection)

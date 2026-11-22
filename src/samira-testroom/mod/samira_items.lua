@@ -366,10 +366,26 @@ function Items.restoreCombatCooldowns()
     if run and driver and driver.restoreCooldowns then driver.restoreCooldowns(run.combatCooldowns, game:GetFrameCount()) end
 end
 
-function Items.cooldown(p, key, baseFrames)
-    local owned, stats = state(p)
+local function abilityHaste(owned, stats)
     local haste = stats.ability_haste or 0
     if owned[2517] then haste = haste + math.min(15, math.floor((stats.damage_flat or 0) / .4 + .00001)) end
+    return haste
+end
+
+local function criticalChance(owned, stats, yone)
+    local chance = (stats.crit_chance_pct or 0) / 100
+    if owned[3032] then chance = chance + math.min(25, math.floor(run.yunTalHits / 5)) / 100 end
+    return yone and math.min(1, chance * 2) or chance
+end
+
+function Items.combatStats(p)
+    local owned, stats = state(p)
+    return criticalChance(owned, stats, isYone(p)), abilityHaste(owned, stats)
+end
+
+function Items.cooldown(p, key, baseFrames)
+    local owned, stats = state(p)
+    local haste = abilityHaste(owned, stats)
     if key == 'r' then
         if owned[2512] then haste = haste + 30 end
         if owned[3073] then haste = haste + 30 end
@@ -408,11 +424,9 @@ function Items.newAttack(p, nativeKind, tick)
     clock = tick
     room.actionSequence = room.actionSequence + 1
     local kind = ({attack = 'aa', melee = 'aa', qmelee = 'q', q3 = 'q'})[nativeKind] or nativeKind
-    local chance = (stats.crit_chance_pct or 0) / 100
-    if owned[3032] then chance = chance + math.min(25, math.floor(run.yunTalHits / 5)) / 100 end
-    if isYone(p) then
-        chance = (kind == 'aa' or kind == 'q') and math.min(1, chance * 2) or 0
-    end
+    local yone = isYone(p)
+    local chance = criticalChance(owned, stats, yone)
+    if yone and kind ~= 'aa' and kind ~= 'q' then chance = 0 end
     local barrage = kind == 'aa' and owned[2512] and live('barrage') and (room.barrageShots or 0) > 0
     if barrage then
         room.barrageShots = room.barrageShots - 1

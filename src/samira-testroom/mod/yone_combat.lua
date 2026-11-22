@@ -11,7 +11,8 @@ local skills = {
     e_return = {windup = 0, duration = 13},
     r = {windup = 23, duration = 40, cooldown = 900},
 }
-local meleeRange, qRange, q3Range, ultRange, wRange = 54, 124, 212, 168, 112
+local meleeRange, qRange, q3Range, ultRange, wRange = 70, 124, 212, 168, 122
+local maxMeleeRange = 100
 local spiritDuration, markDamage, wCosine, qStackDuration = 150, .30, .35, 180
 local spiritDash, q3Dash, spiritReturnFrames = 84, 156, 8
 local effectFrames, effectLimit, markerLimit = 21, 12, 24
@@ -406,8 +407,17 @@ end
 
 local function attackReach(player, items)
     local reach = meleeRange * Artifacts.range(player)
-    if items and items.attackRange then reach = math.min(84, items.attackRange(player, reach)) end
+    if items and items.attackRange then reach = math.min(maxMeleeRange, items.attackRange(player, reach)) end
     return reach
+end
+
+function Combat.hudStats(state, player)
+    local crit, haste = 0, 0
+    if state.items and state.items.combatStats then crit, haste = state.items.combatStats(player) end
+    return {
+        crit = crit, haste = haste, damage = player.Damage, move = player.MoveSpeed,
+        attacks = 30 / attackDelay(player), range = attackReach(player, state.items),
+    }
 end
 
 local function resolve(state, room, player, enemies, strike, clock)
@@ -438,14 +448,14 @@ local function resolve(state, room, player, enemies, strike, clock)
         qObjects(room, player, enemies, strike, 1.6, contacts)
         breakProps(room, start, facing, footprint.width, reach)
         teleport(player, safeDestination(room, player, start, start + facing * math.min(q3Dash, reach)))
-        state.q3InvulnerableUntil = clock + 5
+        state.q3InvulnerableUntil = clock + 7
         effect(state, clock, key, start, start + facing * reach, nil, player.Position, contacts)
     elseif key == 'w' then
         local contacts = {}
         if blade(state, room, player, enemies, strike, 0, footprint.reach, 1.15, true, nil, false, contacts) then
             state.shieldUntil = clock + 60
         end
-        effect(state, clock, key, start, start + facing * wRange, footprint, nil, contacts)
+        effect(state, clock, key, start, start + facing * footprint.reach, footprint, nil, contacts)
     elseif key == 'e' then
         state.spirit = {anchor = start, face = facing, untilFrame = clock + spiritDuration, recastAt = clock + 8, marks = {}}
         teleport(player, safeDestination(room, player, start, start + facing * spiritDash))

@@ -3,6 +3,7 @@ local Combat = include('yone_combat')
 local Debug = include('yone_debug')
 local Emotes = include('yone_emotes')
 local Navigation = include('samira_navigation')
+local HUD = include('yone_hud')
 local json = require('json')
 local playerType
 local testMode = false
@@ -13,14 +14,6 @@ local fps, leaseMs = 30, 500
 local masteryCrestRise, masteryModelHeight = 26, 46
 local masteryAtlasRise, masteryNativeHeight = 22, 31
 local spiritWarningTicks = 2 * fps
-local abilities = {'q', 'w', 'e', 'r'}
-local abilityHudHeight, abilityHudGap = 38, 2
-local abilityReady = {.92, .92, 1, 1}
-local abilityCooling = {.69, .67, .76, 1}
-local abilityRecast = {.56, .83, 1, 1}
-local abilityHudPalette
-local abilityFont
-local abilityIcons
 local aimColors = {
     q = {.60, .93, 1}, w = {.99, .49, .60}, e = {.99, .39, .65}, r = {1, .53, .73},
 }
@@ -61,6 +54,8 @@ function Yone.player(game)
     local player = Isaac.GetPlayer(0)
     if Yone.is(player) then return player end
 end
+
+Yone.hudBounds = HUD.bounds
 
 local function pressed(key)
     return Input.IsButtonPressed(key, 0)
@@ -513,162 +508,6 @@ local function drawHeartsteel(room, items)
     end
 end
 
-local function drawAbilitySlot(x, y, width, scale)
-    if not Isaac.DrawLine or not KColor then return end
-    if not abilityHudPalette then
-        abilityHudPalette = {rim = KColor(.42, .34, .29, .95), panel = KColor(.075, .065, .09, .95)}
-    end
-    local middle = y + abilityHudHeight * scale / 2
-    Isaac.DrawLine(Vector(x, middle), Vector(x + width, middle),
-        abilityHudPalette.rim, abilityHudPalette.rim, abilityHudHeight * scale)
-    Isaac.DrawLine(Vector(x + scale, middle), Vector(x + width - scale, middle),
-        abilityHudPalette.panel, abilityHudPalette.panel, (abilityHudHeight - 2) * scale)
-end
-
--- Original geometric skill glyphs keep each slot identifiable even at small scale.
-local function drawAbilityIcon(key, x, y, tint, scale)
-    if not Isaac.DrawLine or not KColor then return end
-    local color = KColor(table.unpack(tint))
-    local function stroke(ax, ay, bx, by, width)
-        Isaac.DrawLine(Vector(x + ax * scale, y + ay * scale), Vector(x + bx * scale, y + by * scale),
-            color, color, (width or 1.5) * scale)
-    end
-    if key == 'q' then
-        stroke(-7, 3, 5, -3, 2); stroke(2, -5, 6, -3); stroke(6, -3, 4, 1)
-        stroke(-7, -1, -3, -3)
-    elseif key == 'w' then
-        stroke(-6, -3, -4, 2, 2); stroke(-4, 2, 0, 5, 2); stroke(0, 5, 5, 2, 2)
-        stroke(5, 2, 7, -3, 2); stroke(-3, -1, 0, 2); stroke(0, 2, 3, -1)
-    elseif key == 'e' then
-        stroke(-7, 2, -3, -3, 2); stroke(-3, -3, 1, 2, 2); stroke(1, 2, 5, -3, 2)
-        stroke(-6, 5, 6, 5); stroke(4, 3, 6, 5); stroke(6, 5, 4, 7)
-    else
-        stroke(-6, -4, 5, 4, 2); stroke(-6, 4, 5, -4, 2)
-        stroke(5, -4, 7, -1); stroke(5, 4, 7, 1)
-    end
-end
-
-local function drawAbilityOutline(x, y, size, scale, remaining, color)
-    if not Isaac.DrawLine or not KColor then return end
-    local x1, y1 = x - scale, y - scale
-    local x2, y2 = x + size + scale, y + size + scale
-    local corners = {Vector(x1, y1), Vector(x2, y1), Vector(x2, y2), Vector(x1, y2), Vector(x1, y1)}
-    for edge = 1, 4 do
-        local portion = math.max(0, math.min(1, remaining * 4 - edge + 1))
-        if portion > 0 then
-            local a, b = corners[edge], corners[edge + 1]
-            Isaac.DrawLine(a, a + (b - a) * portion, color, color, 2 * scale)
-        end
-    end
-end
-
-local function drawAbilityText(text, x, y, scale, ...)
-    if scale == 1 then
-        Isaac.RenderText(text, x, y, ...)
-    else
-        Isaac.RenderScaledText(text, x, y, scale, scale, ...)
-    end
-end
-
-local function drawAbilityHud(combat, clock, backpack, aiming, picture, requestedScale)
-    local width, height = Isaac.GetScreenWidth(), Isaac.GetScreenHeight()
-    if abilityFont == nil and Font then
-        local candidate, loaded = Font('font/samira_items_ru.fnt')
-        abilityFont = loaded and candidate or false
-    end
-    if abilityIcons == nil then
-        local icon, loaded = Sprite('gfx/yone/ability_icons.anm2', true)
-        abilityIcons = loaded and icon or false
-    end
-    local slotWidth, iconSize = 42, 32
-    local baseRowWidth = #abilities * (slotWidth + abilityHudGap) - abilityHudGap
-    local scale = math.min(requestedScale, (width - 4) / (baseRowWidth + 4), (height - 8) / (abilityHudHeight + 4))
-    local right = backpack and backpack.x + backpack.width + 8
-    local wrapped = right and right + baseRowWidth * scale + 6 > width
-    local hintHeight
-    if wrapped then
-        hintHeight = 17 * (backpack.scale or 1)
-        scale = math.min(scale, (backpack.y - hintHeight) / (abilityHudHeight + 4))
-    end
-    local keyScale, rowHeight = .72 * scale, abilityHudHeight * scale
-    local step, rowWidth = (slotWidth + abilityHudGap) * scale, baseRowWidth * scale
-    local iconInset = math.floor((slotWidth - iconSize) / 2) * scale
-    iconSize = iconSize * scale
-    local x, y = 6, height - rowHeight - 4
-    if wrapped then
-        y = backpack.y - rowHeight - hintHeight - 2 * scale
-    elseif backpack then
-        x, y = right, backpack.y
-    end
-    local border = 2 * scale
-    x = math.max(border, math.min(x, width - rowWidth - border))
-    y = math.max(border, math.min(y, height - rowHeight - 4))
-
-    if Isaac.DrawLine and KColor then
-        local frame = KColor(.025, .025, .045, .94)
-        Isaac.DrawLine(Vector(x - border, y + rowHeight / 2), Vector(x + rowWidth + border, y + rowHeight / 2),
-            frame, frame, rowHeight + border * 2)
-    end
-    for index, key in ipairs(abilities) do
-        local left = x + (index - 1) * step
-        local remaining = (combat.ready[key] or 0) - clock
-        local spirit = key == 'e' and combat.spirit
-        local q3 = key == 'q' and combat.qStacks >= 2
-        local tint = remaining > 0 and abilityCooling or abilityReady
-        if spirit and clock >= spirit.recastAt then tint = abilityRecast end
-        if aiming == key then
-            local r, g, b = table.unpack(aimColors[key])
-            tint = {r, g, b, 1}
-        end
-        drawAbilitySlot(left, y, slotWidth * scale, scale)
-        local iconX, iconY = left + iconInset, y + 3 * scale
-        if abilityIcons then
-            local iconName = q3 and 'Q3' or spirit and 'E2' or key:upper()
-            abilityIcons:SetFrame(iconName, 0)
-            abilityIcons.Scale = Vector(iconSize / 64, iconSize / 64)
-            abilityIcons.Color = Color(1, 1, 1, 1)
-            abilityIcons:Render(Vector(iconX, iconY))
-            if remaining > 0 and not spirit and Isaac.DrawLine and KColor then
-                local shade = KColor(.015, .015, .03, .62)
-                local middle = iconY + iconSize / 2
-                Isaac.DrawLine(Vector(iconX, middle), Vector(iconX + iconSize, middle), shade, shade, iconSize)
-            end
-        else
-            drawAbilityIcon(key, left + slotWidth * scale / 2, y + 12 * scale, tint, scale)
-        end
-        local label = key:upper()
-        if abilityFont then
-            local shadow = KColor(.025, .025, .04, 1)
-            abilityFont:DrawStringScaledUTF8(label, left + 4 * scale, y + 28 * scale, keyScale, keyScale, shadow, 0, false)
-            abilityFont:DrawStringScaledUTF8(label, left + 3 * scale, y + 27 * scale, keyScale, keyScale,
-                KColor(table.unpack(tint)), 0, false)
-        else
-            drawAbilityText(label, left + 3 * scale, y + 26 * scale, scale, table.unpack(tint))
-        end
-        if q3 and KColor then
-            drawAbilityOutline(iconX, iconY, iconSize, scale, picture.qRemaining or 1, KColor(.60, .93, 1, 1))
-        end
-        local status
-        if spirit then
-            local ticks = math.max(0, spirit.untilFrame - clock)
-            if KColor then
-                drawAbilityOutline(iconX, iconY, iconSize, scale, picture.spirit.remaining, KColor(1, .38, .55, 1))
-            end
-            status = ticks == 0 and 'HOLD' or ('%.1fs'):format(ticks / fps)
-        elseif remaining > 0 then
-            status = ('%ds'):format(math.ceil(remaining / fps))
-        end
-        if status then
-            local center = left + math.floor((slotWidth - Isaac.GetTextWidth(status)) / 2) * scale
-            drawAbilityText(status, center + scale, y + 14 * scale, scale, .025, .025, .04, 1)
-            drawAbilityText(status, center, y + 13 * scale, scale, table.unpack(spirit and abilityRecast or abilityReady))
-        end
-    end
-    if clock < (combat.shieldUntil or 0) then
-        drawAbilityText('SHIELD', x + step + 3 * scale, math.max(0, y - 10 * scale), scale, table.unpack(abilityRecast))
-    end
-end
-
 local function drawRoomEffects(game, state, player, clock, picture)
     local room = game:GetRoom()
     local pos = Isaac.WorldToScreen(player.Position)
@@ -938,8 +777,9 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
             drawRoomEffects(game, state, player, clock, picture)
             drawHeartsteel(game:GetRoom(), items)
             local scale = readHudScale and readHudScale() or 1
-            drawAbilityHud(state.combat, clock, inventoryBounds and inventoryBounds(player, scale), state.aimAbility,
-                picture, scale)
+            local bounds = HUD.bounds(scale, inventoryBounds and inventoryBounds(player, scale))
+            HUD.render(bounds, state.combat, clock, state.aimAbility, picture,
+                Combat.hudStats(state.combat, player), aimColors)
         end
         emit(game, state, player, false, picture)
     end)

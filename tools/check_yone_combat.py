@@ -110,10 +110,16 @@ local function resolve(clock)
 end
 
 do
-    local edge=enemy(120,100,900)
+    local oldRange = player.TearRange
+    player.TearRange = 260
+    local edge, outside = enemy(129,100,900), enemy(131,100,901)
+    edge.Size, outside.Size = 0, 0
+    assert(combat.hudStats(state, player).range == 70, 'HUD melee range disagrees with the base attack')
     assert(combat.inMeleeRange(room,player,edge), 'click attack cannot acquire the extended range')
-    state=combat.new(); entities={edge}; cast('attack',1); resolve(5)
-    assert(#edge.damage==1, 'direct attack cannot hit the extended range')
+    assert(not combat.inMeleeRange(room,player,outside), 'click attack acquired a foe beyond the extended range')
+    state=combat.new(); entities={edge, outside}; cast('attack',1); resolve(5)
+    assert(#edge.damage==1 and #outside.damage==0, 'direct attack disagrees with click range on axis')
+    player.TearRange = oldRange
     state=combat.new({cooldown=function(_,key,base) return key=='r' and base/2 or base end})
     player.Position=Vector(60,100); entities={}; cast('r',1)
     assert(state.ready.r==451)
@@ -151,11 +157,15 @@ wall = {}
 
 player.Position = Vector(60,100)
 local wide = enemy(135, 155, 55)
-entities = {front, wide}
+local wEdge, wOutside = enemy(177,100,902), enemy(183,100,903)
+wEdge.Size, wOutside.Size = 0, 0
+entities = {front, wide, wEdge, wOutside}
+assert(combat.footprint(state, player, 'w', aim, room).reach == 122)
 cast('w', 155); resolve(167)
 assert(#wide.damage == 1, 'W failed to reach a target within its wider sector')
+assert(#wEdge.damage == 1 and #wOutside.damage == 0, 'W hit disagrees with its extended indicator')
 local wfx = combat.visual(state, 167).fx[#combat.visual(state, 167).fx]
-assert(wfx.footprint.reach == 112 and #wfx.contacts == 2, 'W grouped contacts incorrect')
+assert(wfx.footprint.reach == 122 and wfx.target.X == 182 and #wfx.contacts == 3, 'W grouped contacts incorrect')
 assert(combat.absorb(state, 168) and not combat.absorb(state, 169), 'W shield must stop one hit')
 state = combat.new()
 entities = {}
@@ -407,10 +417,12 @@ assert(#entities[1].damage == 0 and combat.visual(state, 7).fx[1].target.X == 12
     'Q crossed exterior room gap')
 room.IsPositionInRoom = baseInside
 state = combat.new(); state.qStacks = 2; player.Position = Vector(60,100); entities = {}
-cast('q', 1); resolve(8)
+cast('q', 1); resolve(7)
+assert(not combat.q3Invulnerable(state, 7), 'Q3 granted protection before impact')
+resolve(8)
 assert(math.abs(player.Position.X - 216)<.01, 'Q3 dash must travel 156 units in open space')
-assert(combat.q3Invulnerable(state, 8) and combat.q3Invulnerable(state, 12)
-    and not combat.q3Invulnerable(state, 13), 'Q3 dash immunity timing incorrect')
+assert(combat.q3Invulnerable(state, 8) and combat.q3Invulnerable(state, 14)
+    and not combat.q3Invulnerable(state, 15), 'Q3 dash immunity timing incorrect')
 combat.resetRoom(state, 9)
 assert(not combat.q3Invulnerable(state, 9), 'Q3 immunity survived room reset')
 """)

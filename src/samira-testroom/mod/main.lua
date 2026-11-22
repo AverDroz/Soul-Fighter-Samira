@@ -308,8 +308,9 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
     if actionable then
         local backpack = InventoryHUD.bounds(owner, scale)
         local style = p and StyleHUD.bounds(scale, backpack)
-        InventoryHUD.render(owner, scale)
-        ItemRoom.render(owner, backpack, style)
+        local yoneHud = not p and Yone.hudBounds(scale, backpack) or nil
+        InventoryHUD.render(owner, scale, yoneHud)
+        ItemRoom.render(owner, backpack, style or yoneHud)
         if p then
             StyleHUD.render(p, Combat.styleStatus(game:GetFrameCount()),
                 ackStyleHud and ackAt and Isaac.GetTime() - ackAt < leaseMs, style)

@@ -126,6 +126,16 @@ for _, word in ipairs(words) do observed[#observed + 1] = word[1] end
 local compact = table.concat(observed, ' ')
 assert(compact:find('Кровопийца', 1, true) and compact:find('Урон +3,2', 1, true))
 assert(not compact:find('восстановить', 1, true), 'passive should be expanded only on hover')
+local oldTop, oldBottom = rectangles[13][2], rectangles[13][4]
+local combatPanel = {x = 120, y = oldBottom - 8, width = 174}
+rectangles = {}
+hud.render(player, 1, combatPanel)
+assert(rectangles[13][4] == combatPanel.y - 3 and rectangles[13][2] < oldTop,
+    'selected tooltip overlapped the combat panel')
+combatPanel.x = 170
+rectangles = {}
+hud.render(player, 1, combatPanel)
+assert(rectangles[13][4] == oldBottom, 'separate combat panel moved the selected tooltip')
 slots[1] = slots[4]
 slots[6] = {name='Ботинки', stats={move_speed_flat=.075}, icon=icon}
 local summary = hud.statsSummary(player)
