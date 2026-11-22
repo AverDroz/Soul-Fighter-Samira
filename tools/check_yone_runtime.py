@@ -44,30 +44,40 @@ local itemUpdates, lastCast = 0, nil
 noItems.update = function(owner) assert(owner == player); itemUpdates = itemUpdates + 1 end
 noItems.onCast = function(owner, skill) assert(owner == player); lastCast = skill end
 Isaac.RenderText = function() end
+Isaac.RenderScaledText = function() end
 Isaac.GetTextWidth = function(text) return #text * 6 end
 Isaac.DrawLine = function() end
 KColor = Color
 local draws = {}
 local function captureHud()
-    local originalRender, originalLine = Isaac.RenderText, Isaac.DrawLine
-    local text = {pips = 0, ring = 0, icons = {}}
+    local originalRender, originalScaled, originalLine = Isaac.RenderText, Isaac.RenderScaledText, Isaac.DrawLine
+    local text = {pips = 0, ring = 0, qRing = 0, icons = {}}
     draws = text.icons
     Isaac.RenderText = function(label, x, y, r, g, b, a)
-        text[label] = {x = x, y = y, color = {r, g, b, a}}
+        text[label] = {x = x, y = y, scale = 1, color = {r, g, b, a}}
+    end
+    Isaac.RenderScaledText = function(label, x, y, sx, sy, r, g, b, a)
+        assert(sx == sy)
+        text[label] = {x = x, y = y, scale = sx, color = {r, g, b, a}}
     end
     Isaac.DrawLine = function(a, b, color, endColor, thickness)
         originalLine(a, b, color, endColor, thickness)
-        if thickness == 3 and color[1] == 1 and color[2] == .78 then text.pips = text.pips + 1 end
+        if thickness == 3 and (color[1] == 1 and color[2] == .78 or color[1] == .22 and color[2] == .20)
+            then text.pips = text.pips + 1 end
         if thickness == 2 and color[1] == 1 and color[2] == .38 then text.ring = text.ring + a:Distance(b) end
+        if color[1] == .60 and color[2] == .93
+            and text.icons[1] and b.Y <= text.icons[1].y + text.icons[1].size + thickness / 2 then
+            text.qRing = text.qRing + a:Distance(b)
+        end
     end
     event('POST_RENDER')
-    Isaac.RenderText, Isaac.DrawLine = originalRender, originalLine
+    Isaac.RenderText, Isaac.RenderScaledText, Isaac.DrawLine = originalRender, originalScaled, originalLine
     draws = {}
     local previousX = -1
     for _, key in ipairs({'Q', 'W', 'E', 'R'}) do
         local slot = assert(text[key], 'native HUD did not draw a separate ' .. key .. ' slot')
-        assert(slot.x > previousX and slot.x + 6 <= Isaac.GetScreenWidth(), 'ability slot fell outside the row')
-        assert(slot.y == text.Q.y and slot.y >= 0 and slot.y + 8 <= Isaac.GetScreenHeight(),
+        assert(slot.x > previousX and slot.x + 6 * slot.scale <= Isaac.GetScreenWidth(), 'ability slot fell outside the row')
+        assert(slot.y == text.Q.y and slot.y >= 0 and slot.y + 8 * slot.scale <= Isaac.GetScreenHeight(),
             'ability slot fell outside the viewport')
         previousX = slot.x
     end
@@ -80,7 +90,7 @@ local function captureHud()
 end
 local function statusOver(hud, label, index)
     local status, icon = hud[label], hud.icons[index]
-    return status and status.x >= icon.x and status.x + Isaac.GetTextWidth(label) <= icon.x + icon.size
+    return status and status.x >= icon.x and status.x + Isaac.GetTextWidth(label) * status.scale <= icon.x + icon.size
 end
 local function sameSlots(before, after)
     for _, key in ipairs({'Q', 'W', 'E', 'R'}) do
@@ -109,6 +119,7 @@ tick()
 assert(packet.active and packet.hero == 'yone' and packet.clip == 'idle')
 assert(Options.UseBorderlessFullscreen and packet.display.mode == 'windowed')
 assert(itemDriver() == player and itemUpdates > 0, 'ordinary Yone run did not bind shared items')
+assert(controlsOwner() == player, 'Yone could not open the shared F9 settings')
 local glyphLines = 0
 Isaac.DrawLine = function() glyphLines = glyphLines + 1 end
 local readyHud = captureHud()
@@ -121,7 +132,35 @@ local width, height = Isaac.GetScreenWidth, Isaac.GetScreenHeight
 Isaac.GetScreenWidth, Isaac.GetScreenHeight = function() return 688 end, function() return 288 end
 local wideHud = captureHud()
 assert(wideHud.Q.x > 70 + 147 and wideHud.Q.y > 288 - 26, 'wide ability row did not clear the backpack')
+hudScale = 1.5
+local largeHud = captureHud()
+assert(largeHud.icons[1].size == 48 and largeHud.Q.scale == 1.5 and largeHud.Q.x > 70 + 147 * 1.5)
+Isaac.GetScreenWidth = function() return 480 end
+Options.Fullscreen = true
+largeHud = captureHud()
+assert(largeHud.R.y + 8 * largeHud.R.scale < 288 - 22 * 1.5 - 4, 'large ability row did not wrap above the backpack')
+Options.Fullscreen, hudScale = false, 1
 Isaac.GetScreenWidth, Isaac.GetScreenHeight = width, height
+local marker = Vector(75, 65)
+local function checkHeartsteelMarker(fraction, reflected, green)
+    local originalLine = Isaac.DrawLine
+    local filled = 0
+    mirror = reflected
+    noItems.heartsteelTargets = function() return {{position = marker, fraction = fraction}} end
+    Isaac.DrawLine = function(a, b, color, _, thickness)
+        if thickness == 2 and color[2] == green then
+            local x = reflected and Isaac.GetScreenWidth() - marker.X * projection or marker.X * projection
+            assert(math.abs(a.X - (x - 7)) < .001 and math.abs(a.Y - (marker.Y * projection + 6)) < .001)
+            assert(math.abs((b.X - a.X) - 14 * fraction) < .001)
+            filled = filled + 1
+        end
+    end
+    event('POST_RENDER')
+    assert(filled == 1, 'Heartsteel did not draw one progress indicator under the target')
+    mirror, noItems.heartsteelTargets, Isaac.DrawLine = false, nil, originalLine
+end
+checkHeartsteelMarker(.5, false, .27)
+checkHeartsteelMarker(1, true, .76)
 local session = packet.session
 assert(callAction('ACTION_SHOOTRIGHT') == 0)
 assert(callAction('ACTION_RESTART', 'IS_ACTION_PRESSED') == nil, 'unheld R blocked restart')
@@ -183,18 +222,21 @@ assert(callAction('ACTION_RIGHT') == 0 and player.Position:Distance(committedPos
 for _ = 1, 7 do tick() end
 local stackedHud = captureHud()
 sameSlots(readyHud, stackedHud)
-assert(stackedHud.pips == 1 and statusOver(stackedHud, '1s', 1),
-    'Q lost its charge or cooldown display')
+assert(stackedHud.pips == 0 and stackedHud.qRing == 0 and statusOver(stackedHud, '1s', 1),
+    'Q one-stack HUD had charge markers or lost its cooldown')
 assert(stackedHud.Q.color[1] < readyHud.Q.color[1], 'cooldown did not dim the ability key')
 for _ = 1, 24 do tick() end
 castKey('KEY_Q')
 for _ = 1, 7 do tick() end
 local doubleStackHud = captureHud()
 sameSlots(readyHud, doubleStackHud)
-assert(doubleStackHud.pips == 2 and doubleStackHud.icons[1].name == 'Q3', 'Q lost its second charge')
+assert(doubleStackHud.pips == 0 and doubleStackHud.qRing > 120 and doubleStackHud.icons[1].name == 'Q3',
+    'Q3 did not replace the pips with its duration outline')
 assert(packet.yone.qReady == true, 'charged Q state was omitted from the visual packet')
 entities = {}
 for _ = 1, 30 do tick() end
+local fadingQ = captureHud()
+assert(fadingQ.qRing > 0 and fadingQ.qRing < doubleStackHud.qRing, 'Q3 duration outline did not shrink')
 DamageFlag = {DAMAGE_FAKE = 1, DAMAGE_IV_BAG = 2}
 local dashAttacker = makeEntity('enemy', player.Position.X + 25, player.Position.Y, 89)
 castKey('KEY_Q')
@@ -263,7 +305,7 @@ assert(math.abs(cleave.arc[7][1] - cleave.target[1]) < .001
     and math.abs(cleave.arc[7][2] - cleave.target[2]) < .001, 'W arc and axial endpoint disagreed')
 local shieldHud = captureHud()
 sameSlots(readyHud, shieldHud)
-assert(statusOver(shieldHud, '10s', 2) and shieldHud.SHIELD,
+assert(statusOver(shieldHud, '6s', 2) and shieldHud.SHIELD,
     'W lost its cooldown or shield display')
 assert(event('ENTITY_TAKE_DMG', player, 1, DamageFlag.DAMAGE_FAKE, EntityRef(attacker)) == nil)
 assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(attacker)) == false)
@@ -277,6 +319,12 @@ local spiritHud = captureHud()
 sameSlots(readyHud, spiritHud)
 assert(spiritHud.icons[3].name == 'E2' and spiritHud.ring > 0, 'E lost its active frame or recast icon')
 assert(spiritHud['4.9s'] or spiritHud['5.0s'], 'E did not show remaining spirit time')
+hudScale = .75
+local smallSpirit = captureHud()
+local spiritTime = smallSpirit['4.9s'] and '4.9s' or '5.0s'
+assert(smallSpirit.icons[3].size == 24 and smallSpirit[spiritTime].scale == .75
+    and statusOver(smallSpirit, spiritTime, 3), 'E timer did not scale with the icon')
+hudScale = 1
 assert(packet.yone.spirit.anchor[1] == positionBeforeE.X * projection)
 assert(packet.yone.spirit.anchor[1] < packet.position[1])
 attacker.Position = player.Position + Vector(21, 0)
@@ -328,12 +376,24 @@ assert(packet.yone.spirit.face[1] == -1)
 assert(packet.yone.spirit.viewFace[1] < 0 and packet.yone.spirit.viewFace[2] == 0,
     'the renderer lost the mirrored heading of the detached body')
 mirror = false
+local returnStart = player.Position
+local returnCollision = player.GridCollisionClass
 castKey('KEY_E')
-assert(not packet.yone.spirit and packet.yone.fx[#packet.yone.fx].kind == 'e_return')
+assert(packet.yone.spirit.returning and packet.yone.fx[#packet.yone.fx].kind == 'e_return')
 local recall = packet.yone.fx[#packet.yone.fx]
 assert(recall.bodyFace[1] > 0 and recall.bodyRemaining > 0, 'the recall packet lost the original body pose')
-assert(#recall.contacts == 1 and recall.contacts[1][1] == attacker.Position.X * projection,
-    'E lost the projected mark detonation point')
+assert(recall.travel == 8 and packet.yoneTiming.travel == 8 and player.Position:Distance(returnStart) == 0)
+assert(player.GridCollisionClass == EntityGridCollisionClass.GRIDCOLL_NONE)
+for _ = 1, 4 do tick('KEY_RIGHT') end
+assert(player.Position.X < returnStart.X and player.Position.X > positionBeforeE.X)
+assert(callAction('ACTION_RIGHT') == 0 and #itemKinds == 1, 'movement or echo interrupted the return')
+assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(attacker)) == false, 'E return lost invulnerability')
+for _ = 1, 4 do tick() end
+assert(player.Position:Distance(positionBeforeE) < .001 and player.GridCollisionClass == returnCollision)
+assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(attacker)) == nil, 'E return kept invulnerability at the body')
+local echo = packet.yone.fx[#packet.yone.fx]
+assert(not packet.yone.spirit and echo.kind == 'e_echo' and #echo.contacts == 1
+    and echo.contacts[1][1] == attacker.Position.X * projection, 'E lost the detonation point on arrival')
 assert(#itemKinds == 2 and itemKinds[1] == 'attack' and itemKinds[2] == 'echo',
     'E replay repeated a shared on-hit effect')
 
@@ -400,6 +460,17 @@ noItems.onCast = function(owner, skill, clock)
     if skill == 'r' then rCasts = rCasts + 1 end
     return previousOnCast(owner, skill, clock)
 end
+input.held = 'KEY_RIGHT_SHIFT'
+for _ = 1, 45 do
+    tick('KEY_R')
+    assert(callAction('ACTION_RESTART', 'IS_ACTION_PRESSED') == true, 'held Shift+R did not request the native restart')
+    assert(rCasts == 0, 'Shift+R cast the ultimate')
+end
+input.held = nil
+tick('KEY_R')
+assert(callAction('ACTION_RESTART', 'IS_ACTION_PRESSED') == false)
+tick()
+assert(rCasts == 0, 'releasing Shift before R queued an ultimate')
 for _ = 1, 45 do
     tick('KEY_R')
     assert(callAction('ACTION_RESTART', 'IS_ACTION_PRESSED') == false, 'long R hold allowed restart')
@@ -428,17 +499,149 @@ assert(packet.clip == 'idle', 'held E leaked into the new room')
 assert(attacker:Exists() and attacker.HitPoints == hpOnEntry, 'room transition removed or damaged returning enemy')
 assert(claimed[2] and not captureHud()['30s'], 'first combat in a new room did not refresh R')
 castKey('KEY_W')
-assert(captureHud()['10s'], 'fresh W did not go on cooldown')
+assert(captureHud()['6s'], 'fresh W did not go on cooldown')
 event('PRE_CHANGE_ROOM')
 event('POST_NEW_ROOM')
 tick()
-assert(captureHud()['10s'], 're-entering an already claimed room refreshed W again')
+assert(captureHud()['6s'], 're-entering an already claimed room refreshed W again')
+
+event('POST_GAME_STARTED', false)
+player.Position, player.Velocity, wall = Vector(60, 100), Vector.Zero, {}
+entities = {makeEntity('enemy', 91, 100, 751)}
+for _ = 1, 2 do
+    castKey('KEY_Q')
+    for _ = 1, 30 do tick() end
+end
+assert(packet.yone.qReady, 'E-Q3 integration could not charge Q')
+local comboOrigin = player.Position
+castKey('KEY_E')
+tick('KEY_Q', false, Vector(100, 100))
+tick(nil, false, Vector(100, 100))
+assert(packet.clip == 'e' and player.Position:Distance(comboOrigin) == 0)
+tick()
+assert(packet.clip == 'q3' and math.abs(player.Position.X - comboOrigin.X - 84) < .001,
+    'Q3 input during E windup was lost or started at the body')
+for _ = 1, 8 do tick() end
+assert(math.abs(player.Position.X - comboOrigin.X - 240) < .001, 'E-Q3 did not travel 84 + 156 in open space')
+castKey('KEY_E')
+for _ = 1, 4 do tick() end
+assert(player.GridCollisionClass == EntityGridCollisionClass.GRIDCOLL_NONE, 'recall did not start before room change')
+event('PRE_CHANGE_ROOM')
+assert(player.GridCollisionClass == returnCollision, 'departing during recall left grid collision disabled')
+event('POST_NEW_ROOM')
+tick()
+assert(not packet.yone.spirit and packet.clip == 'idle', 'recall leaked into next room')
 
 kind = 0
 tick()
 assert(packet.active == false, 'fallback scene was not closed on character change')
 assert(Options.Fullscreen and not Options.UseBorderlessFullscreen,
     'the original fullscreen preference was not restored')
+
+local warnings, warningStops = {}, 0
+Isaac.GetSoundIdByName = function(name) return name == 'Yone E Warning' and 91 or -1 end
+SFXManager = function()
+    return {
+        Play = function(_, id)
+            assert(id == 91, 'E countdown did not play the registered cue')
+            warnings[#warnings + 1] = frame
+        end,
+        Stop = function(_, id)
+            assert(id == 91, 'E countdown stopped an unrelated sound')
+            warningStops = warningStops + 1
+        end,
+    }
+end
+local bodySprite, bodyTint, bodyX, bodyY
+bodySprite = {
+    Color = Color(1, 1, 1, 1),
+    GetAnimation = function() return 'Walk' end,
+    Render = function(self, where)
+        bodyTint, bodyX, bodyY = self.Color, where.X, where.Y
+    end,
+}
+function player:GetSprite() return bodySprite end
+
+local function startCountdown()
+    kind, ack, entities = 130, nil, {}
+    player.Position = Vector(85, 105)
+    event('POST_GAME_STARTED', false)
+    tick()
+    castKey('KEY_E')
+    for _ = 1, 6 do
+        if packet.yone.spirit then break end
+        tick()
+    end
+    assert(packet.yone.spirit and packet.yone.spirit.remaining == 1)
+    return frame
+end
+
+local function measureCountdown()
+    local minX, maxX, rings = math.huge, -math.huge, 0
+    local originalLine = Isaac.DrawLine
+    Isaac.DrawLine = function(a, b, color, _, thickness)
+        if thickness == 1.5 and color[1] == 1 and color[4] == .95 then
+            minX, maxX = math.min(minX, a.X, b.X), math.max(maxX, a.X, b.X)
+            rings = rings + 1
+        end
+    end
+    local originalColor = bodySprite.Color
+    now = now + 30
+    renderOnly()
+    Isaac.DrawLine = originalLine
+    assert(bodySprite.Color == originalColor, 'E left the active sprite tinted')
+    assert(bodyX == packet.yone.spirit.anchor[1] and bodyY == packet.yone.spirit.anchor[2],
+        'native body is away from its projected anchor')
+    assert(rings == 24 and math.abs((maxX + minX) / 2 - bodyX) < .001,
+        'E time circle is not complete or centered on the body')
+    return maxX - minX, bodyTint[4]
+end
+
+local castFrame = startCountdown()
+local fullWidth, fullAlpha = measureCountdown()
+for _ = 1, 75 do tick() end
+local halfWidth, halfAlpha = measureCountdown()
+assert(math.abs(halfWidth * 2 - fullWidth) < .001 and halfAlpha < fullAlpha,
+    'native E body and circle did not drain with the duration')
+mirror = true
+assert(math.abs(measureCountdown() - halfWidth) < .001
+    and bodyX == Isaac.GetScreenWidth() - 85 * projection, 'mirror displaced the native E circle')
+mirror = false
+for _ = 1, 14 do tick() end
+assert(#warnings == 0, 'E warning played more than two seconds before auto-return')
+tick()
+assert(#warnings == 1 and warnings[1] == castFrame + 90, 'E warning missed the two-second threshold')
+for _ = 1, 5 do renderOnly(); tick() end
+assert(#warnings == 1, 'E warning replayed between updates and renders')
+castKey('KEY_E')
+assert(warningStops == 1 and #warnings == 1, 'early recall did not stop the active E warning')
+
+castFrame = startCountdown()
+for _ = 1, 90 do tick() end
+assert(#warnings == 2 and warnings[2] == castFrame + 90, 'new E cast did not get its own warning')
+event('PRE_ROOM_EXIT', player, true)
+event('POST_NEW_ROOM')
+event('POST_NEW_LEVEL')
+tick()
+assert(warningStops == 2 and #warnings == 2 and not packet.yone.spirit,
+    'floor transition kept or replayed the E warning')
+
+castFrame = startCountdown()
+for _ = 1, 150 do tick() end
+assert(#warnings == 3 and warnings[3] == castFrame + 90 and warningStops == 3,
+    'expiry did not play and clean up the E warning once')
+
+castFrame = startCountdown()
+for _ = 1, 140 do tick() end
+castKey('KEY_R')
+for _ = 1, 8 do tick() end
+assert(packet.kind == 'r' and packet.yone.spirit and packet.yone.spirit.remaining == 0,
+    'R did not defer the expired E return for the warning check')
+assert(#warnings == 4 and warnings[4] == castFrame + 90 and warningStops == 3,
+    'deferral replayed or restarted the E countdown warning')
+for _ = 1, 45 do tick() end
+assert(#warnings == 4 and warningStops == 4, 'deferred return did not clean up the warning once')
+event('PRE_GAME_EXIT')
 """)
     print("PASS Yone registration, input, emotes, independent leases, HUD and room/floor lifecycle")
 

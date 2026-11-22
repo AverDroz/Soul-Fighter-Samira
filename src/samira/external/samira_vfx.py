@@ -146,6 +146,7 @@ class SoulFighterVFX:
         self.clock = time.monotonic()
         self.screen = tuple(state["screen"])
         self.visual = state.get("visual") or {}
+        self.hud_layout = state.get("styleHudLayout") or {}
         self.axis = tuple(self.visual.get("ground") or state.get("ground") or (1, 1))
         self.client.begin(self.screen, self.axis, self.clock)
         self.canvas.begin(self.screen)
@@ -340,44 +341,53 @@ class SoulFighterVFX:
             if ready:
                 canvas.flush()
             return
-        x = width / 2 - 45
-        y = height - (50 if width < 556 else 24)
+        layout = getattr(self, "hud_layout", {})
+        scale = layout.get("scale", 1)
+        x = layout.get("rowX", width / 2 - 45)
+        y = layout.get("rowY", height - (50 if width < 556 else 24))
+
+        def rect(dx, dy, w, h, color, *texture):
+            canvas.rect(x + dx * scale, y + dy * scale, w * scale, h * scale, color, *texture)
+
+        def text(label, dx, dy, size, *color):
+            canvas.text(label, x + dx * scale, y + dy * scale, size * scale, *color, center=True)
+
         charge = self.visual.get("charge") or {}
         if charge.get("visible"):
             progress = max(0, min(1, charge.get("progress", 0)))
-            canvas.rect(x, y - 10, 90, 7, (.067, .052, .10, .96))
+            rect(0, -10, 90, 7, (.067, .052, .10, .96))
             color = (1, .67, .20, 1) if progress >= 1 else (.54, .75, 1, 1)
-            canvas.rect(x + 1, y - 9, 88 * progress, 5, color)
+            rect(1, -9, 88 * progress, 5, color)
         rank = max(0, min(6, int(style.get("rank", 0)))) if style is not None else None
         ultimate_locked = rank is not None and rank < 6
         for key in "qwer":
             cooldown = max(0, cooldowns.get(key, 0))
             locked = key == "r" and ultimate_locked
             icon = "icon-" + key
-            canvas.rect(x, y, 19, 19, (.067, .052, .10, .92))
+            rect(0, 0, 19, 19, (.067, .052, .10, .92))
             if icon in canvas.textures:
-                canvas.rect(x + 1, y + 1, 17, 17, (1, 1, 1, .36 if cooldown or locked else .9), icon)
+                rect(1, 1, 17, 17, (1, 1, 1, .36 if cooldown or locked else .9), icon)
             if cooldown:
-                canvas.text(str(math.ceil(cooldown)), x + 9.5, y + 3, 14, center=True)
+                text(str(math.ceil(cooldown)), 9.5, 3, 14)
             if not cooldown or key == "r":
-                canvas.rect(x + 1, y + 10.5, 7.5, 7.5, (.04, .03, .07, .85))
-                canvas.text(key.upper(), x + 4.75, y + 11.5, 8, center=True)
-            x += 23.5
+                rect(1, 10.5, 7.5, 7.5, (.04, .03, .07, .85))
+                text(key.upper(), 4.75, 11.5, 8)
+            x += 23.5 * scale
         if style is not None:
-            x, y = math.floor(x + 1), math.floor(y - 5)
+            x, y = layout.get("x", math.floor(x + scale)), layout.get("y", math.floor(y - 5 * scale))
             color = (1, .83, .48, 1) if ready else (1, .58, .39, 1) if rank else (.8, .73, .75, 1)
-            canvas.rect(x, y, 39, 28, color if ready else (.56, .34, .36, 1))
-            canvas.rect(x + 1, y + 1, 37, 26, (.067, .052, .10, 1))
+            rect(0, 0, 39, 28, color if ready else (.56, .34, .36, 1))
+            rect(1, 1, 37, 26, (.067, .052, .10, 1))
             if rank != getattr(self, "hud_rank", None):
                 self.hud_rank = rank
                 self.hud_rank_at = now
             age = max(0, 1 - (now - self.hud_rank_at) / .20)
-            canvas.text("-EDCBAS"[rank], x + 12, y + 3, 21 + 3 * age * age, color, center=True)
+            text("-EDCBAS"[rank], 12, 3, 21 + 3 * age * age, color)
             remaining = style.get("remaining", 0)
             if rank and remaining > 0:
-                canvas.text(str(math.ceil(remaining)), x + 29, y + 7, 12, color, center=True)
+                text(str(math.ceil(remaining)), 29, 7, 12, color)
             for pip in range(6):
-                canvas.rect(x + 3 + 5.6 * pip, y + 22, 5, 3, color if pip < rank else (.33, .23, .25, 1))
+                rect(3 + 5.6 * pip, 22, 5, 3, color if pip < rank else (.33, .23, .25, 1))
         canvas.flush()
 
     def foreground(self, state, sockets):

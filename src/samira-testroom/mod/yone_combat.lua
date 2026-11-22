@@ -6,13 +6,14 @@ local skills = {
     attack = {windup = 4, duration = 14},
     q = {windup = 6, duration = 16},
     q3 = {windup = 7, duration = 22},
-    w = {windup = 8, duration = 22, cooldown = 300},
+    w = {windup = 8, duration = 22, cooldown = 180},
     e = {windup = 3, duration = 14, cooldown = 450},
     e_return = {windup = 0, duration = 13},
     r = {windup = 23, duration = 40, cooldown = 900},
 }
-local meleeRange, qRange, ultRange, wRange = 44, 96, 168, 112
-local spiritDuration, markDamage, wCosine = 150, .30, .35
+local meleeRange, qRange, q3Range, ultRange, wRange = 44, 124, 212, 168, 112
+local spiritDuration, markDamage, wCosine, qStackDuration = 150, .30, .35, 180
+local spiritDash, q3Dash, spiritReturnFrames = 84, 156, 8
 local effectFrames, effectLimit, markerLimit = 21, 12, 24
 
 function Combat.new(items)
@@ -56,7 +57,20 @@ local function attackDelay(player)
     return math.max(8, math.ceil((player.MaxFireDelay + 1) * 1.5))
 end
 
-function Combat.resetRoom(state, clock)
+local function releaseReturn(state, relocate)
+    local recall = state.returning
+    if not recall then return end
+    state.returning = nil
+    local player = recall.owner
+    if not player:Exists() then return end
+    if relocate then player.Position, player.Velocity = recall.safe, Vector.Zero end
+    if player.GridCollisionClass == EntityGridCollisionClass.GRIDCOLL_NONE then
+        player.GridCollisionClass = recall.collision
+    end
+end
+
+function Combat.resetRoom(state, clock, relocate)
+    releaseReturn(state, relocate)
     state.pending, state.action, state.spirit, state.shieldUntil = nil, nil, nil, nil
     state.directImpact, state.effects, state.q3InvulnerableUntil = nil, {}, nil
     state.qStacks, state.qExpires = 0, nil
@@ -91,7 +105,7 @@ function Combat.reduceCooldowns(state, fraction, clock)
 end
 
 function Combat.cast(state, input, player, aim, clock, room)
-    if state.pending or (state.action and state.action.key == 'r' and clock < state.action.finish) then return end
+    if state.returning or state.pending or (state.action and state.action.key == 'r' and clock < state.action.finish) then return end
     local key = input
     if input == 'e' and state.spirit then
         if clock < state.spirit.recastAt then return end
@@ -143,9 +157,9 @@ function Combat.footprint(state, player, input, aim, room)
     end
     local reach, width, shape, cosine
     if key == 'q' then reach, width = qRange * Artifacts.range(player), 18
-    elseif key == 'q3' then reach, width = 168 * Artifacts.range(player), 22
+    elseif key == 'q3' then reach, width = q3Range * Artifacts.range(player), 22
     elseif key == 'w' then reach, shape, cosine = wRange, 'sector', wCosine
-    elseif key == 'e' then reach, width = 54, math.max(6, player.Size * .6)
+    elseif key == 'e' then reach, width = spiritDash, math.max(6, player.Size * .6)
     elseif key == 'r' then
         reach, width = ultRange, 16
     else return nil end
@@ -268,13 +282,36 @@ local function breakProps(room, start, facing, width, reach)
         if grid then
             local kind = grid:GetType()
             local intactPoop = kind == GridEntityType.GRID_POOP and grid.State < 1000
-            local intactProp = kind == GridEntityType.GRID_ROCK_ALT
+            local intactTnt = kind == GridEntityType.GRID_TNT
                 and grid.CollisionClass ~= GridCollisionClass.COLLISION_NONE
-            if intactPoop or intactProp then
+            if intactPoop or intactTnt then
                 local delta = grid.Position - start
                 local along = delta:Dot(facing)
                 if along >= 0 and along <= reach and math.abs(delta:Dot(side)) <= width + 16 then
-                    room:DestroyGrid(index, false)
+                    if intactPoop then room:DestroyGrid(index, false) else grid:Hurt(1) end
+                end
+            end
+        end
+    end
+end
+
+-- Damage tear-collidable non-hostile NPCs separately so scenery cannot grant
+-- Q stacks, E marks, or consume first-target item effects.
+local function qObjects(room, player, entities, strike, multiplier, contacts)
+    local area = strike.footprint
+    local side = Vector(-strike.facing.Y, strike.facing.X)
+    for _, entity in ipairs(entities) do
+        local collision = entity.EntityCollisionClass
+        local tearCollision = EntityCollisionClass and (collision == EntityCollisionClass.ENTCOLL_ALL
+            or collision == EntityCollisionClass.ENTCOLL_PLAYEROBJECTS)
+        if entity:Exists() and not entity:IsDead() and not Combat.hostile(entity)
+            and not entity:HasEntityFlags(EntityFlag.FLAG_FRIENDLY)
+            and (entity.Type == EntityType.ENTITY_FIREPLACE or entity:ToNPC() and tearCollision) then
+            local delta = entity.Position - area.origin
+            local along = delta:Dot(strike.facing)
+            if along >= 0 and along <= area.reach and math.abs(delta:Dot(side)) <= area.width + entity.Size then
+                if entity:TakeDamage(player.Damage * multiplier, 0, EntityRef(player), 0) and #contacts < markerLimit then
+                    contacts[#contacts + 1] = Vector(entity.Position.X, entity.Position.Y)
                 end
             end
         end
@@ -296,9 +333,11 @@ local function effect(state, clock, kind, origin, target, footprint, landingPoin
     state.effectSerial = state.effectSerial + 1
     local effects = state.effects
     if #effects == effectLimit then table.remove(effects, 1) end
-    effects[#effects + 1] = {id = state.effectSerial, at = clock, kind = kind,
+    local entry = {id = state.effectSerial, at = clock, kind = kind,
         origin = origin, target = target, footprint = footprint, landing = landingPoint,
         contacts = contacts, bodyFace = bodyFace, bodyRemaining = bodyRemaining}
+    effects[#effects + 1] = entry
+    return entry
 end
 
 local function returnSpirit(state, room, player, clock)
@@ -308,12 +347,31 @@ local function returnSpirit(state, room, player, clock)
     local start = player.Position
     local toAnchor = spirit.anchor - start
     if toAnchor:Length() > .01 then state.face = toAnchor:Normalized() end
-    if Combat.clearPoint(room, player, spirit.anchor) then teleport(player, spirit.anchor) end
-    local contacts = {}
-    effect(state, clock, 'e_return', start, player.Position, nil, nil, contacts, spirit.face,
+    local destination = Combat.clearPoint(room, player, spirit.anchor) and spirit.anchor or start
+    state.returning = {owner = player, collision = player.GridCollisionClass, spirit = spirit,
+        start = start, target = destination, safe = start, at = clock, finish = clock + spiritReturnFrames}
+    player.GridCollisionClass = EntityGridCollisionClass.GRIDCOLL_NONE
+    player.Velocity = Vector.Zero
+    local cue = effect(state, clock, 'e_return', start, destination, nil, nil, {}, spirit.face,
         math.max(0, math.min(1, (spirit.untilFrame - clock) / spiritDuration)))
-    state.action = {key = 'e_return', at = clock, finish = clock + skills.e_return.duration}
-    for _, mark in pairs(spirit.marks) do
+    cue.travel = spiritReturnFrames
+    state.action = {key = 'e_return', at = clock, finish = clock + skills.e_return.duration,
+        travel = spiritReturnFrames}
+end
+
+local function advanceReturn(state, room, player, clock)
+    local recall = state.returning
+    local progress = math.min(1, (clock - recall.at) / spiritReturnFrames)
+    local eased = progress * progress * (3 - 2 * progress)
+    local position = recall.start + (recall.target - recall.start) * eased
+    if Combat.clearPoint(room, player, position) then recall.safe = position end
+    if clock < recall.finish then
+        if room:IsPositionInRoom(position, 0) then teleport(player, position) end
+        return
+    end
+    releaseReturn(state, true)
+    local contacts = {}
+    for _, mark in pairs(recall.spirit.marks) do
         if Combat.hostile(mark.entity) then
             local point = Vector(mark.entity.Position.X, mark.entity.Position.Y)
             if damage(state, player, mark.entity, mark.amount) and #contacts < markerLimit then
@@ -321,6 +379,7 @@ local function returnSpirit(state, room, player, clock)
             end
         end
     end
+    if #contacts > 0 then effect(state, clock, 'e_echo', player.Position, player.Position, nil, nil, contacts) end
 end
 
 local function pullFoes(room, enemies, pull)
@@ -353,16 +412,18 @@ local function resolve(state, room, player, enemies, strike, clock)
     elseif key == 'q' then
         local reach, contacts = footprint.reach, {}
         if blade(state, room, player, enemies, strike, footprint.width, reach, 1.4, false, nil, true, contacts) then
-            state.qStacks, state.qExpires = math.min(2, state.qStacks + 1), clock + 180
+            state.qStacks, state.qExpires = math.min(2, state.qStacks + 1), clock + qStackDuration
         end
+        qObjects(room, player, enemies, strike, 1.4, contacts)
         breakProps(room, start, facing, footprint.width, reach)
         effect(state, clock, key, start, start + facing * reach, nil, nil, contacts)
     elseif key == 'q3' then
         state.qStacks, state.qExpires = 0, nil
         local reach, contacts = footprint.reach, {}
         blade(state, room, player, enemies, strike, footprint.width, reach, 1.6, false, nil, true, contacts)
+        qObjects(room, player, enemies, strike, 1.6, contacts)
         breakProps(room, start, facing, footprint.width, reach)
-        teleport(player, safeDestination(room, player, start, start + facing * math.min(124, reach)))
+        teleport(player, safeDestination(room, player, start, start + facing * math.min(q3Dash, reach)))
         state.q3InvulnerableUntil = clock + 5
         effect(state, clock, key, start, start + facing * reach, nil, player.Position, contacts)
     elseif key == 'w' then
@@ -373,7 +434,7 @@ local function resolve(state, room, player, enemies, strike, clock)
         effect(state, clock, key, start, start + facing * wRange, footprint, nil, contacts)
     elseif key == 'e' then
         state.spirit = {anchor = start, face = facing, untilFrame = clock + spiritDuration, recastAt = clock + 8, marks = {}}
-        teleport(player, safeDestination(room, player, start, start + facing * 54))
+        teleport(player, safeDestination(room, player, start, start + facing * spiritDash))
         effect(state, clock, key, start, player.Position)
     elseif key == 'e_return' then
         returnSpirit(state, room, player, clock)
@@ -392,9 +453,10 @@ local function resolve(state, room, player, enemies, strike, clock)
 end
 
 function Combat.update(state, room, player, enemies, clock)
-    if state.lastClock and clock < state.lastClock then Combat.resetRoom(state, clock) end
+    if state.lastClock and clock < state.lastClock then Combat.resetRoom(state, clock, true) end
     state.lastClock = clock
     if state.qExpires and clock >= state.qExpires then state.qStacks, state.qExpires = 0, nil end
+    if state.returning then advanceReturn(state, room, player, clock) end
     local strike = state.pending
     if strike and clock >= strike.at then
         state.pending = nil
@@ -412,6 +474,10 @@ function Combat.q3Invulnerable(state, clock)
     return state.q3InvulnerableUntil ~= nil and clock < state.q3InvulnerableUntil
 end
 
+function Combat.invulnerable(state, clock)
+    return state.returning ~= nil or Combat.q3Invulnerable(state, clock)
+end
+
 function Combat.absorb(state, clock, position)
     if clock >= (state.shieldUntil or 0) then return false end
     state.shieldUntil = nil
@@ -424,7 +490,7 @@ function Combat.presentation(state, clock)
     if action and clock < action.finish then
         local length = action.finish - action.at
         local skill = skills[action.key]
-        return action.key, math.max(0, (clock - action.at) / length), skill and skill.windup, length
+        return action.key, math.max(0, (clock - action.at) / length), skill and skill.windup, length, action.travel
     end
 end
 
@@ -435,15 +501,20 @@ end
 
 function Combat.visual(state, clock)
     local picture = {fx = {}, shield = clock < (state.shieldUntil or 0), qReady = state.qStacks == 2}
+    if picture.qReady then
+        picture.qRemaining = math.max(0, math.min(1, ((state.qExpires or clock) - clock) / qStackDuration))
+    end
     for _, event in ipairs(state.effects) do
         local age = clock - event.at
         if age >= 0 and age < effectFrames then
             picture.fx[#picture.fx + 1] = {id = event.id, kind = event.kind, age = age / 30,
                 origin = event.origin, target = event.target, footprint = event.footprint, landing = event.landing,
-                contacts = event.contacts, bodyFace = event.bodyFace, bodyRemaining = event.bodyRemaining}
+                contacts = event.contacts, bodyFace = event.bodyFace, bodyRemaining = event.bodyRemaining,
+                travel = event.travel}
         end
     end
-    local spirit = state.spirit
+    local returning = state.returning
+    local spirit = state.spirit or returning and returning.spirit
     if not spirit then return picture end
     local keys = {}
     for key, mark in pairs(spirit.marks) do
@@ -457,7 +528,8 @@ function Combat.visual(state, clock)
             lethal = mark.amount >= math.max(0, mark.entity.HitPoints)}
     end
     picture.spirit = {anchor = spirit.anchor, face = spirit.face, marks = marks,
-        remaining = math.max(0, math.min(1, (spirit.untilFrame - clock) / spiritDuration))}
+        returning = returning ~= nil,
+        remaining = returning and 0 or math.max(0, math.min(1, (spirit.untilFrame - clock) / spiritDuration))}
     return picture
 end
 

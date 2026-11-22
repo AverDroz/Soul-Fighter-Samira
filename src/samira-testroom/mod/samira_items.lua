@@ -12,6 +12,7 @@ local resetPrefix = 'abilityReset:'
 local queues = {}
 local statFlags
 local activeStats = false
+local steelRange, steelChargeFrames, steelCooldownFrames = 80, 60, 300
 
 local function isYone(p)
     return p and yone and yone.is and yone.is(p) or false
@@ -612,7 +613,9 @@ local function prepareDamage(p, entity, amount, ctx, ranged)
     if (not isYone(p) or first) and (ctx.crit or plan.sky) then
         modified = modified * (1.5 + (stats.crit_multiplier_bonus or 0))
     end
-    if isAA and owned[3084] and (enemy.steelNear or 0) >= 60 and clock >= (enemy.steelReady or 0) then
+    local heartsteelHit = isAA or ctx.kind == 'q' and first and isYone(p)
+    if heartsteelHit and owned[3084] and (enemy.steelNear or 0) >= steelChargeFrames
+        and clock >= (enemy.steelReady or 0) then
         plan.steel = true
         modified = modified * 1.5
     end
@@ -685,6 +688,20 @@ local function consumeEnergized(owned, plan)
     if owned[3095] and plan.energized ~= 6699 then start('stormrazor', 45) end
 end
 
+local function procHeartsteel(p, enemy)
+    enemy.steelNear, enemy.steelReady = 0, clock + steelCooldownFrames
+    if not enemy.steelCounted then
+        enemy.steelCounted = true
+        run.heartsteelPairs = run.heartsteelPairs + 1
+        if run.heartsteelPairs >= 4 then
+            run.heartsteelPairs = 0
+            run.heartsteel = run.heartsteel + gainHeart(p, 1)
+            reevaluate(p, CacheFlag.CACHE_DAMAGE | CacheFlag.CACHE_SIZE)
+        end
+    end
+    if ids.heartsteelSound then SFXManager():Play(ids.heartsteelSound, .85) end
+end
+
 local function autoProcs(p, entity, owned, plan, enemy)
     if plan.sky then
         room.skyBosses[plan.sky] = true
@@ -692,19 +709,6 @@ local function autoProcs(p, entity, owned, plan, enemy)
             room.skyHeal = true
             heal(p, 1)
         end
-    end
-    if plan.steel then
-        enemy.steelNear, enemy.steelReady = 0, clock + 300
-        if not enemy.steelCounted then
-            enemy.steelCounted = true
-            run.heartsteelPairs = run.heartsteelPairs + 1
-            if run.heartsteelPairs >= 4 then
-                run.heartsteelPairs = 0
-                run.heartsteel = run.heartsteel + gainHeart(p, 1)
-                reevaluate(p, CacheFlag.CACHE_DAMAGE | CacheFlag.CACHE_SIZE)
-            end
-        end
-        if ids.heartsteelSound then SFXManager():Play(ids.heartsteelSound, .85) end
     end
     if not plan.first then return end
     if owned[3153] and ready('ruinedKing') then
@@ -809,6 +813,7 @@ local function finishDamage(p, entity, amount, source, extraSource)
         end
         start('cleaverSpeed', 60)
     end
+    if plan.steel then procHeartsteel(p, enemy) end
     if ctx.kind == 'aa' then
         autoProcs(p, entity, owned, plan, enemy)
     else
@@ -1006,6 +1011,19 @@ local function processQueued(p, owned)
     return confirming
 end
 
+function Items.heartsteelTargets()
+    if not room or not room.owned or not room.owned[3084] then return end
+    local targets = {}
+    for _, enemy in pairs(room.enemies) do
+        local charge = enemy.steelNear or 0
+        if charge > 0 and validEnemy(enemy.entity) then
+            targets[#targets + 1] = {position = enemy.entity.Position,
+                fraction = math.min(1, charge / steelChargeFrames)}
+        end
+    end
+    return targets
+end
+
 local function updateTargets(p, owned, isCombat)
     if not isCombat and not room.combatSeen then return end
     if room.savedEnemies and next(room.savedEnemies) then
@@ -1017,8 +1035,8 @@ local function updateTargets(p, owned, isCombat)
         for _, entity in ipairs(Isaac.GetRoomEntities()) do
             if validEnemy(entity) then
                 local enemy = enemyState(entity)
-                if clock >= (enemy.steelReady or 0) and p.Position:Distance(entity.Position) <= 80 then
-                    enemy.steelNear = (enemy.steelNear or 0) + 1
+                if clock >= (enemy.steelReady or 0) and p.Position:Distance(entity.Position) <= steelRange then
+                    enemy.steelNear = math.min(steelChargeFrames, (enemy.steelNear or 0) + 1)
                 else
                     enemy.steelNear = 0
                 end
@@ -1027,6 +1045,9 @@ local function updateTargets(p, owned, isCombat)
     end
     for key, enemy in pairs(room.enemies) do
         local entity = enemy.entity
+        if (enemy.steelNear or 0) > 0 and (not isCombat or not owned[3084] or not validEnemy(entity)) then
+            enemy.steelNear = nil
+        end
         if entity:Exists() then
             if entity:IsDead() or entity.HitPoints <= 0 then
                 defeat(p, entity, enemy)

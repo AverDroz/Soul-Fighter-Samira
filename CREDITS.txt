@@ -1,10 +1,11 @@
-Soul Fighter Samira — personal experimental mod, version 0.3.5.
+Soul Fighter Samira — personal experimental mod, version 0.3.6.
 League of Legends character, model, animations, sounds and original artwork: Riot Games.
 Framework and external renderer adapted from TFOS4 Isaac-LoL-HeroStudio:
 https://github.com/TFOS4/Isaac-LoL-HeroStudio
 https://github.com/TFOS4/Isaac-LoL-HeroStudio/releases/tag/v1.0.0
 Asset provenance is retained in companion/assets/samira-soul-fighter manifests.
 Yone ability icon provenance: docs/yone-ability-icons.lock.json.
+Yone spirit warning provenance: docs/yone-spirit-audio.lock.json.
 Python and dependency notices/licenses accompany companion/python.
 Liberation font license: samira_testroom/resources/font/LIBERATION-LICENSE.txt.
 No blanket license is granted for third-party materials.

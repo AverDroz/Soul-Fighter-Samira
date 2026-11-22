@@ -84,6 +84,17 @@ for _,width in ipairs({480,640}) do
 end
 lines,words={},{};hud.render({}, {rank=6,ready=true},true);checkReady(false)
 lines,words={},{};hud.render({}, {rank=6,ready=false},true);assert(#lines==0 and #words==0)
+w, h = 480, 270
+local backpack = {x = 86, y = 233, width = 220.5, height = 33}
+local large = hud.bounds(1.5, backpack)
+assert(large.width == 58.5 and large.height == 42)
+assert(large.y + large.height <= backpack.y and large.x + large.width <= w)
+hud.render({}, {rank=6, ready=true}, false, large)
+assert(math.abs(words[1][4] - .95 * 1.5) < .001)
+assert(lines[7][1].X == large.x and lines[7][5] == 42 and words[2][4] >= 1.23 * 1.5)
+local small = hud.bounds(.75)
+lines,words={},{};hud.render({}, {rank=6, ready=false, cooldown=1}, false, small)
+assert(small.width == 29.25 and words[1][4] == 1.23 * .75 and words[2][4] == .66 * .75)
 Font = function() return nil, false end
 hud = assert(load(style_source))()
 draw(4, false, 5)

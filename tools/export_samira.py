@@ -65,7 +65,8 @@ def build(output, *, include_local_yone=False):
                 copy(f"assets/yone-local/audio/{name}", f"companion/assets/yone-local/audio/{name}")
         if (ROOT / "assets/yone-local/yone-portrait.png").is_file():
             copy("assets/yone-local/yone-portrait.png", "samira_testroom/resources/gfx/samira/yone-portrait.png")
-    copy("docs/yone-ability-icons.lock.json", "provenance/yone-ability-icons.lock.json")
+    for name in ("yone-ability-icons.lock.json", "yone-spirit-audio.lock.json"):
+        copy(f"docs/{name}", f"provenance/{name}")
     for source, target in (("export-launcher.cmd", "launch.cmd"), ("export-launcher.ps1", "launcher.ps1"), ("export-INSTALL.txt", "INSTALL.txt")):
         copy(f"tools/{source}", target)
     for source, target in (("export-stop.cmd", "stop.cmd"), ("export-stop.ps1", "stop.ps1")):
@@ -80,6 +81,7 @@ def build(output, *, include_local_yone=False):
         "https://github.com/TFOS4/Isaac-LoL-HeroStudio/releases/tag/v1.0.0\n"
         "Asset provenance is retained in companion/assets/samira-soul-fighter manifests.\n"
         "Yone ability icon provenance: provenance/yone-ability-icons.lock.json.\n"
+        "Yone spirit warning provenance: provenance/yone-spirit-audio.lock.json.\n"
         "Python and dependency notices/licenses accompany companion/python.\n"
         "Liberation font license: samira_testroom/resources/font/LIBERATION-LICENSE.txt.\n"
         "No blanket license is granted for third-party materials.\n"

@@ -116,6 +116,45 @@ class YoneRendererTests(unittest.TestCase):
         self.assertGreater(float(spirit[:, :, 2].mean()), float(normal[:, :, 2].mean()) + 5)
         self.assertEqual(self.ctx.error, 'GL_NO_ERROR')
 
+    def test_spirit_countdown_shrinks_at_body_and_fades_its_model(self):
+        from run_testroom_renderer import YoneRenderer
+
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'yone.glb'
+            write_rig(path)
+            renderer = YoneRenderer(self.ctx, path)
+        self.addCleanup(renderer.close)
+        spirit = {'anchor': [119, 111], 'face': [-1, 0], 'viewFace': [-1, 0]}
+        state = {'kind': 'idle', 'phase': 0, 'screen': [160, 160],
+                 'position': [58, 113], 'face': [-1, 0], 'clock': 120,
+                 'yone': {'spirit': spirit}}
+
+        def draw(remaining):
+            self.fbo.clear(0, 0, 0, 0)
+            spirit['remaining'] = remaining
+            with patch.object(renderer.actor, 'draw', wraps=renderer.actor.draw) as drawn:
+                renderer.draw(state, 0)
+            return next(call.kwargs['opacity'] for call in drawn.call_args_list
+                        if call.kwargs.get('clip') == 'e_body')
+
+        def bright_width():
+            red = self.region(99, 112, 139, 122)[:, :, 0]
+            return np.count_nonzero((red > 200).any(axis=0))
+
+        full_alpha = draw(1)
+        full_width = bright_width()
+        half_alpha = draw(.5)
+        half_width = bright_width()
+        self.assertGreater(full_width, 28)
+        self.assertGreater(half_width, 12)
+        self.assertLess(half_width, full_width * .65)
+        self.assertGreater(full_alpha, half_alpha)
+        bright_alpha, pulse_alpha = draw(.10), draw(.05)
+        self.assertGreater(bright_alpha, pulse_alpha * 1.7)
+        self.assertGreater(draw(0), 0)
+        self.assertEqual(bright_width(), 0)
+        self.assertFalse(self.region(39, 117, 75, 123).any())
+
     def test_mark_lethality_changes_symbol_without_printing_damage(self):
         from run_testroom_renderer import YoneRenderer
         renderer = YoneRenderer(self.ctx, Path('unavailable-yone.glb'))
@@ -170,6 +209,24 @@ class YoneRendererTests(unittest.TestCase):
         event['age'] = .16
         renderer.draw(state, 0)
         self.assertTrue(self.region(119, 86, 150, 120).any())
+
+    def test_gathering_storm_is_visible_and_rotates_until_consumed(self):
+        from run_testroom_renderer import YoneRenderer
+        renderer = YoneRenderer(self.ctx, Path('unavailable-yone.glb'))
+        self.addCleanup(renderer.close)
+        state = {'kind': 'idle', 'screen': [160, 160], 'position': [80, 100], 'face': [1, 0],
+                 'clock': 30, 'yone': {'qReady': True, 'qRemaining': .95, 'fx': []}}
+        self.assertTrue(renderer.draw(state, 0)[1]['yoneVfx'])
+        ready = self.pixels().copy()
+        self.assertGreater(np.count_nonzero(ready[:, :, 3]), 180)
+        self.fbo.clear(0, 0, 0, 0)
+        state['clock'] = 47
+        self.assertTrue(renderer.draw(state, 0)[1]['yoneVfx'])
+        self.assertFalse(np.array_equal(ready, self.pixels()))
+        self.fbo.clear(0, 0, 0, 0)
+        state['yone']['qReady'] = False
+        self.assertNotIn('yoneVfx', renderer.draw(state, 0)[1])
+        self.assertFalse(self.pixels().any())
 
     def test_skill_effects_change_shape_during_their_motion(self):
         from run_testroom_renderer import YoneRenderer
@@ -442,6 +499,9 @@ class YoneAnimationTests(unittest.TestCase):
         self.assertEqual(yone_animation(dict(state, phase=9 / 22), clips), ("q3", 0))
         self.assertEqual(yone_animation(dict(state, phase=14 / 22), clips), ("q3_out", 0))
         self.assertEqual(yone_animation({"kind": "e_return", "phase": .65}, clips)[0], "e_return_out")
+        timing = {"hit": 0, "length": 13, "travel": 8}
+        self.assertEqual(yone_animation({"kind": "e_return", "phase": 6 / 13, "yoneTiming": timing}, clips),
+                         ("e_return", .75))
         dash = {"kind": "q3", "origin": [10, 50], "target": [140, 50], "landing": [70, 50]}
         self.assertEqual(yone_dash_position(state, dict(dash, age=0)), (10, 50))
         self.assertEqual(yone_dash_position(state, dict(dash, age=1 / 12)), (40, 50))

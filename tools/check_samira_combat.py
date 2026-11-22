@@ -201,8 +201,12 @@ noItems.withContext = function(context, fn)
 end
 noItems.tagTear = function(_,tear,context) tear:GetData().ItemContext=context end
 local fallbackRenderOffset
+local hudScale = 1
+local controlsOwner, styleLayout
 function include(name)
-    if name == 'samira_controls_settings' then return {init=function() end} end
+    if name == 'samira_controls_settings' then
+        return {init=function(_, _, owner) controlsOwner=owner end, hudScale=function() return hudScale end}
+    end
     if name == 'samira_items' then return noItems end
     if name == 'samira_items_room' then return {init=function() end, render=function() end} end
     if name == 'samira_inventory' then return {init=function() end, update=function() end} end
@@ -210,7 +214,10 @@ function include(name)
         return {init=function() end,input=function() end,render=function() end,bounds=function() return nil end}
     end
     if name == 'samira_style_hud' then
-        return {render=function(_,_,external) styleExternal=external end,bounds=function() end}
+        return {
+            render=function(_,_,external,layout) styleExternal,styleLayout=external,layout end,
+            bounds=function(scale) return {scale=scale} end,
+        }
     end
     if name == 'samira_encounters' then
         return {init=function(_,_,provider) encounterPlayer=provider end, update=function() end}
@@ -441,7 +448,26 @@ tick('KEY_A')
 
 -- Native key ownership only in active gameplay and only for the test player.
 assert(callAction('ACTION_LEFT')==0 and callAction('ACTION_SHOOTDOWN')==0)
-assert(callAction('ACTION_RESTART','IS_ACTION_PRESSED')==false)
+assert(callAction('ACTION_RESTART','IS_ACTION_PRESSED')==nil, 'a different Restart binding was consumed')
+input.key='KEY_R'
+assert(callAction('ACTION_RESTART','IS_ACTION_PRESSED')==false, 'plain R enabled restart')
+input.held='KEY_LEFT_SHIFT'
+assert(callAction('ACTION_RESTART','IS_ACTION_PRESSED')==false, 'adding Shift to an ultimate started a restart')
+input.key=nil
+assert(callAction('ACTION_RESTART','IS_ACTION_PRESSED')==nil)
+earnStyle()
+tick('KEY_R')
+assert(callAction('ACTION_RESTART','IS_ACTION_PRESSED')==true, 'Shift+R did not route native restart')
+assert(callAction('ACTION_RESTART','IS_ACTION_TRIGGERED')==true)
+assert(callAction('ACTION_RESTART','GET_ACTION_VALUE')==1)
+assert(combat.styleStatus(frame).rank==6, 'restart also cast Samira R')
+input.held=nil
+tick('KEY_R')
+assert(callAction('ACTION_RESTART','IS_ACTION_PRESSED')==false and combat.styleStatus(frame).rank==6,
+    'releasing Shift first armed an ultimate')
+tick()
+tick('KEY_R')
+assert(combat.styleStatus(frame).rank==0, 'regular Samira ultimate did not rearm after restart chord')
 assert(callAction('ACTION_ITEM')==nil and callAction('ACTION_PAUSE')==nil and callAction('ACTION_DROP')==nil)
 assert(callAction('ACTION_BOMB','IS_ACTION_TRIGGERED')==false)
 input.key='KEY_G';assert(callAction('ACTION_BOMB','IS_ACTION_TRIGGERED')==true)
@@ -483,8 +509,12 @@ assert(event('PRE_TEAR_RENDER',tear)==false, 'capable renderer did not replace a
 assert(event('PRE_TEAR_RENDER',makeEntity('ENTITY_TEAR',60,100,999))==nil)
 now=now+50
 confirm({visual=1,projectiles=true,styleHud=true})
+hudScale=1.5
 event('POST_RENDER')
 assert(styleExternal == true, 'a fresh style HUD lease did not suppress the native duplicate')
+assert(styleLayout.scale == 1.5 and packet.styleHudLayout.scale == 1.5,
+    'the native and companion style HUDs did not receive the selected scale')
+hudScale=1
 now=now+600
 event('POST_RENDER')
 assert(not styleExternal, 'native style HUD did not return after external lease expired')
@@ -1001,6 +1031,31 @@ assert(player.Position.X==180 and nativeInput().Y>.99)
 assert(discharge(nativeInput()).kind=='q')
 for i=1,3 do tick() end
 assert(combat.styleStatus(frame).ready)
+
+-- A queued charged Q must survive E after the Q animation ends.
+start()
+weapon.maximum,weapon.charge=30,0
+tick('KEY_Q',false,Vector(200,100))
+for i=1,10 do
+    tick()
+    local aim=nativeInput()
+    if aim:Length()>.001 then weapon.charge=weapon.charge+1 end
+end
+tick('KEY_E',false,Vector(200,100))
+local retained=nativeInput()
+assert(retained.X>.99 and weapon.charge>0, 'E cancelled a pending charged Q')
+while weapon.charge<weapon.maximum do
+    weapon.charge=weapon.charge+1
+    tick(nil,false,Vector(200,100))
+    local aim=nativeInput()
+    if weapon.charge<weapon.maximum then
+        assert(aim:Length()>.99, 'pending Q stopped charging during E')
+    else
+        assert(aim:Length()==0, 'charged Q did not release at full charge')
+    end
+end
+assert(discharge(retained).kind=='q', 'E turned the pending Q into an autoattack')
+weapon.maximum,weapon.charge=0,0
 
 -- A room change discards both the pending damage and reserved native shot.
 for _,near in ipairs({false,true}) do

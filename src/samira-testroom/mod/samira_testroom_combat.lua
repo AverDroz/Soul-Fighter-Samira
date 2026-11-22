@@ -101,7 +101,7 @@ function Combat.syncCooldownClock(clock)
     cooldownClock = clock
 end
 
-function Combat.sampleInput(room, clock, actionable)
+function Combat.sampleInput(room, clock, actionable, ultimateHeld)
     local manualDown = Input.IsButtonPressed(Keyboard.KEY_A, 0)
     if not actionable or not manualDown then state.manualBlocked = manualDown end
     local manualAttack = not attackMoveEnabled and actionable and manualDown and not state.manualBlocked
@@ -116,6 +116,8 @@ function Combat.sampleInput(room, clock, actionable)
         local down
         if command == 'right' then
             down = Input.IsMouseBtnPressed(1)
+        elseif command == 'r' and ultimateHeld ~= nil then
+            down = ultimateHeld or Input.IsButtonPressed(alias, 0)
         else
             down = Input.IsButtonPressed(key, 0) or alias ~= nil and Input.IsButtonPressed(alias, 0)
         end
@@ -837,7 +839,10 @@ function Combat.update(game, p, face, clock)
         end
         return kind, state.skills.e and state.skills.e.face or q.face
     end
-    if Weapons then Weapons.update(p, clock, nil, not Combat.presentation(clock)) end
+    if Weapons then
+        -- A reserved native Q can outlast its animation while the weapon charges.
+        Weapons.update(p, clock, nil, not Combat.presentation(clock) or Weapons.hasPendingQ(p))
+    end
     if state.skills.e then return kind, state.skills.e.face end
 
     local skill, target = Combat.presentation(clock), state.target

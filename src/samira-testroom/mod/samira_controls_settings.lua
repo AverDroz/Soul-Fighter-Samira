@@ -1,14 +1,24 @@
 local Settings = {}
 local json = require('json')
-local attackMove, inertia, walkSpeed = true, false, 85
+local attackMove, inertia, walkSpeed, hudPercent = true, false, 85, 100
 local speedOptions = {70, 85, 100}
 local speedIndex = {[70] = 0, [85] = 1, [100] = 2}
+local hudOptions = {75, 85, 100, 115, 130, 150}
+local hudIndex, hudLabels = {}, {}
+for index, percent in ipairs(hudOptions) do
+    hudIndex[percent], hudLabels[index] = index - 1, percent .. '%'
+end
 
--- This top-level preference belongs to the save slot, independently of the run seed.
+-- These top-level preferences belong to the save slot, independently of the run seed.
 function Settings.attachToSave(saved)
     saved.samiraAttackMove = attackMove
     saved.samiraInertia = inertia
     saved.samiraWalkSpeed = walkSpeed
+    saved.samiraHudScale = hudPercent
+end
+
+function Settings.hudScale()
+    return hudPercent / 100
 end
 
 function Settings.init(mod, combat, player, inventorySummary)
@@ -25,17 +35,19 @@ function Settings.init(mod, combat, player, inventorySummary)
         attackMove = not saved or saved.samiraAttackMove ~= false
         inertia = saved ~= nil and saved.samiraInertia == true
         walkSpeed = saved and speedIndex[saved.samiraWalkSpeed] and saved.samiraWalkSpeed or 85
+        hudPercent = saved and hudIndex[saved.samiraHudScale] and saved.samiraHudScale or 100
         combat.setAttackMove(attackMove)
         combat.setInertia(inertia)
         combat.setWalkSpeed(walkSpeed)
         ImGui.UpdateData('samiraAttackMove', ImGuiData.Value, attackMove)
         ImGui.UpdateData('samiraInertia', ImGuiData.Value, inertia)
         ImGui.UpdateData('samiraWalkSpeed', ImGuiData.Value, speedIndex[walkSpeed])
+        ImGui.UpdateData('samiraHudScale', ImGuiData.Value, hudIndex[hudPercent])
     end
     local function writeSetting(key, value, previous)
         local saved = slotReady and readSave()
         if not saved then
-            Isaac.DebugString('[Samira] Select a readable save slot to change controls.')
+            Isaac.DebugString('[Samira] Select a readable save slot to change settings.')
             ImGui.UpdateData(key, ImGuiData.Value, previous)
             return false
         end
@@ -74,6 +86,12 @@ function Settings.init(mod, combat, player, inventorySummary)
             combat.setWalkSpeed(value)
         end
     end, {'70%', '85%', '100%'}, speedIndex[walkSpeed])
+    ImGui.AddCombobox(window, 'samiraHudScale', 'Масштаб HUD', function(index)
+        local value = hudOptions[index + 1]
+        if value and writeSetting('samiraHudScale', value, hudIndex[hudPercent]) then
+            hudPercent = value
+        end
+    end, hudLabels, hudIndex[hudPercent])
     ImGui.AddElement(window, 'samiraBag', ImGuiElement.CollapsingHeader, 'Рюкзак')
     ImGui.AddText('samiraBag', '', true, 'samiraBagStats')
     local previousSummary

@@ -46,24 +46,36 @@ def load_frame(fbo):
 
 
 def check_hud():
-    def draw(width, style=None, cooldown=0, clock=0):
-        rectangles, labels, glow = [], [], []
+    def draw(width, style=None, cooldown=0, clock=0, layout=None, charge=None):
+        rectangles, labels, text_layouts, glow = [], [], [], []
+
+        def text(label, *args, **kwargs):
+            labels.append(label)
+            text_layouts.append(args)
+
         canvas = SimpleNamespace(
             textures={f"icon-{key}" for key in "qwer"},
             rect=lambda *args: rectangles.append(args),
-            text=lambda label, *args, **kwargs: labels.append(label),
+            text=text,
             polygon=lambda points, colors: glow.append((points, colors)),
             flush=lambda: None,
         )
         snapshot = SimpleNamespace(
-            visual={"cooldowns": {"q": 0, "w": 0, "e": 0, "r": cooldown}, "style": style},
+            visual={"cooldowns": {"q": 0, "w": 0, "e": 0, "r": cooldown}, "style": style, "charge": charge},
             canvas=canvas,
             screen=(width, 270),
             clock=clock,
+            hud_layout=layout or {},
         )
         SoulFighterVFX.hud(snapshot)
         r_icon = next(rect for rect in rectangles if rect[-1] == "icon-r")
-        badge = next((rect for rect in rectangles if rect[2:4] == (39, 28)), None)
+        scale = snapshot.hud_layout.get("scale", 1)
+        badge = next((rect for rect in rectangles if rect[2:4] == (39 * scale, 28 * scale)), None)
+        if layout:
+            assert all(0 <= x <= x + w <= width and 0 <= y <= y + h <= 270 for x, y, w, h, *_ in rectangles)
+            assert r_icon[2:4] == (17 * scale, 17 * scale)
+            assert text_layouts[0][2] == 8 * scale
+            assert text_layouts[3][2] == 14 * scale
         return rectangles[0], r_icon[4][-1], badge, labels, glow
 
     panel, opacity, badge, labels, glow = draw(480, {"rank": 5, "ready": False})
@@ -89,6 +101,12 @@ def check_hud():
     for rank, letter in enumerate("-EDCBAS"):
         _, _, badge, labels, glow = draw(640, {"rank": rank, "remaining": 4})
         assert badge and (labels[-2:] == [letter, "4"] if rank else labels[-1] == "-")
+    layout = {"rowX": 172.5, "rowY": 194.5, "x": 315, "y": 187, "scale": 1.5}
+    panel, opacity, badge, labels, glow = draw(480, {"rank": 5}, cooldown=1.2, layout=layout,
+                                                charge={"visible": True, "progress": .5})
+    assert panel[:4] == (172.5, 179.5, 135, 10.5)
+    assert badge[:4] == (315, 187, 58.5, 42) and opacity == .36
+    assert labels[-3:] == ["2", "R", "A"] and not glow
 
 
 def check_ready_glow_pixels(ctx, canvas):

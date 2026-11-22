@@ -54,8 +54,8 @@ function Sprite(path, loadGraphics)
         end,
         SetFrame = function(_, name, index) assert(name == 'Idle' and index == 0) end,
         Render = function(self, pos)
-            assert(self.Scale.X == 0.55 and self.Scale.Y == 0.55)
-            icons[#icons + 1] = {self.texture, pos.X, pos.Y}
+            assert(self.Scale.X == self.Scale.Y)
+            icons[#icons + 1] = {self.texture, pos.X, pos.Y, self.Scale.X}
         end,
     }, true
 end
@@ -78,9 +78,9 @@ local player = {GetTrinket = function(_, slot) return slot == 0 and trinket or 0
 local game = {IsPaused = function() return paused end}
 hud.init(game, inventory)
 
-local function hover(index, x)
-    local b = hud.bounds(player)
-    mouse = Vector((b.x + (index - 1) * 25 + (x or 10)) / 0.35, (b.y + 10) / 0.4)
+local function hover(index, x, scale)
+    local b = hud.bounds(player, scale)
+    mouse = Vector((b.x + ((index - 1) * 25 + (x or 10)) * b.scale) / 0.35, (b.y + 10 * b.scale) / 0.4)
 end
 hud.render(player)
 assert(#rectangles == 12 and #icons == 0 and #words == 0)
@@ -113,7 +113,7 @@ slots[4] = {collectibleId = 900, icon = icon, name = 'Кровопийца', des
 rectangles, icons, words = {}, {}, {}
 hover(4)
 hud.render(player)
-assert(#icons == 1 and icons[1][1] == icon and #words >= 3)
+assert(#icons == 1 and icons[1][1] == icon and icons[1][4] == .55 and #words >= 3)
 assert(words[1][1] == 'Кровопийца' and words[#words][1] == 'X · выбросить выбранное')
 local observed = {}
 for _, word in ipairs(words) do observed[#observed + 1] = word[1] end
@@ -166,6 +166,38 @@ for _, item in ipairs(include('samira_items_data')) do
     assert(#words > 2 and table.concat(words[1], ' '):find(item.name:match('^[^ ]+'), 1, true), item.name)
 end
 slots[4] = stored
+width, height, trinket = 480, 160, 42
+for _, scale in ipairs({.75, 1.5}) do
+    local b = hud.bounds(player, scale)
+    assert(b.x == 86 and b.width == 147 * scale and b.y + b.height == height - 4)
+    left = true
+    hover(5, 23, scale)
+    hud.input(player, true, scale)
+    assert(selected == 4, 'click in a scaled slot gap changed the selection')
+    left = false
+    hud.input(player, true, scale)
+    left = true
+    hover(6, 21, scale)
+    hud.input(player, true, scale)
+    assert(selected == 6, 'click near the right edge of the scaled bag missed the slot')
+    left = false
+    hud.input(player, true, scale)
+    left = true
+    hover(4, 10, scale)
+    hud.input(player, true, scale)
+    assert(selected == 4)
+    left = false
+    hud.input(player, true, scale)
+    rectangles, icons, words = {}, {}, {}
+    hud.render(player, scale)
+    assert(#icons == 1 and icons[1][4] == .55 * scale and #words >= 3)
+    for _, r in ipairs(rectangles) do
+        assert(r[2] >= 0 and r[4] <= height and r[3] <= width)
+    end
+end
+width = 240
+local narrow = hud.bounds(player, 1.5)
+assert(narrow.width + narrow.x <= width - 4 and narrow.scale < 1.5)
 paused, xKey = true, true
 hud.input(player, true)
 paused = false

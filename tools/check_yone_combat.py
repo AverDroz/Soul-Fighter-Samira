@@ -22,7 +22,8 @@ local combat = include('yone_combat')
 function player:IsFlying() return self.CanFly == true end
 local state = combat.new()
 local props = {}
-GridEntityType = {GRID_POOP = 1, GRID_ROCK_ALT = 2, GRID_ROCK_ALT2 = 3}
+GridEntityType = {GRID_POOP = 1, GRID_ROCK_ALT = 2, GRID_ROCK_ALT2 = 3, GRID_TNT = 4}
+EntityCollisionClass = {ENTCOLL_NONE=0, ENTCOLL_PLAYEROBJECTS=2, ENTCOLL_ALL=4}
 function room:GetGridSize() return #props end
 function room:GetGridEntity(index) return props[index + 1] end
 function room:DestroyGrid(index) props[index + 1].destroyed = true end
@@ -46,16 +47,52 @@ end
 props = {poop(95, 0), poop(105, 1000)}
 assert(combat.cast(state, 'q', player, aim, 1)); combat.update(state, room, player, {}, 8)
 assert(props[1].destroyed and not props[2].destroyed, 'Q did not distinguish live poop from destroyed poop')
-props = {{Position=Vector(140, 100), CollisionClass=1, GetType=function() return GridEntityType.GRID_ROCK_ALT end}}
+local tnt = {Position=Vector(140,100), CollisionClass=1, GetType=function() return GridEntityType.GRID_TNT end,
+    Hurt=function(self, amount) self.hits=(self.hits or 0)+amount end}
+local rock = {Position=Vector(135,100), CollisionClass=1, GetType=function() return GridEntityType.GRID_ROCK_ALT end}
+props = {tnt,rock}
 state = combat.new(); state.qStacks = 2
 assert(combat.cast(state, 'q', player, aim, 20)); combat.update(state, room, player, {}, 27)
-assert(props[1].destroyed, 'Q3 did not break a destructible prop')
+assert(tnt.hits==1 and not rock.destroyed, 'Q3 must damage TNT but leave bomb-only rocks intact')
 props = {poop(155, 0)}
 player.Position = Vector(60,100); state = combat.new(); state.qStacks = 2
 wall[2 * room:GetGridWidth() + 3] = GridCollisionClass.COLLISION_WALL
 assert(combat.cast(state, 'q', player, aim, 40)); combat.update(state, room, player, {}, 47)
 assert(props[1].destroyed, 'Q3 failed to break a prop behind a solid wall')
 wall = {}; props = {}
+for _,variant in ipairs({0,1,2,3,10}) do
+    state=combat.new(); player.Position=Vector(60,100)
+    local fire=enemy(95,100,500+variant)
+    fire.Type,fire.Variant,fire.EntityCollisionClass=EntityType.ENTITY_FIREPLACE,variant,EntityCollisionClass.ENTCOLL_ALL
+    function fire:IsVulnerableEnemy() return false end
+    assert(combat.cast(state,'q',player,aim,1,room)); combat.update(state,room,player,{fire},7)
+    assert(#fire.damage==1 and state.qStacks==0, 'Q missed a fireplace or granted a stack')
+end
+state=combat.new(); player.Position=Vector(60,100)
+local object=enemy(95,100,520)
+function object:IsVulnerableEnemy() return false end
+object.EntityCollisionClass=EntityCollisionClass.ENTCOLL_PLAYEROBJECTS
+assert(combat.cast(state,'q',player,aim,1,room)); combat.update(state,room,player,{object},7)
+assert(#object.damage==1 and state.qStacks==0, 'Q missed a tear-collidable NPC')
+state=combat.new(); state.qStacks=2; player.Position=Vector(60,100)
+state.spirit={anchor=Vector(60,100),face=Vector(1,0),untilFrame=150,recastAt=1,marks={}}
+local prop=enemy(120,100,522)
+function prop:IsVulnerableEnemy() return false end
+prop.EntityCollisionClass=EntityCollisionClass.ENTCOLL_ALL
+assert(combat.cast(state,'q',player,aim,1,room)); combat.update(state,room,player,{prop},8)
+assert(#prop.damage==1 and next(state.spirit.marks)==nil and state.qStacks==0,
+    'Q3 failed to hit a prop or created a spirit mark')
+state=combat.new(); player.Position=Vector(60,100)
+local safe=enemy(95,100,521)
+function safe:IsVulnerableEnemy() return false end
+safe.EntityCollisionClass=EntityCollisionClass.ENTCOLL_NONE
+assert(combat.cast(state,'q',player,aim,1,room)); combat.update(state,room,player,{safe},7)
+assert(#safe.damage==0, 'Q hit a non-collidable object')
+state=combat.new(); player.Position=Vector(60,100)
+local friendly=enemy(95,100,523); friendly.friendly=true
+friendly.EntityCollisionClass=EntityCollisionClass.ENTCOLL_ALL
+assert(combat.cast(state,'q',player,aim,1,room)); combat.update(state,room,player,{friendly},7)
+assert(#friendly.damage==0, 'Q hit a friendly entity')
 player.Position = Vector(60,100); state = combat.new(); state.qStacks, state.qExpires = 2, 52
 local q3Edge = enemy(160, 100, 6)
 assert(combat.cast(state, 'q', player, aim, 50) == 'q3')
@@ -84,6 +121,8 @@ local qfx = combat.visual(state, 50).fx
 assert(#qfx[#qfx].contacts == 1 and qfx[#qfx].contacts[1].X == 96, 'Q contact incorrect')
 cast('q', 80); resolve(90)
 assert(state.qStacks == 2, 'second Q did not stack')
+assert(math.abs(combat.visual(state,90).qRemaining - 1)<.0001, 'Q3 timer is not full on the second hit')
+assert(math.abs(combat.visual(state,180).qRemaining - .5)<.0001, 'Q3 timer did not count down')
 wall[2 * room:GetGridWidth() + 3] = GridCollisionClass.COLLISION_WALL
 cast('q', 120); resolve(130)
 assert(state.qStacks == 0 and player.Position.X > 60 and player.Position.X < 120,
@@ -102,7 +141,12 @@ assert(combat.absorb(state, 168) and not combat.absorb(state, 169), 'W shield mu
 state = combat.new()
 entities = {}
 cast('w', 1); resolve(20)
+assert(state.ready.w==181, 'W cooldown must be 180 frames')
 assert(not combat.absorb(state, 21), 'W miss granted a shield')
+local wBase
+local hasteState=combat.new({cooldown=function(_, key, base) wBase=base; return base/2 end})
+assert(combat.cast(hasteState,'w',player,aim,1,room) and wBase==180 and hasteState.ready.w==91,
+    'W haste must apply to the six-second base cooldown')
 cast('q', 21); resolve(31)
 assert(state.qStacks == 0, 'Q miss granted a stack')
 local miss = combat.visual(state, 31).fx
@@ -121,34 +165,50 @@ assert(#combat.visual(state, 9).fx[1].contacts == 24 and #entities[30].damage ==
 
 state = combat.new()
 player.Position = Vector(60,100)
-front = enemy(142, 100, 9)
+front = enemy(170, 100, 9)
 entities = {front}
 cast('e', 1); resolve(7)
-assert(state.spirit and player.Position.X > 60)
+assert(state.spirit and math.abs(player.Position.X - 144)<.01, 'E must move 84 units in open space')
 local returnPreview = combat.footprint(state, player, 'e', aim)
 assert(returnPreview.facing.X < 0 and returnPreview.reach == player.Position.X - 60)
 local visual = combat.visual(state, 7)
 assert(visual.spirit.anchor.X == 60 and visual.spirit.face.X == 1)
 assert(visual.fx[1].kind == 'e' and visual.fx[1].target.X == player.Position.X)
 cast('attack', 10); resolve(18)
-front.Position = Vector(145, 105)
+front.Position = Vector(175, 105)
 visual = combat.visual(state, 18)
-assert(#visual.spirit.marks == 1 and visual.spirit.marks[1].position.X == 145)
+assert(#visual.spirit.marks == 1 and visual.spirit.marks[1].position.X == 175)
 assert(math.abs(visual.spirit.marks[1].amount - front.damage[1] * .3) < .0001)
 assert(visual.spirit.marks[1].lethal == false)
 front.HitPoints = visual.spirit.marks[1].amount
 assert(combat.visual(state, 18).spirit.marks[1].lethal == true)
 front.HitPoints = 100
+local recallCollision = player.GridCollisionClass
 cast('e', 20); resolve(21)
-assert(player.Position.X == 60 and not state.spirit and #front.damage == 2)
-assert(math.abs(front.damage[2] - front.damage[1] * .3) < .0001)
+assert(player.Position.X == 144 and state.returning and not state.spirit and #front.damage == 1,
+    'E recast teleported or paid the mark before travel')
 visual = combat.visual(state, 21)
 local recall = visual.fx[#visual.fx]
-assert(not visual.spirit and recall.kind == 'e_return' and recall.target.X == 60)
+assert(visual.spirit.returning and visual.spirit.remaining == 0 and recall.kind == 'e_return'
+    and recall.target.X == 60 and recall.travel == 8)
 assert(recall.origin.X > recall.target.X and recall.id > visual.fx[1].id)
-assert(#recall.contacts == 1 and recall.contacts[1].X == 145 and recall.contacts[1].Y == 105
-    and recall.bodyFace.X == 1 and recall.bodyRemaining > 0, 'return contact/body snapshot incorrect')
+assert(#recall.contacts == 0 and recall.bodyFace.X == 1 and recall.bodyRemaining > 0)
 assert(not combat.cast(state, 'e', player, aim, 22), 'E recast bypassed cooldown')
+local recallObstacle = room:GetGridIndex(Vector(102,100))
+wall[recallObstacle] = GridCollisionClass.COLLISION_WALL - 1
+resolve(25)
+assert(player.Position.X == 102 and combat.invulnerable(state, 25)
+    and player.GridCollisionClass == EntityGridCollisionClass.GRIDCOLL_NONE,
+    'E return did not travel through the obstacle while protected')
+resolve(29)
+assert(player.Position.X == 60 and not state.returning and not combat.invulnerable(state, 29)
+    and player.GridCollisionClass == recallCollision and #front.damage == 2)
+assert(math.abs(front.damage[2] - front.damage[1] * .3) < .0001)
+local echo = combat.visual(state, 29).fx
+echo = echo[#echo]
+assert(echo.kind == 'e_echo' and #echo.contacts == 1 and echo.contacts[1].X == 175 and echo.contacts[1].Y == 105,
+    'E lost the detonation contact on arrival')
+wall[recallObstacle] = nil
 
 state = combat.new()
 cast('e', 60); resolve(66); cast('attack', 71); resolve(79)
@@ -167,6 +227,8 @@ front = enemy(96,100,13)
 entities = {front}
 cast('e', 1); resolve(4)
 cast('q', 151); resolve(154); resolve(157)
+assert(state.returning and #front.damage == 0, 'a windup hit during E recall')
+resolve(162)
 assert(player.Position.X == 60 and #front.damage == 0, 'a windup hit from the E anchor after recall')
 
 state = combat.new()
@@ -234,11 +296,13 @@ assert(state.spirit and combat.presentation(state, 154) == 'r', 'E timeout inter
 resolve(168)
 assert(state.spirit and player.Position.X > 60, 'E returned before R recovery')
 resolve(185)
-assert(not state.spirit and player.Position.X == 60, 'E did not return after R recovery')
+assert(not state.spirit and state.returning and player.Position.X > 60, 'E did not start returning after R recovery')
+resolve(193)
+assert(not state.returning and player.Position.X == 60, 'E did not reach the body after R')
 
 state = combat.new()
 player.Position = Vector(60,100)
-front = enemy(142,100,14)
+front = enemy(170,100,14)
 entities = {front}
 function front:TakeDamage(value, _, source)
     self.damage[#self.damage+1] = value
@@ -294,8 +358,14 @@ props = {poop(145, 0)}
 wall[2 * room:GetGridWidth() + 3] = GridCollisionClass.COLLISION_WALL
 cast('q', 1); resolve(7); assert(props[1].destroyed, 'Q did not break poop behind wall')
 wall = {}; props = {}
-state = combat.new(); player.Position = Vector(60,100); player.MaxFireDelay = 9
-cast('q', 1); assert(state.ready.q == 31, 'base Q cooldown must be 30 frames')
+state = combat.new(); player.Position = Vector(60,100); player.MaxFireDelay = 9; player.TearRange = 260
+cast('q', 1); assert(state.ready.q == 31 and combat.activeFootprint(state, player).reach==124,
+    'base Q cooldown or footprint range incorrect')
+state = combat.new(); state.qStacks = 2; player.Position = Vector(60,100)
+local waveTarget = enemy(267, 100, 377)
+entities = {waveTarget}
+cast('q', 1); assert(combat.activeFootprint(state, player).reach == 212); resolve(8)
+assert(#waveTarget.damage == 1 and player.Position.X == 216, 'the Q3 whirlwind fell short of its preview')
 state = combat.new(); player.MaxFireDelay = 4
 cast('q', 1); assert(state.ready.q == 13, 'bonus attack speed did not reduce Q cooldown')
 state = combat.new(); player.MaxFireDelay = 0
@@ -319,7 +389,7 @@ assert(#entities[1].damage == 0 and combat.visual(state, 7).fx[1].target.X == 12
 room.IsPositionInRoom = baseInside
 state = combat.new(); state.qStacks = 2; player.Position = Vector(60,100); entities = {}
 cast('q', 1); resolve(8)
-assert(player.Position.X >= 180, 'Q3 dash did not reach its extended distance')
+assert(math.abs(player.Position.X - 216)<.01, 'Q3 dash must travel 156 units in open space')
 assert(combat.q3Invulnerable(state, 8) and combat.q3Invulnerable(state, 12)
     and not combat.q3Invulnerable(state, 13), 'Q3 dash immunity timing incorrect')
 combat.resetRoom(state, 9)

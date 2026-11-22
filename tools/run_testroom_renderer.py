@@ -103,6 +103,10 @@ def yone_animation(state,durations):
             return yone_movement_animation(state, durations)
         if clip == 'e_return' and durations.get('e_return_out'):
             travel = YONE_DASH_TICKS['e_return']
+            if isinstance(timing, dict):
+                reported = timing.get('travel')
+                if type(reported) is int and 0 < reported < length:
+                    travel = reported
             if tick < travel:
                 return 'e_return', tick / travel
             return 'e_return_out', min(1., (tick - travel) / (30 * durations['e_return_out']))
@@ -138,6 +142,9 @@ def yone_dash_position(state, event):
     kind = state['kind']
     ticks = YONE_DASH_TICKS.get(kind)
     if not ticks or event.get('kind') != kind:
+        return None
+    if kind == 'e_return' and type(event.get('travel')) is int:
+        # Lua supplies the actual position throughout a timed recall.
         return None
     age = event.get('age')
     start = event.get('origin')
@@ -205,7 +212,7 @@ class YoneRenderer:
             try:
                 spirit=self.vfx.begin(state)
                 body=spirit
-                if recalling:
+                if recalling and not body:
                     body={'anchor':event['target'],'face':state['face'],
                           'viewFace':event.get('bodyFace'),'remaining':event.get('bodyRemaining',1)}
                 if body and self.actor and 'e_body' in self.actor.model.tracks:
@@ -215,7 +222,7 @@ class YoneRenderer:
                     scale=state.get('bodyScale',(1,1))
                     yaw=actor_yaw({'face':body['face'],'viewFace':body.get('viewFace'),'bodyScale':scale},YONE_VIEW)
                     self.actor.draw('e_body',phase,tuple(body['anchor']),tuple(state['screen']),yaw,dt,
-                                    clip='e_body',detached=True,form='body',opacity=.46+.43*remaining,
+                                    clip='e_body',detached=True,form='body',opacity=self.vfx.body_opacity(remaining),
                                     body_scale=scale,anchor_root=True)
             except Exception as error:
                 self.disable_vfx(error);spirit=None

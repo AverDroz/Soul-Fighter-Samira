@@ -99,6 +99,10 @@ function Weapons.isChargeWeapon(p)
     return weapon and weapon:GetMaxCharge() > 0
 end
 
+function Weapons.hasPendingQ(p)
+    return request ~= nil and same(request.player, p)
+end
+
 function Weapons.trackCursor(p, point)
     if request and same(request.player, p) and not request.pulse and game:GetFrameCount() > request.releaseAt
         and Weapons.isChargeWeapon(p) then

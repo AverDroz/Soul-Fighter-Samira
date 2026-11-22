@@ -1,0 +1,18 @@
+{
+  "source": "Riot Games League of Legends, classic Yone",
+  "archive": "Champions/Yone.wad.client",
+  "archive_sha256": "ae472b1d8a13b6cfc907b0b08a2e7831eef633056103ac81c1797be51a3b2de9",
+  "event": "Play_sfx_Yone_YoneE_warning_cast",
+  "event_id": 642766773,
+  "banks": {
+    "ASSETS/Sounds/Wwise2016/SFX/Characters/Yone/Skins/Base/Yone_Base_SFX_events.bnk": "85862cb6095b9c0412be011be4eb567ed380694eaacc424ac00fb1a757a38934",
+    "ASSETS/Sounds/Wwise2016/SFX/Characters/Yone/Skins/Base/Yone_Base_SFX_audio.bnk": "e3f5f4e8334d3779355fb861a9fa8bba284194b4e52a6610bdfc10724169caf5"
+  },
+  "wem_id": 583951821,
+  "bank_stream_index": 45,
+  "conversion": "wwiser v20260808 and vgmstream r2168, downmixed to mono PCM16 WAV at 44100 Hz with FFmpeg",
+  "native_sound": "Yone E Warning",
+  "relative_to_mod": "resources/sfx/samira-items/yone_e_warning.wav",
+  "duration_seconds": 3.259320,
+  "output_sha256": "d669fc3ea723eca596e118a189565fe09d91679584aa616c316f3f6e801910ac"
+}

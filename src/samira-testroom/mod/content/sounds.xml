@@ -8,4 +8,7 @@
   <sound name="Yone Mastery">
     <sample weight="1" path="mastery.wav"/>
   </sound>
+  <sound name="Yone E Warning">
+    <sample weight="1" path="yone_e_warning.wav"/>
+  </sound>
 </sounds>

@@ -21,12 +21,15 @@ lua = LuaRuntime()
 lua.globals().itemsSource = (MOD / 'samira_items.lua').read_text(encoding='utf8')
 lua.globals().catalogSource = (MOD / 'samira_items_data.lua').read_text(encoding='utf8')
 lua.globals().styleSource = (MOD / 'samira_style.lua').read_text(encoding='utf8')
+lua.globals().yoneCombatSource = (MOD / 'yone_combat.lua').read_text(encoding='utf8')
+lua.globals().yoneArtifactsSource = (MOD / 'yone_artifacts.lua').read_text(encoding='utf8')
 lua.execute(r'''
 local catalog = assert(load(catalogSource))()
 local Style = assert(load(styleSource))()
 function include(name)
-    assert(name == 'samira_items_data')
-    return catalog
+    if name == 'samira_items_data' then return catalog end
+    assert(name == 'yone_artifacts')
+    return assert(load(yoneArtifactsSource))()
 end
 package.loaded.json = {encode = function(t) return t end, decode = function(t) return t end}
 local callbacks, save, clock, index, floor, clear, list = {}, nil, 0, 1, 1, false, {}
@@ -39,6 +42,7 @@ CacheFlag = {CACHE_DAMAGE = 1, CACHE_FIREDELAY = 2, CACHE_SPEED = 4, CACHE_SIZE 
 EntityFlag = {FLAG_FRIENDLY = 1, FLAG_SLOW = 2}
 ProjectileFlags = {CANT_HIT_PLAYER = 1}
 EntityPartition = {ENEMY = 1, BULLET = 2}
+GridCollisionClass = {COLLISION_NONE = 0}
 TearFlags = {TEAR_SPECTRAL = 1}
 TearVariant, EntityCollisionClass, EntityGridCollisionClass = {BLUE = 0}, {ENTCOLL_NONE = 0}, {GRIDCOLL_NONE = 0}
 DamageFlag = {DAMAGE_POISON_BURN = 1, DAMAGE_IV_BAG = 2, DAMAGE_EXPLOSION = 4, DAMAGE_LASER = 8, DAMAGE_SPIKES = 16}
@@ -56,7 +60,8 @@ RNG = function()
 end
 local vec = {}
 vec.__index = vec
-function Vector(x, y) return setmetatable({X = x, Y = y}, vec) end
+Vector = setmetatable({}, {__call = function(_, x, y) return setmetatable({X = x, Y = y}, vec) end})
+Vector.Zero = Vector(0, 0)
 function vec.__add(a,b) return Vector(a.X+b.X,a.Y+b.Y) end
 function vec.__sub(a,b) return Vector(a.X-b.X,a.Y-b.Y) end
 function vec.__mul(a,b) return Vector(a.X*b,a.Y*b) end
@@ -409,6 +414,77 @@ fire('MC_PRE_GAME_EXIT', true)
 fire('MC_POST_GAME_STARTED', true)
 step(60)
 close(hit(target, 'attack'), p.Damage, 'Heartsteel cooldown survives continue')
+
+-- Both the first target and the item damage hooks are selected by the real
+-- Yone combat module. The second target is listed first to catch ordering bugs.
+local yoneCombat = assert(load(yoneCombatSource))()
+local openRoom = {
+    CheckLine = function() return true end, IsPositionInRoom = function() return true end,
+    GetGridSize = function() return 0 end, GetGridIndex = function() return 0 end,
+    GetGridCollision = function() return GridCollisionClass.COLLISION_NONE end,
+}
+start({}, 6, 6)
+p.yone = true
+assert(Items.heartsteelTargets() == nil, 'charge displayed without owning Heartsteel')
+p.owned[3084] = 1
+local fight = yoneCombat.new(Items)
+local function strike(key, windup, clip)
+    assert(yoneCombat.cast(fight, key, p, Vector(160, 0), clock, openRoom) == (clip or key))
+    step(windup)
+    yoneCombat.update(fight, openRoom, p, list, clock)
+end
+local function charge(entity)
+    for _, targetStatus in ipairs(Items.heartsteelTargets()) do
+        if targetStatus.position == entity.Position then return targetStatus.fraction end
+    end
+end
+local second = enemy(302, 60, 0)
+local first = enemy(301, 25, 0)
+step(30)
+close(charge(first), .5, 'nearby target displays a partially charged strike')
+assert(sounds == 0)
+step(30)
+close(charge(first), 1, 'nearby target displays a full charge')
+strike('attack', 4)
+close(first.hits[1], p.Damage * 1.5, 'Yone basic attack procs Heartsteel')
+assert(sounds == 1 and #second.hits == 0 and not charge(first))
+strike('q', 6)
+close(second.hits[1], p.Damage * 1.4, 'a charged second target cannot proc Heartsteel')
+assert(sounds == 1 and charge(second) == 1)
+first.Position = Vector(25, 90)
+local third = enemy(303, 70, 0)
+step(60)
+strike('q', 6)
+close(second.hits[2], p.Damage * 1.4 * 1.5, 'Yone Q procs Heartsteel on its first target')
+close(third.hits[1], p.Damage * 1.4, 'Yone Q does not proc Heartsteel twice')
+assert(sounds == 2)
+second.Position = Vector(60, 90)
+step(30)
+fight.qStacks = 2
+strike('q', 7, 'q3')
+close(third.hits[2], p.Damage * 1.6 * 1.5, 'Yone Q3 procs Heartsteel')
+assert(sounds == 3)
+p.Position = Vector(0, 0)
+local fourth = enemy(304, 25, 0)
+step(60)
+strike('w', 8)
+close(fourth.hits[1], p.Damage * 1.15, 'Yone W cannot consume a charge')
+assert(sounds == 3 and charge(fourth) == 1)
+fourth.cancelled = true
+strike('q', 6)
+assert(sounds == 3 and p:GetMaxHearts() == 6 and charge(fourth) == 1, 'cancelled hit spent the Heartsteel charge')
+fourth.cancelled = false
+strike('attack', 4)
+assert(sounds == 4 and p:GetMaxHearts() == 7 and p:GetHearts() == 7, 'four unique procs did not grant the half-heart')
+fire('MC_PRE_GAME_EXIT', true)
+assert(save.heartsteel == 1 and save.heartsteelPairs == 0)
+fire('MC_POST_GAME_STARTED', true)
+step(60)
+close(hit(fourth, 'attack'), p.Damage, 'Yone Heartsteel cooldown survives continue')
+step(300)
+close(hit(fourth, 'attack'), p.Damage * 1.5, 'Yone Heartsteel can damage a target again after recharging')
+fire('MC_PRE_GAME_EXIT', true)
+assert(sounds == 5 and save.heartsteel == 1 and save.heartsteelPairs == 0, 'a repeat proc counted as a new target')
 
 start({6697, 3083, 2520}, 6, 10)
 foe = enemy(3)

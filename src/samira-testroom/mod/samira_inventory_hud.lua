@@ -19,14 +19,18 @@ function InventoryHUD.init(ownerGame, items)
     clickDown, dropDown = false, false
 end
 
-function InventoryHUD.bounds(player)
+function InventoryHUD.bounds(player, scale)
     local offset = math.floor((Options.HUDOffset or 0) * 16 + 0.5)
     local trinkets = player and (player:GetTrinket(0) ~= 0 or player:GetTrinket(1) ~= 0)
+    local x = (trinkets and 70 or 6) + offset
+    local width, height = Isaac.GetScreenWidth(), math.floor(Isaac.GetScreenHeight())
+    scale = math.min(scale or 1, (width - x - 4) / WIDTH, (height - 8) / SLOT_SIZE)
     return {
-        x = (trinkets and 70 or 6) + offset,
-        y = math.floor(Isaac.GetScreenHeight()) - SLOT_SIZE - 4,
-        width = WIDTH,
-        height = SLOT_SIZE,
+        x = x,
+        y = height - SLOT_SIZE * scale - 4,
+        width = WIDTH * scale,
+        height = SLOT_SIZE * scale,
+        scale = scale,
     }
 end
 
@@ -42,18 +46,18 @@ local function hoveredSlot(bounds)
     local cursor = mousePosition()
     local localX, localY = cursor.X - bounds.x, cursor.Y - bounds.y
     if localX < 0 or localX >= bounds.width or localY < 0 or localY >= bounds.height then return nil end
-    local step = SLOT_SIZE + SLOT_GAP
-    if localX % step < SLOT_SIZE then return math.floor(localX / step) + 1 end
+    local step = (SLOT_SIZE + SLOT_GAP) * bounds.scale
+    if localX % step < bounds.height then return math.floor(localX / step) + 1 end
 end
 
-function InventoryHUD.input(player, actionable)
+function InventoryHUD.input(player, actionable, scale)
     local click = Input.IsMouseBtnPressed(0)
     local drop = Input.IsButtonPressed(Keyboard.KEY_X, 0)
     local pressedClick, pressedDrop = click and not clickDown, drop and not dropDown
     clickDown, dropDown = click, drop
     if not player or actionable == false or game:IsPaused() then return end
     if pressedClick then
-        local slot = hoveredSlot(InventoryHUD.bounds(player))
+        local slot = hoveredSlot(InventoryHUD.bounds(player, scale))
         if slot then inventory.select(slot) end
     end
     if pressedDrop then inventory.drop(player, inventory.selected()) end
@@ -77,14 +81,14 @@ local function fill(x, y, width, height, color)
     Isaac.DrawLine(Vector(x, middle), Vector(x + width, middle), color, color, height)
 end
 
-local function draw(message, x, y, color)
-    font:DrawStringScaledUTF8(message, x, y, TEXT_SCALE, TEXT_SCALE, color, 0, false)
+local function draw(message, x, y, scale, color)
+    font:DrawStringScaledUTF8(message, x, y, TEXT_SCALE * scale, TEXT_SCALE * scale, color, 0, false)
 end
 
 local function tooltip(item, bounds, dropHintVisible, full)
     local layout = tooltipLayouts[item]
     if not layout then
-        local width = (bounds.width - 12) / TEXT_SCALE
+        local width = (WIDTH - 12) / TEXT_SCALE
         local title = Description.wrap(font, item.name, width)
         local stats, body = Description.lines(font, item, width)
         layout = {
@@ -94,15 +98,19 @@ local function tooltip(item, bounds, dropHintVisible, full)
         }
         tooltipLayouts[item] = layout
     end
-    local height = full and layout.height or layout.compactHeight
-    local y = bounds.y - height - 5 - (dropHintVisible and 16 or 0)
+    local baseHeight = full and layout.height or layout.compactHeight
+    local bottom = bounds.y - (dropHintVisible and 21 or 5) * bounds.scale
+    local scale = math.min(bounds.scale, math.max(0, bottom - 2) / baseHeight)
+    if scale <= 0 then return end
+    local height = baseHeight * scale
+    local y = bottom - height
     fill(bounds.x, y, bounds.width, height, colors.paper)
-    y = y + 4
+    y = y + 4 * scale
     for index = 1, full and 3 or 2 do
         local group = layout.groups[index]
         for _, line in ipairs(group[1]) do
-            draw(line, bounds.x + 6, y, group[2])
-            y = y + LINE_HEIGHT
+            draw(line, bounds.x + 6 * scale, y, scale, group[2])
+            y = y + LINE_HEIGHT * scale
         end
     end
 end
@@ -128,18 +136,19 @@ function InventoryHUD.statsSummary(player)
         .. '\n\n' .. table.concat(rows, '\n\n')
 end
 
-function InventoryHUD.render(player)
+function InventoryHUD.render(player, requestedScale)
     setupColors()
-    local bounds = InventoryHUD.bounds(player)
+    local bounds = InventoryHUD.bounds(player, requestedScale)
+    local scale, size = bounds.scale, bounds.height
     local slots, selected = inventory.slots(player), inventory.selected()
     local hover = hoveredSlot(bounds)
     for i = 1, SLOT_COUNT do
-        local x = bounds.x + (i - 1) * (SLOT_SIZE + SLOT_GAP)
+        local x = bounds.x + (i - 1) * (SLOT_SIZE + SLOT_GAP) * scale
         local border = i == selected and colors.selected or i == hover and colors.hover or colors.rim
-        fill(x, bounds.y, SLOT_SIZE, SLOT_SIZE, border)
-        fill(x + 1, bounds.y + 1, SLOT_SIZE - 2, SLOT_SIZE - 2, colors.paper)
+        fill(x, bounds.y, size, size, border)
+        fill(x + scale, bounds.y + scale, size - 2 * scale, size - 2 * scale, colors.paper)
         if slots[i] then
-            ItemIcons.render(slots[i].icon, Vector(x + SLOT_SIZE / 2, bounds.y + SLOT_SIZE / 2), 0.55)
+            ItemIcons.render(slots[i].icon, Vector(x + size / 2, bounds.y + size / 2), 0.55 * scale)
         end
     end
 
@@ -156,10 +165,10 @@ function InventoryHUD.render(player)
     end
     if dropHintVisible then
         local hint = 'X · выбросить выбранное'
-        local width = math.ceil(font:GetStringWidthUTF8(hint) * TEXT_SCALE) + 12
+        local width = (math.ceil(font:GetStringWidthUTF8(hint) * TEXT_SCALE) + 12) * scale
         local x = bounds.x
-        fill(x, bounds.y - 17, width, 14, colors.paper)
-        draw(hint, x + 6, bounds.y - 16, colors.muted)
+        fill(x, bounds.y - 17 * scale, width, 14 * scale, colors.paper)
+        draw(hint, x + 6 * scale, bounds.y - 16 * scale, scale, colors.muted)
     end
 end
 

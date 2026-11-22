@@ -63,7 +63,6 @@ local moveActions = {
 local blockedActions = {
     [ButtonAction.ACTION_SHOOTLEFT] = true, [ButtonAction.ACTION_SHOOTRIGHT] = true,
     [ButtonAction.ACTION_SHOOTUP] = true, [ButtonAction.ACTION_SHOOTDOWN] = true,
-    [ButtonAction.ACTION_RESTART] = true,
 }
 local reboundActions = {[ButtonAction.ACTION_BOMB] = Keyboard.KEY_G, [ButtonAction.ACTION_PILLCARD] = Keyboard.KEY_4}
 
@@ -126,6 +125,19 @@ end
 
 local function itemPlayer()
     return player() or Yone.player(game)
+end
+
+local restartForPress
+local function readR()
+    if not Input.IsButtonPressed(Keyboard.KEY_R, 0) then
+        restartForPress = nil
+        return
+    end
+    local shift = Input.IsButtonPressed(Keyboard.KEY_LEFT_SHIFT, 0)
+        or Input.IsButtonPressed(Keyboard.KEY_RIGHT_SHIFT, 0)
+    -- Keep the action selected at key-down even if Shift is released first.
+    if restartForPress == nil then restartForPress = shift end
+    return not restartForPress, restartForPress and shift
 end
 
 local function transition()
@@ -216,6 +228,7 @@ local function emit(force)
     local renderFace = walkFace or face
     local x, fx = position.X, renderFace.X
     if game:GetRoom():IsMirrorWorld() then x, fx = width - x, -fx end
+    local scale = ControlsSettings.hudScale()
 
     packet({
         version = 1, companionProtocol = 1, active = true, preview = false,
@@ -228,6 +241,7 @@ local function emit(force)
         hurt = clock < (hurtUntil or 0),
         nativeCursor = Options.MouseControl == true,
         sfxVolume = Options.SFXVolume,
+        styleHudLayout = not hidden and StyleHUD.bounds(scale, InventoryHUD.bounds(p, scale)) or nil,
         visual = not hidden and Combat.visual(game:GetRoom(), clock, sequence) or nil,
     })
 end
@@ -287,17 +301,29 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
     local p = player()
     local owner = p or Yone.player(game)
     local actionable = p and canControl(p) or not p and owner and Yone.canUseItems(owner) or false
-    InventoryHUD.input(owner, actionable)
-    if p then Combat.sampleInput(game:GetRoom(), game:GetFrameCount(), actionable) end
+    local scale = ControlsSettings.hudScale()
+    InventoryHUD.input(owner, actionable, scale)
+    if p then Combat.sampleInput(game:GetRoom(), game:GetFrameCount(), actionable, readR() == true) end
     if actionable then
-        InventoryHUD.render(owner)
-        ItemRoom.render(owner, InventoryHUD.bounds(owner), p and StyleHUD.bounds())
-    end
-    if p and actionable then
-        StyleHUD.render(p, Combat.styleStatus(game:GetFrameCount()),
-            ackStyleHud and ackAt and Isaac.GetTime() - ackAt < leaseMs)
+        local backpack = InventoryHUD.bounds(owner, scale)
+        local style = p and StyleHUD.bounds(scale, backpack)
+        InventoryHUD.render(owner, scale)
+        ItemRoom.render(owner, backpack, style)
+        if p then
+            StyleHUD.render(p, Combat.styleStatus(game:GetFrameCount()),
+                ackStyleHud and ackAt and Isaac.GetTime() - ackAt < leaseMs, style)
+        end
     end
     if active then emit(false) end
+end)
+
+mod:AddPriorityCallback(ModCallbacks.MC_INPUT_ACTION, CallbackPriority.EARLY, function(_, _, hook, action)
+    if action ~= ButtonAction.ACTION_RESTART or not itemPlayer() then return end
+    local ultimate, restart = readR()
+    if ultimate == nil then return end
+    if hook == InputHook.GET_ACTION_VALUE then return restart and 1 or 0 end
+    if hook == InputHook.IS_ACTION_TRIGGERED then return restart and Input.IsButtonTriggered(Keyboard.KEY_R, 0) end
+    if hook == InputHook.IS_ACTION_PRESSED then return restart end
 end)
 
 mod:AddCallback(ModCallbacks.MC_INPUT_ACTION, function(_, entity, hook, action)
@@ -352,7 +378,7 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, function()
     Combat.syncCooldownClock(clock)
     Items.applyCooldownCheckpoint(clock)
     local actionable = canControl(p)
-    Combat.sampleInput(game:GetRoom(), clock, actionable)
+    Combat.sampleInput(game:GetRoom(), clock, actionable, readR() == true)
     if not actionable then
         Combat.finishWalkTick(p, game:GetRoom(), true)
         Weapons.update(p, clock, nil, false)
@@ -428,7 +454,7 @@ mod:AddCallback(ModCallbacks.MC_POST_NIGHTMARE_SCENE_RENDER, hideDuringCinematic
 
 -- Register item damage hooks after the dash guard so a protected dash never
 -- spends an item shield. Items stay native collectibles in the run inventory.
-ControlsSettings.init(mod, Combat, player, InventoryHUD.statsSummary)
+ControlsSettings.init(mod, Combat, itemPlayer, InventoryHUD.statsSummary)
 Items.init(mod, game, itemPlayer, ControlsSettings.attachToSave, Yone)
 Inventory.init(mod, game, itemPlayer, Items)
 InventoryHUD.init(game, Inventory)
@@ -448,4 +474,4 @@ mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, function(_, continued)
     if Yone.is(Isaac.GetPlayer(0)) then return end
     if Character.player(game) or continued and Items.isEnabled and Items.isEnabled() then start(continued) end
 end)
-Yone.init(mod, game, Items, Inventory, InventoryHUD.bounds, Display)
+Yone.init(mod, game, Items, Inventory, InventoryHUD.bounds, Display, ControlsSettings.hudScale, readR)

@@ -11,7 +11,7 @@ WIND = (.40, .85, .98)
 IVORY = (.91, .98, 1.)
 SHADE = (.10, .025, .09)
 DURATIONS = {'attack': .22, 'attack2': .22, 'q': .27, 'q3': .47, 'w': .38,
-             'e': .36, 'e_return': .42, 'r': .57, 'shield': .31}
+             'e': .36, 'e_return': .42, 'e_echo': .31, 'r': .57, 'shield': .31}
 
 
 def number(value):
@@ -37,6 +37,10 @@ def offset(origin, face, along, across):
     x, y = origin
     dx, dy = face
     return x + dx * along - dy * across, y + dy * along + dx * across
+
+
+def countdown_pulse(remaining):
+    return max(0., 1 - 4 * remaining) * (.5 - .5 * math.cos(10 * math.tau * remaining))
 
 
 class YoneVFX:
@@ -69,17 +73,28 @@ class YoneVFX:
         if state.get('kind') == 'r' and number(state.get('phase')) and 0 <= state['phase'] < 23 / 40:
             self.anticipation(state['phase'] / (23 / 40))
         if self.payload.get('qReady') is True:
-            x, y = self.position
-            turn = self.clock * 2.7
-            for side in (0, math.pi):
-                arc = ellipse((x, y - 9), (17, 9), turn + side, turn + side + 1.85, 12)
-                self.ribbon(arc, 2.6, WIND, .55)
-                self.ribbon(arc, .8, IVORY, .8)
+            self.gathering_storm()
         if self.payload.get('shield') is True:
             x, y = self.position
             self.shield((x, y - 12), 0, .51 + .09 * math.sin(self.clock * 6))
         self.canvas.flush()
         return self.spirit
+
+    def gathering_storm(self):
+        x, y = self.position
+        remaining = self.payload.get('qRemaining', 1.)
+        opacity = .82 if not number(remaining) else .69 + .16 * min(1., max(0., remaining))
+        turn = self.clock * 4.1
+        for height, radius, phase in ((4, 26, 0.), (17, 22, math.pi)):
+            arc = ellipse((x, y - height), (radius, 8), turn + phase, turn + phase + 2.55, 15)
+            self.ribbon(arc, 4.0, WIND, opacity)
+            self.ribbon(arc, 1.1, IVORY, opacity)
+        for i in range(4):
+            lift = (self.clock * 1.25 + i * .25) % 1.
+            theta = turn + i * math.pi / 2
+            head = x + 24 * math.cos(theta), y - 4 - 25 * lift + 5 * math.sin(theta)
+            tail = head[0] - math.sin(theta) * 3, head[1] + 5
+            self.canvas.line(tail, head, 1.4, (*WIND, opacity * math.sin(math.pi * lift)))
 
     def finish(self):
         if not self.payload:
@@ -125,11 +140,7 @@ class YoneVFX:
     def tether(self, spirit):
         x, y = spirit['anchor']
         remaining = spirit['remaining']
-        pulse = (.72 + .20 * math.sin(self.clock * (8.5 if remaining < .25 else 4.5)))
-        outer = ellipse((x, y + 1), (13, 5.4))
-        self.ribbon(outer, 4.0, RUBY, .9 * pulse, tapered=False)
-        self.ribbon(ellipse((x, y - 13), (11, 16)), 2.3, RUBY, .55 * pulse, tapered=False)
-        self.canvas.lines(ellipse((x, y + 1), (9.7, 3.6), end=remaining * math.tau), 1.1, (*ROSE, .9))
+        glow = .72 + .20 * math.sin(self.clock * 4.5)
         start, end = (x, y - 9), (self.position[0], self.position[1] - 8)
         if math.dist(start, end) >= 3:
             path = []
@@ -137,12 +148,23 @@ class YoneVFX:
                 t = i / 12
                 sag = math.sin(t * math.pi) * (4 + 2 * math.sin(t * 8 - self.clock * 6))
                 path.append((start[0] + (end[0] - start[0]) * t, start[1] + (end[1] - start[1]) * t + sag))
-            self.ribbon(path, 7.0, SHADE, .82 * pulse)
-            self.ribbon(path, 4.2, RUBY, .95 * pulse)
+            self.ribbon(path, 7.0, SHADE, .82 * glow)
+            self.ribbon(path, 4.2, RUBY, .95 * glow)
             self.ribbon(path, 1.5, IVORY, .88)
             for i in range(1, 5):
                 p = int((i / 5 + self.clock * .62) % 1 * 12)
                 self.canvas.line(path[p], path[p + 1], 1.3, (*ROSE, .74))
+        if remaining > 0:
+            center = (x, y + 2)
+            pulse = countdown_pulse(remaining)
+            self.canvas.lines(ellipse(center, (16, 6.4)), 1, (.55, .20, .30, .40))
+            ring = ellipse(center, (16 * remaining, 6.4 * remaining))
+            self.canvas.lines(ring, 3, (.30, .04, .09, .90))
+            self.canvas.lines(ring, 1.5, (1., .62 - .30 * pulse, .75 - .28 * pulse, .95))
+
+    @staticmethod
+    def body_opacity(remaining):
+        return (.42 + .49 * remaining) * (1 - .58 * countdown_pulse(remaining))
 
     def mark(self, position, lethal):
         x, y = position[0], position[1] - 24
@@ -209,6 +231,9 @@ class YoneVFX:
             if kind == 'e_return':
                 for contact in contacts:
                     self.contact_burst(contact, progress, alpha, seed)
+        elif kind == 'e_echo':
+            for contact in contacts:
+                self.contact_burst(contact, progress, alpha, seed)
         else:
             self.strike(start, face, length, kind, progress, alpha)
 
