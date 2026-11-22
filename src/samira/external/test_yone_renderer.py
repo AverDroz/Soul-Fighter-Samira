@@ -116,6 +116,63 @@ class YoneRendererTests(unittest.TestCase):
         self.assertGreater(float(spirit[:, :, 2].mean()), float(normal[:, :, 2].mean()) + 5)
         self.assertEqual(self.ctx.error, 'GL_NO_ERROR')
 
+    def test_expired_spirit_stays_visible_until_authoritative_recall(self):
+        from run_testroom_renderer import YoneRenderer
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'yone.glb'
+            write_rig(path)
+            renderer = YoneRenderer(self.ctx, path)
+        self.addCleanup(renderer.close)
+        state = {'kind': 'r', 'phase': .8, 'screen': [160, 160], 'position': [100, 115],
+                 'face': [1, 0], 'clock': 120,
+                 'yone': {'spirit': {'anchor': [35, 115], 'face': [1, 0], 'remaining': 0}}}
+        with patch.object(renderer.actor, 'draw', wraps=renderer.actor.draw) as draw:
+            renderer.draw(state, 0)
+        self.assertTrue(any(call.kwargs.get('clip') == 'e_body' for call in draw.call_args_list))
+        self.assertGreater(np.count_nonzero(self.region(20, 88, 50, 117)[:, :, 3]), 20)
+        self.assertGreater(np.count_nonzero(self.region(50, 105, 85, 117)[:, :, 3]), 10)
+        self.fbo.clear(0, 0, 0, 0)
+        state['yone'] = {'fx': []}
+        with patch.object(renderer.actor, 'draw', wraps=renderer.actor.draw) as draw:
+            renderer.draw(state, 0)
+        self.assertFalse(any(call.kwargs.get('clip') == 'e_body' for call in draw.call_args_list))
+        self.assertFalse(self.region(20, 88, 50, 117).any())
+
+    def test_w_uses_projected_arc_and_old_packets_fall_back(self):
+        from run_testroom_renderer import YoneRenderer
+        renderer = YoneRenderer(self.ctx, Path('unavailable-yone.glb'))
+        self.addCleanup(renderer.close)
+        state = {'kind': 'idle', 'screen': [160, 160], 'position': [40, 100],
+                 'face': [1, 0], 'clock': 120}
+        event = {'kind': 'w', 'age': .04, 'origin': [40, 100], 'target': [95, 100]}
+        state['yone'] = {'fx': [event]}
+        renderer.draw(state, 0)
+        fallback = self.pixels().copy()
+        self.assertGreater(np.count_nonzero(fallback[:, :, 3]), 40)
+        self.fbo.clear(0, 0, 0, 0)
+        event['arc'] = [[48, 60], [100, 70], [110, 100], [100, 130], [48, 140]]
+        renderer.draw(state, 0)
+        projected = self.pixels().copy()
+        self.assertFalse(np.array_equal(fallback, projected))
+        self.assertGreater(np.count_nonzero(self.region(43, 45, 57, 62)[:, :, 3]), 0)
+        self.fbo.clear(0, 0, 0, 0)
+        event['arc'] = [[0, 0], ['invalid', 2], [0, 0]]
+        renderer.draw(state, 0)
+        np.testing.assert_array_equal(fallback, self.pixels())
+        self.assertEqual(self.ctx.error, 'GL_NO_ERROR')
+
+    def test_r_anticipation_precedes_impact_event(self):
+        from run_testroom_renderer import YoneRenderer
+        renderer = YoneRenderer(self.ctx, Path('unavailable-yone.glb'))
+        self.addCleanup(renderer.close)
+        state = {'kind': 'r', 'phase': .3, 'screen': [160, 160], 'position': [80, 100],
+                 'face': [1, 0], 'clock': 120, 'yone': {'fx': []}}
+        self.assertTrue(renderer.draw(state, 0)[1]['yoneVfx'])
+        self.assertGreater(np.count_nonzero(self.pixels()[:, :, 3]), 40)
+        self.fbo.clear(0, 0, 0, 0)
+        state['phase'] = .7
+        self.assertNotIn('yoneVfx', renderer.draw(state, 0)[1])
+
     def test_visible_impacts_follow_packet_endpoints_and_fade(self):
         from run_testroom_renderer import YoneRenderer
 
@@ -273,6 +330,20 @@ class YoneRendererTests(unittest.TestCase):
 
 
 class YoneAnimationTests(unittest.TestCase):
+    def test_ultimate_in_and_out_cover_windup_and_recovery(self):
+        from run_testroom_renderer import yone_animation
+
+        durations = {'r': 1.67, 'r_out': .27}
+        state = {'kind': 'r', 'clip': 'r', 'phase': 0}
+        self.assertEqual(yone_animation(state, durations), ('r', 0))
+        clip, phase = yone_animation(dict(state, phase=11.5/40), durations)
+        self.assertEqual(clip, 'r')
+        self.assertAlmostEqual(phase, .5)
+        self.assertEqual(yone_animation(dict(state, phase=23/40), durations), ('r_out', 0))
+        clip, phase = yone_animation(dict(state, phase=39/40), durations)
+        self.assertEqual(clip, 'r_out')
+        self.assertGreater(phase, .9)
+
     def test_dance_transitions_from_intro_and_continues_at_source_rate(self):
         from run_testroom_renderer import yone_animation
 

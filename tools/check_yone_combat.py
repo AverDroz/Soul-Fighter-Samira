@@ -19,10 +19,17 @@ def main():
     lua.execute(mock_prelude() + r"""
 start()
 local combat = include('yone_combat')
+function player:IsFlying() return self.CanFly == true end
 local state = combat.new()
+local props = {}
+GridEntityType = {GRID_POOP = 1, GRID_ROCK_ALT = 2, GRID_ROCK_ALT2 = 3}
+function room:GetGridSize() return #props end
+function room:GetGridEntity(index) return props[index + 1] end
+function room:DestroyGrid(index) props[index + 1].destroyed = true end
 local function enemy(x, y, id)
     local e = makeEntity('enemy', x, y, id)
     e.HitPoints = 100
+    function e:IsFlying() return self.flying == true end
     local takeDamage = e.TakeDamage
     function e:TakeDamage(value, ...)
         takeDamage(self, value, ...)
@@ -32,6 +39,26 @@ local function enemy(x, y, id)
     return e
 end
 local aim = Vector(350, 100)
+props = {{Position=Vector(95, 100), CollisionClass=1, GetType=function() return GridEntityType.GRID_POOP end}}
+assert(combat.cast(state, 'q', player, aim, 1)); combat.update(state, room, player, {}, 8)
+assert(props[1].destroyed, 'Q did not break poop')
+props = {{Position=Vector(140, 100), CollisionClass=1, GetType=function() return GridEntityType.GRID_ROCK_ALT end}}
+state = combat.new(); state.qStacks = 2
+assert(combat.cast(state, 'q', player, aim, 20)); combat.update(state, room, player, {}, 27)
+assert(props[1].destroyed, 'Q3 did not break a destructible prop')
+props = {{Position=Vector(155, 100), CollisionClass=1, GetType=function() return GridEntityType.GRID_POOP end}}
+player.Position = Vector(60,100); state = combat.new(); state.qStacks = 2
+wall[2 * room:GetGridWidth() + 3] = GridCollisionClass.COLLISION_WALL
+assert(combat.cast(state, 'q', player, aim, 40)); combat.update(state, room, player, {}, 47)
+assert(not props[1].destroyed, 'Q3 broke a prop behind a solid wall')
+wall = {}; props = {}
+player.Position = Vector(60,100); state = combat.new(); state.qStacks, state.qExpires = 2, 52
+local q3Edge = enemy(160, 100, 6)
+assert(combat.cast(state, 'q', player, aim, 50) == 'q3')
+combat.update(state, room, player, {q3Edge}, 57)
+assert(#q3Edge.damage == 1, 'Q3 lost its reach when stacks expired after commitment')
+player.Position = Vector(60,100)
+state = combat.new()
 local front, behind = enemy(96, 100, 7), enemy(36, 100, 8)
 entities = {front, behind}
 local function cast(kind, clock)
@@ -59,7 +86,11 @@ assert(#front.damage == 5 and #behind.damage == 0)
 wall = {}
 
 player.Position = Vector(60,100)
+local wide = enemy(135, 155, 55)
+entities = {front, wide}
 cast('w', 155); resolve(167)
+assert(#wide.damage == 1, 'W failed to reach a target within its wider sector')
+assert(combat.visual(state, 167).fx[#combat.visual(state, 167).fx].footprint.reach == 100)
 assert(combat.absorb(state, 168) and not combat.absorb(state, 169), 'W shield must stop one hit')
 state = combat.new()
 entities = {}
@@ -74,6 +105,8 @@ front = enemy(142, 100, 9)
 entities = {front}
 cast('e', 1); resolve(7)
 assert(state.spirit and player.Position.X > 60)
+local returnPreview = combat.footprint(state, player, 'e', aim)
+assert(returnPreview.facing.X < 0 and returnPreview.reach == player.Position.X - 60)
 local visual = combat.visual(state, 7)
 assert(visual.spirit.anchor.X == 60 and visual.spirit.face.X == 1)
 assert(visual.fx[1].kind == 'e' and visual.fx[1].target.X == player.Position.X)
@@ -115,12 +148,64 @@ player.Position = Vector(60,100)
 local far, aside, boss = enemy(200,100,10), enemy(190,150,11), enemy(165,100,12)
 boss.boss = true
 entities = {far, aside, boss}
-cast('r', 1); resolve(20)
+cast('r', 1); assert(combat.activeFootprint(state, player).reach == 168); resolve(24)
 assert(#far.damage == 1 and #boss.damage == 1 and #aside.damage == 0)
 assert(player.Position.X > 200 and far.Position.X > 200 and boss.Position.X == 165)
-visual = combat.visual(state, 20)
+visual = combat.visual(state, 24)
 assert(visual.fx[1].kind == 'r' and visual.fx[1].origin.X == 60 and visual.fx[1].target.X > 200)
 assert(#combat.visual(state, 90).fx == 0, 'expired combat sound/visual event was retained')
+
+state = combat.new()
+player.Position = Vector(60,100)
+front = enemy(200,100,22)
+local near = enemy(92,100,23)
+entities = {front, near}
+wall[2 * room:GetGridWidth() + 3] = GridCollisionClass.COLLISION_WALL
+cast('r', 1); resolve(23)
+assert(#front.damage == 0 and player.Position.X == 60, 'R hit before windup')
+resolve(24)
+assert(#front.damage == 1 and #near.damage == 1 and player.Position.X > 160 and near.Position.X > 160,
+    'R failed to hit and pull through an interior obstacle')
+assert(not combat.cast(state, 'q', player, aim, 25), 'R recovery allowed a new cast')
+wall = {}
+
+-- An L-shaped room may contain a second region on the same ray; R must not jump the gap.
+local originalInside = room.IsPositionInRoom
+function room:IsPositionInRoom(point, margin)
+    if point.Y >= 90 and point.Y <= 110 and point.X > 120 and point.X < 170 then return false end
+    return originalInside(self, point, margin)
+end
+state = combat.new(); player.Position = Vector(60,100)
+local acrossGap = enemy(200,100,26); entities = {acrossGap}
+local footprint = combat.footprint(state, player, 'r', aim, room)
+assert(footprint.reach == 60, 'R footprint crossed exterior gap')
+cast('r', 1); assert(combat.activeFootprint(state, player, room).reach == 60)
+resolve(24)
+assert(#acrossGap.damage == 0 and player.Position.X <= 120, 'R crossed exterior gap')
+assert(combat.visual(state, 24).fx[1].target.X == 120, 'R effect crossed exterior gap')
+room.IsPositionInRoom = originalInside
+
+local pit = GridCollisionClass.COLLISION_WALL - 1
+local tile = room:GetGridIndex(Vector(220,100))
+wall[tile] = pit
+local grounded = enemy(200,100,24)
+local flying = enemy(200,100,25); flying.flying = true
+assert(not combat.clearPoint(room, grounded, Vector(220,100)), 'grounded enemy accepted a pit')
+assert(combat.clearPoint(room, flying, Vector(220,100)), 'flying enemy rejected a pit')
+wall[tile] = GridCollisionClass.COLLISION_WALL
+assert(not combat.clearPoint(room, flying, Vector(220,100)), 'flying enemy accepted a wall')
+wall = {}
+
+state = combat.new()
+player.Position = Vector(60,100)
+entities = {}
+cast('e', 1); resolve(4)
+cast('r', 145); resolve(154)
+assert(state.spirit and combat.presentation(state, 154) == 'r', 'E timeout interrupted R')
+resolve(168)
+assert(state.spirit and player.Position.X > 60, 'E returned before R recovery')
+resolve(185)
+assert(not state.spirit and player.Position.X == 60, 'E did not return after R recovery')
 
 state = combat.new()
 player.Position = Vector(60,100)

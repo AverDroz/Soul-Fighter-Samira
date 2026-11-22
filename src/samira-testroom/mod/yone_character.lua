@@ -15,6 +15,10 @@ local abilityCooling = {.69, .67, .76, 1}
 local abilityCharged = {1, .75, .35, 1}
 local abilityRecast = {.56, .83, 1, 1}
 local abilityHudPalette
+local abilityFont
+local aimColors = {
+    q = {.60, .93, 1}, w = {.99, .49, .60}, e = {.99, .39, .65}, r = {1, .73, .59},
+}
 local numberKeys = {Keyboard.KEY_1, Keyboard.KEY_2, Keyboard.KEY_3, Keyboard.KEY_4, Keyboard.KEY_5, Keyboard.KEY_6}
 local controls = {
     {'q', Keyboard.KEY_Q}, {'w', Keyboard.KEY_W}, {'e', Keyboard.KEY_E}, {'r', Keyboard.KEY_R},
@@ -84,12 +88,18 @@ local function sampleExpressions(state, clock, allowed, interrupted)
 end
 
 local function sampleCommands(state, room, allowed)
-    if not allowed then state.commands, state.intent = {}, nil end
+    if not allowed then state.commands, state.intent, state.aimAbility = {}, nil, nil end
     for _, control in ipairs(controls) do
         local action, key = table.unpack(control)
         local down
         if key then down = pressed(key) else down = Input.IsMouseBtnPressed(1) end
-        if allowed and down and not state.held[action] and #state.commands < #controls then
+        local activate = down and not state.held[action]
+        if aimColors[action] then
+            if allowed and activate then state.aimAbility = action end
+            activate = not down and state.held[action] and state.aimAbility == action
+            if activate then state.aimAbility = nil end
+        end
+        if allowed and activate and #state.commands < #controls then
             state.commands[#state.commands + 1] = {kind = action, aim = Navigation.worldCursor(room)}
         end
         state.held[action] = down
@@ -164,6 +174,64 @@ local function mirrorPosition(room, position)
     return x, position.Y
 end
 
+local function screenPoint(room, world)
+    return Vector(mirrorPosition(room, Isaac.WorldToScreen(world)))
+end
+
+local function sectorArc(area, project)
+    local halfAngle = math.deg(math.acos(area.cosine))
+    local edge = area.facing * area.reach
+    local points = {}
+    for i = 0, 12 do
+        points[i + 1] = project(area.origin + edge:Rotated((i / 6 - 1) * halfAngle))
+    end
+    return points
+end
+
+local function drawAim(room, combat, player, clock, key)
+    if not Isaac.DrawLine or not KColor then return end
+    local area = Combat.activeFootprint(combat, player, room)
+    local casting = area ~= nil
+    if casting then
+        key = 'r'
+    elseif key then
+        area = Combat.footprint(combat, player, key, Navigation.worldCursor(room), room)
+    end
+    if not area or area.reach < 1 then return end
+    local r, g, b = table.unpack(aimColors[key])
+    local ready = casting or (clock >= (combat.ready[key] or 0))
+        or key == 'e' and combat.spirit and clock >= combat.spirit.recastAt
+    local edge = KColor(r, g, b, ready and .93 or .35)
+    local fill = KColor(r, g, b, ready and .15 or .06)
+    local function project(point) return screenPoint(room, point) end
+    local function line(a, b, color)
+        Isaac.DrawLine(a, b, color, color, 1)
+    end
+    local start = project(area.origin)
+    if area.shape == 'sector' then
+        local arc = sectorArc(area, project)
+        line(start, arc[1], edge)
+        for i = 2, #arc do
+            line(arc[i - 1], arc[i], edge)
+            if i < #arc then line(start, arc[i], fill) end
+        end
+        line(arc[#arc], start, edge)
+    else
+        local side = area.facing:Rotated(90) * area.width
+        local target = area.origin + area.facing * area.reach
+        local a, b = project(area.origin + side), project(target + side)
+        local c, d = project(target - side), project(area.origin - side)
+        line(a, b, edge)
+        line(b, c, edge)
+        line(c, d, edge)
+        line(d, a, edge)
+        for i = -2, 2 do
+            local offset = side * (i / 3)
+            line(project(area.origin + offset), project(target + offset), fill)
+        end
+    end
+end
+
 local function visualSnapshot(room, picture)
     local function point(world)
         return {mirrorPosition(room, Isaac.WorldToScreen(world))}
@@ -172,6 +240,9 @@ local function visualSnapshot(room, picture)
     for i, event in ipairs(picture.fx) do
         snapshot.fx[i] = {id = event.id, kind = event.kind, age = event.age,
             origin = point(event.origin), target = point(event.target)}
+        if event.footprint and event.footprint.shape == 'sector' then
+            snapshot.fx[i].arc = sectorArc(event.footprint, point)
+        end
     end
     local spirit = picture.spirit
     if spirit then
@@ -249,7 +320,7 @@ local function emit(game, state, player, force, picture)
     })
 end
 
-local function drawNativeEffects(room, player, picture, x, y, geometry)
+local function drawNativeEffects(room, player, picture, x, y, geometry, clock)
     local function point(world)
         return Vector(mirrorPosition(room, Isaac.WorldToScreen(world)))
     end
@@ -279,7 +350,26 @@ local function drawNativeEffects(room, player, picture, x, y, geometry)
         end
         Isaac.RenderText('SPIRIT', x - 14, y - 31, 1, .52, .67, .90)
         if geometry then
-            line(body, Vector(x, y), 1, .98, .27, .45, .60)
+            local active = Vector(x, y)
+            local delta = active - body
+            local side = delta:Normalized():Rotated(90)
+            local previous = body
+            for i = 1, 12 do
+                local t = i / 12
+                local wave = math.sin(math.pi * t) * math.sin(8 * t - clock * .18) * 5
+                local nextPoint = body + delta * t + side * wave
+                line(previous, nextPoint, 3, .63, .09, .23, .35)
+                line(previous, nextPoint, 1, 1, .44, .60, .90)
+                previous = nextPoint
+            end
+            for _, center in ipairs({body, active}) do
+                for angle = 0, 315, 45 do
+                    local a = Vector(13, 0):Rotated(angle)
+                    local b = Vector(13, 0):Rotated(angle + 45)
+                    line(center + Vector(a.X, a.Y * .45), center + Vector(b.X, b.Y * .45),
+                        1, 1, .34, .54, .72)
+                end
+            end
             for _, mark in ipairs(spirit.marks) do
                 local enemy = point(mark.position)
                 Isaac.RenderText('*', enemy.X - 3, enemy.Y - 27, 1, .38, .55, 1)
@@ -288,10 +378,24 @@ local function drawNativeEffects(room, player, picture, x, y, geometry)
     end
     if not geometry then return end
     for _, event in ipairs(picture.fx) do
-        if event.age < .23 and (event.kind == 'q3' or event.kind == 'w' or event.kind == 'r') then
-            local opacity = 1 - event.age / .23
-            local red = event.kind == 'q3' and .47 or 1
-            line(point(event.origin), point(event.target), event.kind == 'r' and 3 or 2, red, .60, .87, opacity)
+        if event.age < .28 then
+            local opacity = 1 - event.age / .28
+            if event.kind == 'w' and event.footprint then
+                local arc = sectorArc(event.footprint, point)
+                for i = 2, #arc do
+                    line(arc[i - 1], arc[i], 5, .81, .09, .24, opacity * .65)
+                    line(arc[i - 1], arc[i], 1, 1, .76, .76, opacity)
+                end
+            elseif event.kind == 'q' or event.kind == 'q3' or event.kind == 'r' then
+                local start, finish = point(event.origin), point(event.target)
+                local side = (finish - start):Normalized():Rotated(90)
+                local width = event.kind == 'r' and 6 or (event.kind == 'q3' and 4 or 1)
+                for _, offset in ipairs({-width, width}) do
+                    local shift = side * offset
+                    local blue = event.kind ~= 'r' and .98 or .64
+                    line(start + shift, finish + shift, 2, .98, .59, blue, opacity)
+                end
+            end
         end
     end
 end
@@ -308,9 +412,15 @@ local function drawAbilitySlot(x, y, width)
         abilityHudPalette.panel, abilityHudPalette.panel, abilityHudHeight - 2)
 end
 
-local function drawAbilityHud(combat, clock, backpack)
+local function drawAbilityHud(combat, clock, backpack, aiming)
     local width, height = Isaac.GetScreenWidth(), Isaac.GetScreenHeight()
-    local markerOffset = Isaac.GetTextWidth('Q') + 5
+    if abilityFont == nil and Font then
+        local candidate, loaded = Font('font/samira_items_ru.fnt')
+        abilityFont = loaded and candidate or false
+    end
+    local keyScale = .87
+    local markerOffset = (abilityFont and abilityFont:GetStringWidthUTF8('W') * keyScale
+        or Isaac.GetTextWidth('W')) + 5
     local slotWidth = math.max(26, markerOffset + Isaac.GetTextWidth('++') + 4,
         Isaac.GetTextWidth('999s') + 6)
     local step = slotWidth + abilityHudGap
@@ -334,8 +444,18 @@ local function drawAbilityHud(combat, clock, backpack)
         local spirit = key == 'e' and combat.spirit
         local tint = remaining > 0 and abilityCooling or abilityReady
         if spirit and clock >= spirit.recastAt then tint = abilityRecast end
+        if aiming == key then
+            local r, g, b = table.unpack(aimColors[key])
+            tint = {r, g, b, 1}
+        end
         drawAbilitySlot(left, y, slotWidth)
-        Isaac.RenderText(key:upper(), left + 3, y + 1, table.unpack(tint))
+        local label = key:upper()
+        if abilityFont then
+            abilityFont:DrawStringScaledUTF8(label, left + 3, y, keyScale, keyScale,
+                KColor(table.unpack(tint)), 0, false)
+        else
+            Isaac.RenderText(label, left + 3, y + 1, table.unpack(tint))
+        end
         if key == 'q' and combat.qStacks > 0 then
             Isaac.RenderText(('+'):rep(combat.qStacks), left + markerOffset, y + 1, table.unpack(abilityCharged))
         elseif spirit then
@@ -357,7 +477,7 @@ local function drawRoomEffects(game, state, player, clock, picture)
     local now = Isaac.GetTime()
     local vfx, model = leased(state, 'vfxReady', now), leased(state, 'modelReady', now)
     if not vfx or not model then
-        drawNativeEffects(game:GetRoom(), player, picture, x, y, not vfx)
+        drawNativeEffects(game:GetRoom(), player, picture, x, y, not vfx, clock)
     end
     local phase = Emotes.mastery(state.emotes, clock)
     if phase and not leased(state, 'masteryReady', Isaac.GetTime()) then
@@ -426,7 +546,8 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display)
         serial = serial + 1
         Display.acquire('yone')
         state = {id = tostring(Isaac.GetNanoTime()) .. ':yone:' .. serial, room = 1, seq = 0,
-            combat = Combat.new(items), emotes = Emotes.new(), commands = {}, held = {}}
+            combat = Combat.new(items), emotes = Emotes.new(), commands = {}, held = {},
+            continuingRoom = continued == true}
         if items and items.activate then items.activate(player) end
         if continued and items and items.restoreCombatCooldowns then items.restoreCombatCooldowns() end
         sampleExpressions(state, game:GetFrameCount(), false, false)
@@ -467,6 +588,9 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display)
 
         if inventory then inventory.update(player, clock) end
         if items and items.update then items.update(player, clock) end
+        if items and items.claimCombatRoomReset and items.claimCombatRoomReset() and not state.continuingRoom then
+            Combat.reduceCooldowns(state.combat, 1, clock)
+        end
         local enemies = Isaac.GetRoomEntities()
         Combat.update(state.combat, room, player, enemies, clock)
         for _, command in ipairs(state.commands) do
@@ -484,8 +608,13 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display)
         state.commands = {}
         -- Resolve zero-windup recasts on the press, after issuing the action.
         Combat.update(state.combat, room, player, enemies, clock)
-        updateMovement(state, room, player, clock)
         local action = Combat.presentation(state.combat, clock)
+        if action == 'r' then
+            state.intent = nil
+            player.Velocity = Vector.Zero
+        else
+            updateMovement(state, room, player, clock)
+        end
         if not action and state.intent then state.combat.face = state.intent end
         local moving = state.intent ~= nil or player.Velocity:Length() > .6
         sampleExpressions(state, clock, true, action ~= nil or moving)
@@ -539,8 +668,9 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display)
         sampleExpressions(state, clock, allowed, action ~= nil or player.Velocity:Length() > .6)
         local picture = allowed and Combat.visual(state.combat, clock) or nil
         if picture then
+            drawAim(game:GetRoom(), state.combat, player, clock, state.aimAbility)
             drawRoomEffects(game, state, player, clock, picture)
-            drawAbilityHud(state.combat, clock, inventoryBounds and inventoryBounds(player))
+            drawAbilityHud(state.combat, clock, inventoryBounds and inventoryBounds(player), state.aimAbility)
         end
         emit(game, state, player, false, picture)
     end)
@@ -571,6 +701,7 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display)
         if state.leaving then return end
         state.leaving, state.ackAt = true, nil
         stopMoving(state)
+        sampleCommands(state, game:GetRoom(), false)
         Combat.resetRoom(state.combat, game:GetFrameCount())
         Emotes.cancel(state.emotes, true)
         emit(game, state, player, true)
@@ -592,7 +723,8 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display)
         state.room = state.room + 1
         state.leaving, state.ackAt, state.emitAt, state.pollAt = nil, nil, nil, nil
         state.coverFrame, state.hurtUntil = nil, nil
-        state.commands = {}
+        state.continuingRoom = nil
+        sampleCommands(state, game:GetRoom(), false)
         stopMoving(state)
         Combat.resetRoom(state.combat, game:GetFrameCount())
         Emotes.cancel(state.emotes, true)

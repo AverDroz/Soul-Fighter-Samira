@@ -9,10 +9,10 @@ local skills = {
     w = {windup = 8, duration = 22, cooldown = 300},
     e = {windup = 3, duration = 14, cooldown = 450},
     e_return = {windup = 0, duration = 13},
-    r = {windup = 14, duration = 29, cooldown = 900},
+    r = {windup = 23, duration = 40, cooldown = 900},
 }
-local meleeRange, qRange, ultRange = 44, 76, 168
-local spiritDuration, markDamage = 150, .30
+local meleeRange, qRange, ultRange, wRange = 44, 76, 168, 100
+local spiritDuration, markDamage, wCosine = 150, .30, .35
 local effectFrames, effectLimit, markerLimit = 21, 12, 24
 
 function Combat.new(items)
@@ -32,7 +32,7 @@ function Combat.clearPoint(room, player, point)
         Vector(0, radius), Vector(0, -radius)}) do
         local cell = room:GetGridCollision(room:GetGridIndex(point + offset))
         if cell ~= GridCollisionClass.COLLISION_NONE
-            and (not player.CanFly or cell >= GridCollisionClass.COLLISION_WALL) then return false end
+            and (not player:IsFlying() or cell >= GridCollisionClass.COLLISION_WALL) then return false end
     end
     return true
 end
@@ -91,7 +91,7 @@ function Combat.reduceCooldowns(state, fraction, clock)
 end
 
 function Combat.cast(state, input, player, aim, clock)
-    if state.pending then return end
+    if state.pending or (state.action and state.action.key == 'r' and clock < state.action.finish) then return end
     local key = input
     if input == 'e' and state.spirit then
         if clock < state.spirit.recastAt then return end
@@ -118,6 +118,44 @@ function Combat.cast(state, input, player, aim, clock)
         state.ready[input] = clock + cooldown
     end
     return key
+end
+
+-- Base world-space geometry shared by targeting and the native range overlay.
+function Combat.footprint(state, player, input, aim, room)
+    local delta = aim - player.Position
+    local facing = delta:Length() > .01 and delta:Normalized() or state.face
+    local key = input == 'q' and state.qStacks == 2 and 'q3' or input
+    if key == 'e' and state.spirit then
+        local toAnchor = state.spirit.anchor - player.Position
+        return {shape = 'line', origin = player.Position,
+            facing = toAnchor:Length() > .01 and toAnchor:Normalized() or state.face,
+            reach = toAnchor:Length(), width = math.max(6, player.Size * .6)}
+    end
+    local reach, width, shape, cosine
+    if key == 'q' then reach, width = qRange * Artifacts.range(player), 14
+    elseif key == 'q3' then reach, width = 112 * Artifacts.range(player), 19
+    elseif key == 'w' then reach, shape, cosine = wRange, 'sector', wCosine
+    elseif key == 'e' then reach, width = 54, math.max(6, player.Size * .6)
+    elseif key == 'r' then
+        reach, width = ultRange, 16
+        if room then
+            -- The line may cross interior grids but never leave and re-enter a room.
+            for distance = 1, ultRange do
+                if not room:IsPositionInRoom(player.Position + facing * distance, 0) then
+                    reach = distance - 1
+                    break
+                end
+            end
+        end
+    else return nil end
+    return {shape = shape or 'line', origin = player.Position, facing = facing,
+        reach = reach, width = width, cosine = cosine}
+end
+
+function Combat.activeFootprint(state, player, room)
+    local pending = state.pending
+    if not pending or pending.kind ~= 'r' then return nil end
+    return Combat.footprint(state, player, 'r', player.Position + pending.facing, room)
 end
 
 function Combat.confirmDamage(state, entity, amount, source)
@@ -173,7 +211,7 @@ local function teleport(player, destination)
     player.Velocity = Vector.Zero
 end
 
-local function blade(state, room, player, enemies, strike, width, reach, multiplier, sweep, hitTargets)
+local function blade(state, room, player, enemies, strike, width, reach, multiplier, sweep, hitTargets, throughWalls)
     local hit, furthest = false, 0
     local facing = strike.facing
     local side = Vector(-facing.Y, facing.X)
@@ -184,9 +222,10 @@ local function blade(state, room, player, enemies, strike, width, reach, multipl
             local along = delta:Dot(facing)
             local across = math.abs(delta:Dot(side))
             local distance = delta:Length()
-            local inRange = sweep and distance <= reach + enemy.Size and along >= distance * .35
+            local inRange = sweep and distance <= reach + enemy.Size and along >= distance * wCosine
                 or not sweep and along >= 0 and along <= reach + enemy.Size and across <= width + enemy.Size
-            if inRange and room:CheckLine(player.Position, enemy.Position, 3, 0, false, false) then
+                and (not throughWalls or along <= reach)
+            if inRange and (throughWalls or room:CheckLine(player.Position, enemy.Position, 3, 0, false, false)) then
                 candidates[#candidates + 1] = {entity = enemy, along = along, distance = sweep and distance or along,
                     seed = enemy.InitSeed}
             end
@@ -208,11 +247,40 @@ local function blade(state, room, player, enemies, strike, width, reach, multipl
     return hit, furthest
 end
 
-local function effect(state, clock, kind, origin, target)
+local function breakProps(room, start, facing, width, reach)
+    local side = Vector(-facing.Y, facing.X)
+    for index = 0, room:GetGridSize() - 1 do
+        local grid = room:GetGridEntity(index)
+        if grid and grid.CollisionClass ~= GridCollisionClass.COLLISION_NONE then
+            local kind = grid:GetType()
+            if kind == GridEntityType.GRID_POOP or kind == GridEntityType.GRID_ROCK_ALT then
+                local delta = grid.Position - start
+                local along = delta:Dot(facing)
+                if along >= 0 and along <= reach and math.abs(delta:Dot(side)) <= width + 16
+                    and room:CheckLine(start, start + facing * math.max(0, along - 20), 3, 0, false, false) then
+                    room:DestroyGrid(index, false)
+                end
+            end
+        end
+    end
+end
+
+-- R crosses obstacles but must end at an actually clear point.
+local function landing(room, entity, start, goal)
+    local delta = goal - start
+    local steps = math.max(1, math.ceil(delta:Length() / 4))
+    for step = steps, 0, -1 do
+        local point = start + delta * (step / steps)
+        if Combat.clearPoint(room, entity, point) then return point end
+    end
+    return start
+end
+
+local function effect(state, clock, kind, origin, target, footprint)
     state.effectSerial = state.effectSerial + 1
     local effects = state.effects
     if #effects == effectLimit then table.remove(effects, 1) end
-    effects[#effects + 1] = {id = state.effectSerial, at = clock, kind = kind, origin = origin, target = target}
+    effects[#effects + 1] = {id = state.effectSerial, at = clock, kind = kind, origin = origin, target = target, footprint = footprint}
 end
 
 local function lineEnd(room, start, facing, reach)
@@ -239,7 +307,7 @@ end
 local function pullFoes(room, enemies, pull)
     for _, enemy in ipairs(enemies) do
         if Combat.hostile(enemy) and enemy:ToNPC() and not enemy:IsBoss() then
-            enemy.Position = safeDestination(room, enemy, enemy.Position, pull)
+            enemy.Position = landing(room, enemy, enemy.Position, pull)
         end
     end
 end
@@ -254,6 +322,7 @@ local function resolve(state, room, player, enemies, strike, clock)
     local key, facing = strike.kind, strike.facing
     local start = player.Position
     local items = state.items
+    local footprint = Combat.footprint(state, player, key, start + facing, room)
     if items and items.newAttack and (key == 'attack' or key == 'q' or key == 'q3' or key == 'w' or key == 'r') then
         strike.itemContext = items.newAttack(player, key == 'q3' and 'q' or key, clock)
     end
@@ -263,22 +332,24 @@ local function resolve(state, room, player, enemies, strike, clock)
         blade(state, room, player, enemies, strike, 14, reach, state.secondBlade and 1 or 1.25)
         effect(state, clock, strike.clip, start, start + facing * reach)
     elseif key == 'q' then
-        local reach = qRange * Artifacts.range(player)
-        if blade(state, room, player, enemies, strike, 14, reach, 1.4) then
+        local reach = footprint.reach
+        if blade(state, room, player, enemies, strike, footprint.width, reach, 1.4) then
             state.qStacks, state.qExpires = math.min(2, state.qStacks + 1), clock + 180
         end
+        breakProps(room, start, facing, footprint.width, reach)
         effect(state, clock, key, start, lineEnd(room, start, facing, reach))
     elseif key == 'q3' then
         state.qStacks, state.qExpires = 0, nil
-        local reach = 112 * Artifacts.range(player)
-        blade(state, room, player, enemies, strike, 19, reach, 1.6)
+        local reach = footprint.reach
+        blade(state, room, player, enemies, strike, footprint.width, reach, 1.6)
+        breakProps(room, start, facing, footprint.width, reach)
         teleport(player, safeDestination(room, player, start, start + facing * 90))
         effect(state, clock, key, start, lineEnd(room, start, facing, reach))
     elseif key == 'w' then
-        if blade(state, room, player, enemies, strike, 0, 74, 1.15, true) then
+        if blade(state, room, player, enemies, strike, 0, footprint.reach, 1.15, true) then
             state.shieldUntil = clock + 60
         end
-        effect(state, clock, key, start, start + facing * 74)
+        effect(state, clock, key, start, start + facing * wRange, footprint)
     elseif key == 'e' then
         state.spirit = {anchor = start, face = facing, untilFrame = clock + spiritDuration, recastAt = clock + 8, marks = {}}
         teleport(player, safeDestination(room, player, start, start + facing * 54))
@@ -287,11 +358,11 @@ local function resolve(state, room, player, enemies, strike, clock)
         returnSpirit(state, room, player, clock)
     elseif key == 'r' then
         local targets = {}
-        local hit, far = blade(state, room, player, enemies, strike, 16, ultRange, 2.5, false, targets)
-        local destination = safeDestination(room, player, start, start + facing * (hit and far + 23 or ultRange))
+        local hit, far = blade(state, room, player, enemies, strike, footprint.width, footprint.reach, 2.5, false, targets, true)
+        local destination = landing(room, player, start, start + facing * math.min(footprint.reach, hit and far + 23 or footprint.reach))
         teleport(player, destination)
         pullFoes(room, targets, destination - facing * 10)
-        effect(state, clock, key, start, lineEnd(room, start, facing, ultRange))
+        effect(state, clock, key, start, start + facing * footprint.reach)
     end
 end
 
@@ -304,7 +375,8 @@ function Combat.update(state, room, player, enemies, clock)
         state.pending = nil
         resolve(state, room, player, enemies, strike, clock)
     end
-    if state.spirit and clock >= state.spirit.untilFrame then
+    if state.spirit and clock >= state.spirit.untilFrame
+        and not (state.action and state.action.key == 'r' and clock < state.action.finish) then
         -- An unfinished windup belongs to the spirit's former position.
         state.pending = nil
         returnSpirit(state, room, player, clock)
@@ -336,7 +408,7 @@ function Combat.visual(state, clock)
         local age = clock - event.at
         if age >= 0 and age < effectFrames then
             picture.fx[#picture.fx + 1] = {id = event.id, kind = event.kind, age = age / 30,
-                origin = event.origin, target = event.target}
+                origin = event.origin, target = event.target, footprint = event.footprint}
         end
     end
     local spirit = state.spirit

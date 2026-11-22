@@ -62,6 +62,14 @@ def actor_phase(state):
 
 def yone_animation(state,durations):
     clip=state.get('clip') or state['kind']
+    # Combat's normalized action spans windup and recovery; R has two authored clips.
+    # The impact is the boundary between the in and out animations.
+    if clip == 'r' and durations.get('r') and durations.get('r_out'):
+        phase = min(1., max(0., state['phase']))
+        impact = 23 / 40
+        if phase < impact:
+            return 'r', phase / impact
+        return 'r_out', (phase - impact) / (1 - impact)
     ticks=state.get('actionFrame')
     duration=durations.get(clip)
     if ticks is None or clip not in YONE_EMOTES or not duration:
@@ -116,7 +124,7 @@ class YoneRenderer:
                 if spirit and self.actor and 'e_body' in self.actor.model.tracks:
                     remaining=spirit['remaining']
                     duration=self.actor.model.durations['e_body']
-                    phase=min(1,(1-remaining)*YONE_SPIRIT_SECONDS/duration)
+                    phase=((1-remaining)*YONE_SPIRIT_SECONDS/duration)%1
                     yaw=actor_yaw({'kind':'e_body','face':spirit['face']})
                     self.actor.draw('e_body',phase,tuple(spirit['anchor']),tuple(state['screen']),yaw,dt,
                                     clip='e_body',detached=True,form='body',opacity=.46+.43*remaining,

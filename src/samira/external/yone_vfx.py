@@ -63,9 +63,11 @@ class YoneVFX:
         spirit = self.payload.get('spirit')
         if isinstance(spirit, dict) and point(spirit.get('anchor')) and point(spirit.get('face')):
             remaining = spirit.get('remaining')
-            if number(remaining) and 0 < remaining <= 1:
+            if number(remaining) and 0 <= remaining <= 1:
                 self.spirit = spirit
                 self.tether(spirit)
+        if state.get('kind') == 'r' and number(state.get('phase')) and 0 <= state['phase'] < 23 / 40:
+            self.anticipation(state['phase'] / (23 / 40))
         if self.payload.get('shield') is True:
             x, y = self.position
             self.shield((x, y - 12), 0, .51 + .09 * math.sin(self.clock * 6))
@@ -101,6 +103,8 @@ class YoneVFX:
             for i in range(3):
                 self.canvas.polygon((near[i], far[i], far[i + 1], near[i + 1]),
                                     (colors[i], colors[i], colors[i + 1], colors[i + 1]))
+        # Bound each geometry batch to the shared canvas buffer capacity.
+        self.canvas.flush()
 
     def sparks(self, center, hue, progress, opacity, seed, count=7, reach=12):
         for i in range(count):
@@ -116,7 +120,8 @@ class YoneVFX:
         remaining = spirit['remaining']
         pulse = (.72 + .20 * math.sin(self.clock * (8.5 if remaining < .25 else 4.5)))
         outer = ellipse((x, y + 1), (13, 5.4))
-        self.ribbon(outer, 2.2, RUBY, .79 * pulse, tapered=False)
+        self.ribbon(outer, 4.0, RUBY, .9 * pulse, tapered=False)
+        self.ribbon(ellipse((x, y - 13), (11, 16)), 2.3, RUBY, .55 * pulse, tapered=False)
         self.canvas.lines(ellipse((x, y + 1), (9.7, 3.6), end=remaining * math.tau), 1.1, (*ROSE, .9))
         start, end = (x, y - 9), (self.position[0], self.position[1] - 8)
         if math.dist(start, end) >= 3:
@@ -125,8 +130,9 @@ class YoneVFX:
                 t = i / 12
                 sag = math.sin(t * math.pi) * (4 + 2 * math.sin(t * 8 - self.clock * 6))
                 path.append((start[0] + (end[0] - start[0]) * t, start[1] + (end[1] - start[1]) * t + sag))
-            self.ribbon(path, 3.7, RUBY, .68 * pulse)
-            self.ribbon(path, .9, ROSE, .65)
+            self.ribbon(path, 7.0, SHADE, .82 * pulse)
+            self.ribbon(path, 4.2, RUBY, .95 * pulse)
+            self.ribbon(path, 1.5, IVORY, .88)
             for i in range(1, 5):
                 p = int((i / 5 + self.clock * .62) % 1 * 12)
                 self.canvas.line(path[p], path[p + 1], 1.3, (*ROSE, .74))
@@ -172,7 +178,8 @@ class YoneVFX:
             self.shield(center, progress, alpha)
             self.sparks(center, IVORY, progress, alpha, seed, reach=19)
         elif kind == 'w':
-            self.sweep(start, face, length, progress, alpha)
+            arc = event.get('arc')
+            self.sweep(start, face, length, progress, alpha, arc)
             self.sparks((end[0], end[1] - 8), ROSE, progress, alpha * .68, seed)
         elif kind == 'q3':
             self.wind_cut(start, face, length, progress, alpha)
@@ -186,13 +193,28 @@ class YoneVFX:
         else:
             self.strike(start, face, length, kind, progress, alpha)
 
-    def sweep(self, start, face, length, progress, alpha):
+    def anticipation(self, progress):
+        x, y = self.position
+        pulse = .45 + .45 * progress
+        self.ribbon(ellipse((x, y + 1), (12 + 7 * progress, 5 + 3 * progress)),
+                    2.5, RUBY, pulse, tapered=False)
+        for side, hue in ((-1, WIND), (1, RUBY)):
+            a = offset((x, y - 12), self.facing, -10, side * (8 + progress * 6))
+            b = offset((x, y - 12), self.facing, 12, side * (8 + progress * 6))
+            self.ribbon([a, ((a[0]+b[0])/2, (a[1]+b[1])/2), b], 2, hue, pulse)
+
+    def sweep(self, start, face, length, progress, alpha, arc=None):
         # Ease along the swing and keep the arc on the attack side of the actor.
         radius = length * (.82 + .18 * min(1., progress * 4))
         origin = start[0], start[1] - 8
-        for inset, width, hue, fade in ((.86, 7.7, RUBY, .62), (1., 4.2, ROSE, .92), (.96, 1.2, IVORY, .80)):
-            points = [offset(origin, face, math.cos(a) * radius * inset, math.sin(a) * radius * inset)
-                      for a in (-1.21 + 2.42 * i / 18 for i in range(19))]
+        valid_arc = isinstance(arc, (list, tuple)) and 3 <= len(arc) <= 33 and all(point(p) for p in arc)
+        for inset, width, hue, fade in ((.82, 9.5, RUBY, .72), (1., 5.2, ROSE, .96), (.96, 1.6, IVORY, .90)):
+            if valid_arc:
+                points = [(start[0] + (p[0] - start[0]) * inset,
+                           start[1] + (p[1] - start[1]) * inset - 8) for p in arc]
+            else:
+                points = [offset(origin, face, math.cos(a) * radius * inset, math.sin(a) * radius * inset)
+                          for a in (-1.213 + 2.426 * i / 18 for i in range(19))]
             self.ribbon(points, width, hue, alpha * fade)
 
     def wind_cut(self, start, face, length, progress, alpha):
@@ -203,7 +225,11 @@ class YoneVFX:
                       for t in (i / 10 for i in range(11))]
             self.ribbon(points, 4.7, WIND, alpha * .76)
             self.ribbon(points, 1.2, IVORY, alpha * .83)
-        tip = offset(origin, face, length, 0)
+        tip = offset(origin, face, length * min(1, .18 + progress * 2.7), 0)
+        gust = [offset(tip, face, -7 + 8 * math.cos(a), 12 * math.sin(a))
+                for a in (-1.45 + i * 2.9 / 14 for i in range(15))]
+        self.ribbon(gust, 5, RUBY, alpha * .75)
+        self.ribbon(gust, 2.5, IVORY, alpha * .95)
         curl = [offset(tip, face, -9 + 10 * math.cos(a), 7 * math.sin(a))
                 for a in (-2.1 + i * .28 for i in range(16))]
         self.ribbon(curl, 3.7, WIND, alpha)
@@ -211,6 +237,13 @@ class YoneVFX:
     def ultimate(self, start, face, length, progress, alpha):
         origin = start[0], start[1] - 7
         core = [offset(origin, face, length * t, 0) for t in (0, .5, 1)]
+        for side, hue in ((-1, WIND), (1, RUBY)):
+            edge = [offset(origin, face, length * t, side * 14) for t in (0, .25, .5, .75, 1)]
+            self.ribbon(edge, 3.3, hue, alpha * .9)
+        for t in (.25, .78):
+            center = offset(origin, face, length * t, 0)
+            self.ribbon(ellipse(center, (8 + 8 * progress, 5 + 5 * progress)),
+                        2.4, ROSE, alpha, tapered=False)
         self.ribbon(core, 10 + 9 * progress, RUBY, alpha * .62)
         self.ribbon(core, 4.2, IVORY, alpha * .94)
         for side in (-1, 1):
@@ -232,6 +265,11 @@ class YoneVFX:
 
     def strike(self, start, face, length, kind, progress, alpha):
         origin = start[0], start[1] - 8
+        if kind == 'q':
+            points = [offset(origin, face, length * t, 0) for t in (0, .25, .5, .75, 1)]
+            self.ribbon(points, 3.6, WIND, alpha * .8)
+            self.ribbon(points, 1.2, IVORY, alpha)
+            return
         side = -1 if kind == 'attack2' else 1
         width = 4 if kind == 'q' else 12
         points = [offset(origin, face, length * t, side * width * math.sin(t * 2.8 + progress))

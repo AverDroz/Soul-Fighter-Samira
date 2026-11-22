@@ -101,7 +101,20 @@ tick()
 assert(callAction('ACTION_RIGHT') == 0, 'movement continued after arrow release')
 local qTarget = makeEntity('enemy', player.Position.X + 25, player.Position.Y, 11)
 entities = {qTarget}
-tick('KEY_Q')
+local function castKey(key)
+    tick(key)
+    tick()
+end
+local rangeLines = 0
+local oldDrawLine = Isaac.DrawLine
+Isaac.DrawLine = function(a, b, ...)
+    if a.Y < 65 and b.Y < 65 then rangeLines = rangeLines + 1 end
+end
+tick('KEY_Q', false, player.Position + Vector(100, -80))
+assert(lastCast == nil, 'holding Q should show its hitbox before casting')
+assert(rangeLines >= 4, 'holding Q did not draw its world-space range')
+Isaac.DrawLine = oldDrawLine
+tick(nil, false, player.Position + Vector(100, 0))
 assert(packet.clip == 'q' and packet.hero == 'yone')
 assert(lastCast == 'q', 'Yone ability did not reach item cast hooks')
 for _ = 1, 7 do tick() end
@@ -111,7 +124,7 @@ assert(stackedHud['+'] and stackedHud['1s'] and stackedHud['1s'].x == stackedHud
     'Q lost its charge or cooldown display')
 assert(stackedHud.Q.color[1] < readyHud.Q.color[1], 'cooldown did not dim the ability key')
 for _ = 1, 24 do tick() end
-tick('KEY_Q')
+castKey('KEY_Q')
 for _ = 1, 7 do tick() end
 local doubleStackHud = captureHud()
 sameSlots(readyHud, doubleStackHud)
@@ -161,8 +174,12 @@ DamageFlag = {DAMAGE_FAKE = 1}
 local attacker = makeEntity('enemy', player.Position.X + 25, player.Position.Y, 12)
 entities = {attacker}
 function player:SetMinDamageCooldown(frames) self.shieldCooldown = frames end
-tick('KEY_W')
+castKey('KEY_W')
 for _ = 1, 9 do tick() end
+local cleave = packet.yone.fx[#packet.yone.fx]
+assert(cleave.kind == 'w' and #cleave.arc == 13, 'W had no projected cleave arc')
+assert(math.abs(cleave.arc[7][1] - cleave.target[1]) < .001
+    and math.abs(cleave.arc[7][2] - cleave.target[2]) < .001, 'W arc and axial endpoint disagreed')
 local shieldHud = captureHud()
 sameSlots(readyHud, shieldHud)
 assert(shieldHud['10s'] and shieldHud['10s'].x == shieldHud.W.x and shieldHud.SHIELD,
@@ -173,7 +190,7 @@ assert(player.shieldCooldown == 15)
 assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(attacker)) == nil)
 
 local positionBeforeE = player.Position
-tick('KEY_E')
+castKey('KEY_E')
 for _ = 1, 4 do tick() end
 local spiritHud = captureHud()
 sameSlots(readyHud, spiritHud)
@@ -212,7 +229,7 @@ tick()
 assert(packet.yone.spirit.marks[1].position[1] == Isaac.GetScreenWidth() - mark.position[1])
 assert(packet.yone.spirit.face[1] == -1)
 mirror = false
-tick('KEY_E')
+castKey('KEY_E')
 assert(not packet.yone.spirit and packet.yone.fx[#packet.yone.fx].kind == 'e_return')
 assert(#itemKinds == 2 and itemKinds[1] == 'attack' and itemKinds[2] == 'echo',
     'E replay repeated a shared on-hit effect')
@@ -254,9 +271,9 @@ ack.room, ack.time, ack.display = packet.room, now, packet.display.id
 tick(); tick()
 assert(event('PRE_PLAYER_RENDER', player, Vector.Zero) == false, 'new level never acquired the model lease')
 playerAnimation = 'Walk'
-tick('KEY_W')
+castKey('KEY_W')
 assert(packet.clip == 'idle', 'W cooldown was lost during floor rebinding')
-tick('KEY_Q')
+castKey('KEY_Q')
 assert(packet.clip == 'q', 'combat input did not recover after the floor')
 
 -- The level callback is sufficient even if room entry did not reach this
@@ -274,10 +291,33 @@ tick()
 assert(packet.active and packet.session == session and packet.room == firstFloorRoom + 1
     and not packet.occluded, 'direct level arrival did not rebind the same run')
 assert(packet.clip == 'idle', 'a queued ability leaked to the next floor')
-tick('KEY_R')
+castKey('KEY_R')
 local ultimateHud = captureHud()
 sameSlots(readyHud, ultimateHud)
 assert(ultimateHud['30s'] and ultimateHud['30s'].x == ultimateHud.R.x, 'R lost its cooldown display')
+
+local roomKey, claimed = 1, {[1] = true}
+noItems.claimCombatRoomReset = function()
+    if #entities == 0 or claimed[roomKey] then return false end
+    claimed[roomKey] = true
+    return true
+end
+renderOnly('KEY_E')
+event('PRE_CHANGE_ROOM')
+roomKey, entities = 2, {attacker}
+local hpOnEntry = attacker.HitPoints
+event('POST_NEW_ROOM')
+tick('KEY_E')
+tick()
+assert(packet.clip == 'idle', 'held E leaked into the new room')
+assert(attacker:Exists() and attacker.HitPoints == hpOnEntry, 'room transition removed or damaged returning enemy')
+assert(claimed[2] and not captureHud()['30s'], 'first combat in a new room did not refresh R')
+castKey('KEY_W')
+assert(captureHud()['10s'], 'fresh W did not go on cooldown')
+event('PRE_CHANGE_ROOM')
+event('POST_NEW_ROOM')
+tick()
+assert(captureHud()['10s'], 're-entering an already claimed room refreshed W again')
 
 kind = 0
 tick()
