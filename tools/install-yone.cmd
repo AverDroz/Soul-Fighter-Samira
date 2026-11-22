@@ -63,21 +63,38 @@ function Get-IsaacPaths([string]$Runtime, [string]$Game) {
     }
 }
 
-function Test-OurMod([string]$Path) {
-    $metadata = Join-Path $Path 'metadata.xml'
-    if (-not [IO.File]::Exists($metadata)) { return $false }
+function Read-ModXml([string]$Path) {
+    $settings = New-Object Xml.XmlReaderSettings
+    $settings.DtdProcessing = 'Prohibit'
+    $reader = [Xml.XmlReader]::Create($Path, $settings)
     try {
-        $settings = New-Object Xml.XmlReaderSettings
-        $settings.DtdProcessing = 'Prohibit'
-        $reader = [Xml.XmlReader]::Create($metadata, $settings)
-        try {
-            $xml = New-Object Xml.XmlDocument
-            $xml.Load($reader)
-        } finally { $reader.Dispose() }
+        $xml = New-Object Xml.XmlDocument
+        $xml.Load($reader)
+        return $xml
+    } finally { $reader.Dispose() }
+}
+
+function Test-OurMod([string]$Path) {
+    try {
+        $xml = Read-ModXml (Join-Path $Path 'metadata.xml')
         $name = $xml.SelectSingleNode('/metadata/name')
         $directory = $xml.SelectSingleNode('/metadata/directory')
         return $name -and $directory -and $name.InnerText -ceq 'Soul Fighter Samira' -and
             $directory.InnerText -ceq $modDirectory
+    } catch { return $false }
+}
+
+function Test-YoneRoster([string]$Path) {
+    try {
+        $players = Read-ModXml (Join-Path $Path 'content\players.xml')
+        if ($players.SelectNodes('/players/player[@name="Yone"]').Count -ne 1) { return $false }
+        foreach ($file in @('charactermenu.anm2', 'characterportraits.anm2')) {
+            $menu = Read-ModXml (Join-Path $Path "content\gfx\$file")
+            if ($menu.SelectNodes('/AnimatedActor/Animations/Animation[@Name="Yone"]').Count -ne 1) {
+                return $false
+            }
+        }
+        return $true
     } catch { return $false }
 }
 
@@ -116,6 +133,9 @@ function Remove-OwnedStage([string]$Path, [string]$Parent, [string]$Prefix) {
 function Install-OwnedMod([string]$Source, [string]$Mods) {
     if (-not (Test-OurMod $Source) -or -not [IO.File]::Exists((Join-Path $Source 'main.lua'))) {
         throw 'В архиве отсутствует рабочая копия Soul Fighter Samira.'
+    }
+    if (-not (Test-YoneRoster $Source)) {
+        throw 'В архиве отсутствует Ёнэ или одна из его анимаций меню выбора.'
     }
     $source = [IO.Path]::GetFullPath($Source).TrimEnd('\', '/')
     $modsFull = [IO.Path]::GetFullPath($Mods)
@@ -350,7 +370,7 @@ function Get-LauncherArguments([string]$Isaac) {
 if ($LibraryOnly) { return }
 
 $releaseHash = '__YONE_RELEASE_SHA256__'
-$releaseUrl = 'https://github.com/N1kromant/Soul-Fighter-Samira/releases/download/yone-immersion-v5/Soul-Fighter-Samira-Yone-Classic-Windows.zip'
+$releaseUrl = 'https://github.com/N1kromant/Soul-Fighter-Samira/releases/download/yone-immersion-v6/Soul-Fighter-Samira-Yone-Roster-Windows.zip'
 $launcherHash = '7e4a45d8b9f099ea79e42f86bc24c2a05b35e239d7bc4d597c11b5bceaccfd6a'
 $launcherUrl = 'https://github.com/TeamREPENTOGON/Launcher/releases/download/v0.4.9-beta/REPENTOGONLauncher.zip'
 $cache = Join-Path $env:LOCALAPPDATA 'YoneInstaller'
@@ -399,7 +419,7 @@ try {
     Write-Host "Папка обмена Companion: $($paths.Status)"
     Assert-ModDestination (Join-Path $paths.Mods $modDirectory)
 
-    $releaseZip = Join-Path $cache 'Yone-Classic.zip'
+    $releaseZip = Join-Path $cache 'Yone-Roster.zip'
     $launcherZip = Join-Path $cache 'REPENTOGONLauncher-0.4.9-beta.zip'
     Get-VerifiedFile $releaseUrl $releaseZip $releaseHash
     Get-VerifiedFile $launcherUrl $launcherZip $launcherHash
@@ -414,6 +434,10 @@ try {
     Install-CachedArchive $launcherZip $launcherDir $launcherHash '' @('REPENTOGONLauncher.exe', 'launcher-data.bin')
     $launcher = Join-Path $launcherDir 'REPENTOGONLauncher.exe'
     Install-OwnedMod (Join-Path $payload $modDirectory) $paths.Mods
+    if (-not (Test-YoneRoster (Join-Path $paths.Mods $modDirectory))) {
+        throw 'Запись Ёнэ не найдена в установленной копии. Проверь указанный выше путь к mods.'
+    }
+    Write-Host 'Запись Yone и обе анимации выбора установлены в каталог модов REPENTOGON.'
 
     $companion = Join-Path $payload 'companion'
     $work = Join-Path $companion 'work'

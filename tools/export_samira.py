@@ -65,6 +65,7 @@ def build(output, *, include_local_yone=False):
                 copy(f"assets/yone-local/audio/{name}", f"companion/assets/yone-local/audio/{name}")
         if (ROOT / "assets/yone-local/yone-portrait.png").is_file():
             copy("assets/yone-local/yone-portrait.png", "samira_testroom/resources/gfx/samira/yone-portrait.png")
+            copy("assets/yone-local/yone-portrait.png", "samira_testroom/content/gfx/yone_menu_model.png")
     for source, target in (("export-launcher.cmd", "launch.cmd"), ("export-launcher.ps1", "launcher.ps1"), ("export-INSTALL.txt", "INSTALL.txt")):
         copy(f"tools/{source}", target)
     for source, target in (("export-stop.cmd", "stop.cmd"), ("export-stop.ps1", "stop.ps1")):
@@ -72,7 +73,7 @@ def build(output, *, include_local_yone=False):
             copy(f"tools/{source}", target)
     (stage / "companion/work").mkdir(parents=True, exist_ok=True)
     (stage / "CREDITS.txt").write_text(
-        "Soul Fighter Samira — personal experimental mod, version 0.3.2.\n"
+        "Soul Fighter Samira — personal experimental mod.\n"
         "League of Legends character, model, animations, sounds and original artwork: Riot Games.\n"
         "Framework and external renderer adapted from TFOS4 Isaac-LoL-HeroStudio:\n"
         "https://github.com/TFOS4/Isaac-LoL-HeroStudio\n"

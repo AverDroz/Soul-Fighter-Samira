@@ -62,7 +62,7 @@ state = combat.new()
 local front, behind = enemy(96, 100, 7), enemy(36, 100, 8)
 entities = {front, behind}
 local function cast(kind, clock)
-    assert(combat.cast(state, kind, player, aim, clock) ~= nil, 'failed to cast ' .. kind)
+    assert(combat.cast(state, kind, player, aim, clock, room) ~= nil, 'failed to cast ' .. kind)
 end
 local function resolve(clock)
     combat.update(state, room, player, entities, clock)
@@ -251,6 +251,29 @@ entities = {farther, nearest}
 cast('attack', 1); resolve(9)
 assert(math.abs(nearest.damage[1] - 5.6) < .0001 and farther.damage[1] == 4,
     'multishot bonus followed arbitrary entity order instead of the first enemy reached')
+-- The authoritative cast area stays fixed through windup even if the player and aim move.
+for _, spec in ipairs({{'q', 6}, {'q3', 7}, {'w', 8}, {'r', 23}}) do
+    state = combat.new(); player.Position = Vector(60,100)
+    if spec[1] == 'q3' then state.qStacks = 2 end
+    local target = enemy(250,100,200)
+    local displaced = enemy(150,200,201)
+    entities = {target, displaced}
+    assert(combat.cast(state, spec[1] == 'q3' and 'q' or spec[1], player, aim, 1, room))
+    local area, key = combat.activeFootprint(state, player, room)
+    assert(area and area.origin.X == 60 and area.facing.X == 1 and key == (spec[1] == 'q3' and 'q' or spec[1]))
+    player.Position = Vector(130,200)
+    target.Position = Vector(100,100)
+    resolve(spec[2])
+    assert(#target.damage == 0 and #displaced.damage == 0, 'early hit before windup')
+    area = combat.activeFootprint(state, player, room)
+    assert(area.origin.X == 60 and area.origin.Y == 100, 'windup area moved with player')
+    resolve(spec[2]+1)
+    local fx = combat.visual(state, spec[2]+1).fx
+    assert(#target.damage == 1 and #displaced.damage == 0 and fx[#fx].origin.X == 60
+        and fx[#fx].contacts[1].X == (spec[1] == 'r' and target.Position.X or 100),
+        'locked hit area or impact telemetry changed with player movement')
+    assert(not combat.activeFootprint(state, player, room), 'area persisted after impact')
+end
 """)
     print("PASS Yone strikes, spirit presentation, accepted damage marks, transitions and R line/pull")
 

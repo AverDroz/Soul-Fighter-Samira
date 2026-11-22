@@ -90,7 +90,7 @@ function Combat.reduceCooldowns(state, fraction, clock)
     end
 end
 
-function Combat.cast(state, input, player, aim, clock)
+function Combat.cast(state, input, player, aim, clock, room)
     if state.pending or (state.action and state.action.key == 'r' and clock < state.action.finish) then return end
     local key = input
     if input == 'e' and state.spirit then
@@ -108,6 +108,13 @@ function Combat.cast(state, input, player, aim, clock)
     local clip = key == 'attack' and state.secondBlade and 'attack2' or key
     state.action = {key = clip, at = clock, finish = clock + skill.duration}
     state.pending = {kind = key, clip = clip, at = clock + skill.windup, facing = state.face}
+    if key == 'q' or key == 'q3' or key == 'w' or key == 'r' then
+        local footprint = Combat.footprint(state, player, key, aim, room)
+        footprint.origin = Vector(player.Position.X, player.Position.Y)
+        footprint.facing = Vector(state.face.X, state.face.Y)
+        footprint.key = key == 'q3' and 'q' or key
+        state.pending.footprint = footprint
+    end
     if key ~= 'e_return' then
         local cooldown = skill.cooldown or attackDelay(player)
         if input == 'q' then cooldown = math.max(18, cooldown * 2) end
@@ -154,8 +161,8 @@ end
 
 function Combat.activeFootprint(state, player, room)
     local pending = state.pending
-    if not pending or pending.kind ~= 'r' then return nil end
-    return Combat.footprint(state, player, 'r', player.Position + pending.facing, room)
+    local area = pending and pending.footprint or nil
+    return area, area and area.key or nil
 end
 
 function Combat.confirmDamage(state, entity, amount, source)
@@ -214,18 +221,19 @@ end
 local function blade(state, room, player, enemies, strike, width, reach, multiplier, sweep, hitTargets, throughWalls, contacts)
     local hit, furthest = false, 0
     local facing = strike.facing
+    local origin = strike.footprint and strike.footprint.origin or player.Position
     local side = Vector(-facing.Y, facing.X)
     local candidates = {}
     for _, enemy in ipairs(enemies) do
         if Combat.hostile(enemy) then
-            local delta = enemy.Position - player.Position
+            local delta = enemy.Position - origin
             local along = delta:Dot(facing)
             local across = math.abs(delta:Dot(side))
             local distance = delta:Length()
             local inRange = sweep and distance <= reach + enemy.Size and along >= distance * wCosine
                 or not sweep and along >= 0 and along <= reach + enemy.Size and across <= width + enemy.Size
                 and (not throughWalls or along <= reach)
-            if inRange and (throughWalls or room:CheckLine(player.Position, enemy.Position, 3, 0, false, false)) then
+            if inRange and (throughWalls or room:CheckLine(origin, enemy.Position, 3, 0, false, false)) then
                 candidates[#candidates + 1] = {entity = enemy, along = along, distance = sweep and distance or along,
                     seed = enemy.InitSeed}
             end
@@ -333,9 +341,9 @@ end
 
 local function resolve(state, room, player, enemies, strike, clock)
     local key, facing = strike.kind, strike.facing
-    local start = player.Position
+    local footprint = strike.footprint
+    local start = footprint and footprint.origin or player.Position
     local items = state.items
-    local footprint = Combat.footprint(state, player, key, start + facing, room)
     if items and items.newAttack and (key == 'attack' or key == 'q' or key == 'q3' or key == 'w' or key == 'r') then
         strike.itemContext = items.newAttack(player, key == 'q3' and 'q' or key, clock)
     end

@@ -55,9 +55,21 @@ try {
     $backupRoot = Join-Path $customHost '.yone-mod-backups'
     Write-Fixture (Join-Path $source 'metadata.xml') $ourMetadata
     Write-Fixture (Join-Path $source 'main.lua') 'fresh'
+    Write-Fixture (Join-Path $source 'content\players.xml') '<players><player name="Samira" /></players>'
+    $missingRoster = $false
+    try { Install-OwnedMod $source $mods } catch { $missingRoster = $true }
+    Assert ($missingRoster -and -not [IO.Directory]::Exists($destination)) 'A Samira-only package was installed as Yone'
+    Write-Fixture (Join-Path $source 'content\players.xml') '<players><player name="Samira" /><player name="Yone" /></players>'
+    $menu = '<AnimatedActor><Animations><Animation Name="Yone" /></Animations></AnimatedActor>'
+    Write-Fixture (Join-Path $source 'content\gfx\charactermenu.anm2') $menu
+    $missingPortrait = $false
+    try { Install-OwnedMod $source $mods } catch { $missingPortrait = $true }
+    Assert ($missingPortrait -and -not [IO.Directory]::Exists($destination)) 'A package without Yone portrait animation was installed'
+    Write-Fixture (Join-Path $source 'content\gfx\characterportraits.anm2') $menu
     Write-Fixture (Join-Path $mods 'unrelated\personal.txt') 'retain'
     Install-OwnedMod $source $mods
     Assert ([IO.File]::ReadAllText((Join-Path $destination 'main.lua')) -eq 'fresh') 'Fresh install did not write the mod'
+    Assert (Test-YoneRoster $destination) 'Installed payload failed the roster check'
     Assert (-not [IO.Directory]::Exists($backupRoot)) 'Fresh install created a spurious backup'
     Install-OwnedMod $source $mods
     Assert (-not [IO.Directory]::Exists($backupRoot)) 'An unchanged run created a backup'

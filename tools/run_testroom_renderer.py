@@ -68,6 +68,8 @@ def actor_phase(state):
 
 def yone_animation(state,durations):
     clip=state.get('clip') or state['kind']
+    if clip == 'run' and durations.get('run') and 'clock' in state:
+        return 'run', state['clock'] / (30 * durations['run']) % 1
     if clip in YONE_CAST_TICKS:
         hit, length = YONE_CAST_TICKS[clip]
         timing = state.get('yoneTiming')
@@ -88,7 +90,7 @@ def yone_animation(state,durations):
                 return 'q3', (tick - hit) / (end - hit)
             if tick < end + 2:
                 return 'q3_out', (tick - end) / 2
-            return yone_movement_animation(state)
+            return yone_movement_animation(state, durations)
         if clip == 'r' and durations.get('r_out'):
             if tick < hit:
                 return 'r', tick / hit
@@ -98,7 +100,7 @@ def yone_animation(state,durations):
                 return 'e', tick / hit
             if tick < hit + YONE_DASH_TICKS['e']:
                 return 'e_dash', (tick - hit) / YONE_DASH_TICKS['e']
-            return yone_movement_animation(state)
+            return yone_movement_animation(state, durations)
         if clip == 'e_return' and durations.get('e_return_out'):
             travel = YONE_DASH_TICKS['e_return']
             if tick < travel:
@@ -125,9 +127,11 @@ def yone_animation(state,durations):
     return clip,min(1,seconds/duration)
 
 
-def yone_movement_animation(state):
+def yone_movement_animation(state, durations):
     clock = state.get('clock', 0)
-    return ('run', clock / 24 % 1) if state.get('yoneMoving') else ('idle', clock / 60 % 1)
+    if state.get('yoneMoving'):
+        return 'run', clock / (30 * durations.get('run', 38 / 30)) % 1
+    return 'idle', clock / 60 % 1
 
 
 def yone_dash_position(state, event):

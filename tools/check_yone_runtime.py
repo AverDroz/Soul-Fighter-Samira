@@ -84,7 +84,11 @@ tick()
 assert(packet.active and packet.hero == 'yone' and packet.clip == 'idle')
 assert(Options.UseBorderlessFullscreen and packet.display.mode == 'windowed')
 assert(itemDriver() == player and itemUpdates > 0, 'ordinary Yone run did not bind shared items')
+local glyphLines = 0
+Isaac.DrawLine = function() glyphLines = glyphLines + 1 end
 local readyHud = captureHud()
+assert(glyphLines >= 24, 'ability slots did not render their distinct glyph geometry')
+Isaac.DrawLine = function() end
 assert(readyHud.R.y + 8 < Isaac.GetScreenHeight() - 26, 'narrow ability row collided with the backpack')
 local width, height = Isaac.GetScreenWidth, Isaac.GetScreenHeight
 Isaac.GetScreenWidth, Isaac.GetScreenHeight = function() return 688 end, function() return 288 end
@@ -118,6 +122,28 @@ tick(nil, false, player.Position + Vector(100, 0))
 assert(packet.clip == 'q' and packet.hero == 'yone')
 assert(packet.yoneTiming.hit == 6 and packet.yoneTiming.length == 16, 'Q timing was not exported to Companion')
 assert(lastCast == 'q', 'Yone ability did not reach item cast hooks')
+local locked = {}
+local originalLine = Isaac.DrawLine
+Isaac.DrawLine = function(a, b, color)
+    if color and color[1] == .60 and color[2] == .93 and color[3] == 1 then
+        locked[#locked + 1] = {a.X, a.Y, b.X, b.Y}
+    end
+end
+renderOnly(nil, false, player.Position + Vector(0, -100))
+assert(#locked > 4, 'committed Q lost its own colored footprint')
+local firstLocked = locked
+locked = {}
+renderOnly(nil, false, player.Position + Vector(-100, 0))
+assert(#locked == #firstLocked, 'committed footprint changed after cursor movement')
+for i, line in ipairs(locked) do
+    for j = 1, 4 do assert(math.abs(line[j] - firstLocked[i][j]) < .001,
+        'committed footprint followed the cursor') end
+end
+Isaac.DrawLine = originalLine
+local committedPosition = player.Position
+tick('KEY_RIGHT', false, player.Position + Vector(0, -100))
+assert(callAction('ACTION_RIGHT') == 0 and player.Position:Distance(committedPosition) < .001,
+    'movement resumed during a committed Q windup')
 for _ = 1, 7 do tick() end
 local stackedHud = captureHud()
 sameSlots(readyHud, stackedHud)
@@ -197,6 +223,7 @@ for _ = 1, 4 do tick() end
 local spiritHud = captureHud()
 sameSlots(readyHud, spiritHud)
 assert(spiritHud['<'], 'E lost its active spirit marker')
+assert(spiritHud['4.9s'] or spiritHud['5.0s'], 'E did not show remaining spirit time')
 assert(packet.yone.spirit.anchor[1] == positionBeforeE.X * projection)
 assert(packet.yone.spirit.anchor[1] < packet.position[1])
 attacker.Position = player.Position + Vector(21, 0)
@@ -212,6 +239,20 @@ tick('KEY_A')
 for _ = 1, 8 do tick() end
 local mark = packet.yone.spirit.marks[1]
 assert(mark and mark.position[1] == attacker.Position.X * projection and mark.amount > 0)
+local nativeMarkLines = 0
+local drawLineBeforeMark = Isaac.DrawLine
+Isaac.DrawLine = function(a, b, ...)
+    local mx, my = attacker.Position.X * projection, attacker.Position.Y * projection - 25
+    if math.abs(a.X - mx) <= 6 and math.abs(a.Y - my) <= 7
+        and math.abs(b.X - mx) <= 6 and math.abs(b.Y - my) <= 7 then
+        nativeMarkLines = nativeMarkLines + 1
+    end
+end
+ack.room, ack.time, ack.display = packet.room, now, packet.display.id
+ack.capabilities.yoneVfx = false
+tick()
+assert(nativeMarkLines >= 5, 'native mark did not follow the damaged enemy')
+Isaac.DrawLine = drawLineBeforeMark
 local rendered = {}
 Isaac.RenderText = function(text) rendered[text] = true end
 ack.room, ack.time, ack.display = packet.room, now, packet.display.id

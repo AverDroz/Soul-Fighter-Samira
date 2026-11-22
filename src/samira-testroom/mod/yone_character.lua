@@ -9,7 +9,7 @@ local Display
 local fps, leaseMs = 30, 500
 local floorRebindMs = 650
 local abilities = {'q', 'w', 'e', 'r'}
-local abilityHudHeight, abilityHudGap = 22, 3
+local abilityHudHeight, abilityHudGap = 34, 3
 local abilityReady = {.92, .92, 1, 1}
 local abilityCooling = {.69, .67, .76, 1}
 local abilityCharged = {1, .75, .35, 1}
@@ -152,7 +152,7 @@ local function updateMovement(state, room, player, clock)
     if target and not Combat.hostile(target) then stopMoving(state); return end
     if target and Combat.inMeleeRange(room, player, target, state.combat.items) then
         state.intent = nil
-        Combat.cast(state.combat, 'attack', player, target.Position, clock)
+        Combat.cast(state.combat, 'attack', player, target.Position, clock, room)
         return
     end
     if state.door and player.Position:Distance(state.door.position) < 29 then
@@ -195,10 +195,10 @@ end
 
 local function drawAim(room, combat, player, clock, key)
     if not Isaac.DrawLine or not KColor then return end
-    local area = Combat.activeFootprint(combat, player, room)
+    local area, castKey = Combat.activeFootprint(combat, player, room)
     local casting = area ~= nil
     if casting then
-        key = 'r'
+        key = castKey or 'r'
     elseif key then
         area = Combat.footprint(combat, player, key, Navigation.worldCursor(room), room)
     end
@@ -216,10 +216,12 @@ local function drawAim(room, combat, player, clock, key)
     if area.shape == 'sector' then
         local arc = sectorArc(area, project)
         line(start, arc[1], edge)
-        for i = 2, #arc do
-            line(arc[i - 1], arc[i], edge)
-            if i < #arc then line(start, arc[i], fill) end
+        local halfAngle = math.deg(math.acos(area.cosine))
+        for i = 0, 48 do
+            local endpoint = area.origin + (area.facing * area.reach):Rotated((i / 24 - 1) * halfAngle)
+            line(start, project(endpoint), fill)
         end
+        for i = 2, #arc do line(arc[i - 1], arc[i], edge) end
         line(arc[#arc], start, edge)
     else
         local side = area.facing:Rotated(90) * area.width
@@ -230,8 +232,8 @@ local function drawAim(room, combat, player, clock, key)
         line(b, c, edge)
         line(c, d, edge)
         line(d, a, edge)
-        for i = -2, 2 do
-            local offset = side * (i / 3)
+        for i = -12, 12 do
+            local offset = side * (i / 12)
             line(project(area.origin + offset), project(target + offset), fill)
         end
     end
@@ -317,7 +319,7 @@ local function emit(game, state, player, force, picture)
     local looping = not action
     if not action then
         action = player.Velocity:Length() > .6 and 'run' or 'idle'
-        phase = clock / (action == 'run' and 24 or 60) % 1
+        phase = clock / (action == 'run' and 38 or 60) % 1
     end
     local mastery = not hidden and Emotes.mastery(state.emotes, clock)
     packet({
@@ -391,7 +393,15 @@ local function drawNativeEffects(room, player, picture, x, y, geometry, clock)
             end
             for _, mark in ipairs(spirit.marks) do
                 local enemy = point(mark.position)
-                Isaac.RenderText('*', enemy.X - 3, enemy.Y - 27, 1, .38, .55, 1)
+                local c = enemy + Vector(0, -25)
+                local top, right, bottom, left = c + Vector(0, -6), c + Vector(5, 0),
+                    c + Vector(0, 6), c + Vector(-5, 0)
+                line(top, right, 2, 1, .36, .54, .95)
+                line(right, bottom, 2, 1, .36, .54, .95)
+                line(bottom, left, 2, 1, .36, .54, .95)
+                line(left, top, 2, 1, .36, .54, .95)
+                line(c + Vector(-2, 2), c + Vector(2, -2), 1, 1, .83, .88, 1)
+                Isaac.RenderText(('*%.1f'):format(mark.amount), enemy.X + 6, enemy.Y - 31, 1, .65, .72, 1)
             end
         end
     end
@@ -431,6 +441,28 @@ local function drawAbilitySlot(x, y, width)
         abilityHudPalette.panel, abilityHudPalette.panel, abilityHudHeight - 2)
 end
 
+-- Original geometric skill glyphs keep each slot identifiable even at small scale.
+local function drawAbilityIcon(key, x, y, tint)
+    if not Isaac.DrawLine or not KColor then return end
+    local color = KColor(table.unpack(tint))
+    local function stroke(ax, ay, bx, by, width)
+        Isaac.DrawLine(Vector(x + ax, y + ay), Vector(x + bx, y + by), color, color, width or 1.5)
+    end
+    if key == 'q' then
+        stroke(-7, 3, 5, -3, 2); stroke(2, -5, 6, -3); stroke(6, -3, 4, 1)
+        stroke(-7, -1, -3, -3)
+    elseif key == 'w' then
+        stroke(-6, -3, -4, 2, 2); stroke(-4, 2, 0, 5, 2); stroke(0, 5, 5, 2, 2)
+        stroke(5, 2, 7, -3, 2); stroke(-3, -1, 0, 2); stroke(0, 2, 3, -1)
+    elseif key == 'e' then
+        stroke(-7, 2, -3, -3, 2); stroke(-3, -3, 1, 2, 2); stroke(1, 2, 5, -3, 2)
+        stroke(-6, 5, 6, 5); stroke(4, 3, 6, 5); stroke(6, 5, 4, 7)
+    else
+        stroke(-6, -4, 5, 4, 2); stroke(-6, 4, 5, -4, 2)
+        stroke(5, -4, 7, -1); stroke(5, 4, 7, 1)
+    end
+end
+
 local function drawAbilityHud(combat, clock, backpack, aiming)
     local width, height = Isaac.GetScreenWidth(), Isaac.GetScreenHeight()
     if abilityFont == nil and Font then
@@ -440,7 +472,7 @@ local function drawAbilityHud(combat, clock, backpack, aiming)
     local keyScale = .87
     local markerOffset = (abilityFont and abilityFont:GetStringWidthUTF8('W') * keyScale
         or Isaac.GetTextWidth('W')) + 5
-    local slotWidth = math.max(26, markerOffset + Isaac.GetTextWidth('++') + 4,
+    local slotWidth = math.max(48, markerOffset + Isaac.GetTextWidth('++') + 4,
         Isaac.GetTextWidth('999s') + 6)
     local step = slotWidth + abilityHudGap
     local rowWidth = #abilities * step - abilityHudGap
@@ -468,6 +500,7 @@ local function drawAbilityHud(combat, clock, backpack, aiming)
             tint = {r, g, b, 1}
         end
         drawAbilitySlot(left, y, slotWidth)
+        drawAbilityIcon(key, left + slotWidth - 13, y + 9, tint)
         local label = key:upper()
         if abilityFont then
             abilityFont:DrawStringScaledUTF8(label, left + 3, y, keyScale, keyScale,
@@ -480,8 +513,12 @@ local function drawAbilityHud(combat, clock, backpack, aiming)
         elseif spirit then
             Isaac.RenderText('<', left + markerOffset, y + 1, table.unpack(tint))
         end
-        if remaining > 0 and not spirit then
-            Isaac.RenderText(('%ds'):format(math.ceil(remaining / fps)), left + 3, y + 11,
+        if spirit then
+            local ticks = math.max(0, spirit.untilFrame - clock)
+            local status = ticks == 0 and 'HOLD' or ('%.1fs'):format(ticks / fps)
+            Isaac.RenderText(status, left + 3, y + 20, table.unpack(abilityRecast))
+        elseif remaining > 0 then
+            Isaac.RenderText(('%ds'):format(math.ceil(remaining / fps)), left + 3, y + 20,
                 table.unpack(abilityCooling))
         end
     end
@@ -620,7 +657,7 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display)
                 stopMoving(state)
                 state.target = targetAt(enemies, aim)
                 if not state.target then setGoal(state, room, aim) end
-            elseif Combat.cast(state.combat, kind, player, aim, clock) then
+            elseif Combat.cast(state.combat, kind, player, aim, clock, room) then
                 stopMoving(state)
             end
         end
@@ -628,7 +665,8 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display)
         -- Resolve zero-windup recasts on the press, after issuing the action.
         Combat.update(state.combat, room, player, enemies, clock)
         local action = Combat.presentation(state.combat, clock)
-        if action == 'r' then
+        local windup = Combat.activeFootprint(state.combat, player, room)
+        if action == 'r' or windup then
             state.intent = nil
             player.Velocity = Vector.Zero
         else

@@ -385,6 +385,12 @@ class YoneRendererTests(unittest.TestCase):
 
 
 class YoneAnimationTests(unittest.TestCase):
+    def test_run_uses_original_clip_duration(self):
+        from run_testroom_renderer import yone_animation
+
+        state = {"kind": "run", "phase": 19 / 24, "clock": 19}
+        self.assertEqual(yone_animation(state, {"run": 38 / 30}), ("run", .5))
+
     def test_ordinary_q_runs_both_source_segments(self):
         from run_testroom_renderer import yone_animation
 
