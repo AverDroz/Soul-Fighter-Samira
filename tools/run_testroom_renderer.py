@@ -6,6 +6,7 @@ sys.path.insert(0,str(ROOT/'work/render-deps'))
 sys.path.insert(0,str(ROOT/'src/samira/external'))
 from model import Model,GPURenderer
 from bridge import BufferedTail
+from display_geometry import DisplayGate
 from layered_surface import LayeredFrame
 from samira_audio import MAX_PACKET_AGE_MS, Mixer, SamiraAudio
 from yone_combat_audio import YoneCombatAudio
@@ -81,8 +82,11 @@ class YoneRenderer:
         if path.is_file():
             try:
                 self.actor=GPURenderer(ctx,Model(path,hero='yone'))
+                print('Yone model loaded',flush=True)
             except Exception as error:
                 print('Yone model unavailable; native character retained: '+repr(error),flush=True)
+        else:
+            print(f'Yone model file missing; native character retained: {path}',flush=True)
         try:
             from mastery_renderer import MasteryRenderer
             self.mastery=MasteryRenderer(ctx)
@@ -232,6 +236,8 @@ def acknowledge(folder,state,visible,capabilities=None):
         'time':state.get('time',0),'ready':visible,'visible':visible,
         'hudVisible':False,'capabilities':capabilities or {}}
     if state.get('hero') is not None:payload['hero']=state['hero']
+    display=state.get('display')
+    if isinstance(display,dict) and isinstance(display.get('id'),int):payload['display']=display['id']
     data=json.dumps(payload,separators=(',',':'))
     folder.mkdir(parents=True,exist_ok=True)
     for slot in (1,2,3):
@@ -247,6 +253,7 @@ def run(args):
     status=Path(args.status_dir);last_state={}
     stop=ROOT/'work/testroom-renderer.stop'
     windows=Windows()
+    display_gate=DisplayGate()
     try:
         window,ctx=create_window(False)
         glfw.swap_interval(0)
@@ -271,8 +278,10 @@ def run(args):
         audio=open_audio(audio_hero)
         tail=BufferedTail(args.log)
         print('Ready: Soul Fighter; GPU '+ctx.info['GL_RENDERER'],flush=True)
+        print(f'Game log: {args.log}\nPresentation status: {status}',flush=True)
         last=time.perf_counter();last_ack=0;last_report=last;count=0;scene=None;next_settings=0
         last_presentation=None
+        last_display_reason=None
         settings=ROOT/'src/samira-testroom/visual-settings.json'
         while not stop.exists():
             now=time.perf_counter();dt=min(.1,now-last);last=now;glfw.poll_events()
@@ -283,8 +292,14 @@ def run(args):
                     if math.isfinite(value) and .08<=value<=.4:model.pixel_scale=value
                 except (OSError,ValueError,KeyError,TypeError):pass
             state=tail.sample(now);hwnd=windows.game() if state else None
-            box=windows.bounds(hwnd) if hwnd else None
-            visible=bool(state and box and min(box[2:])>0 and not state.get('occluded')
+            client=windows.bounds(hwnd) if hwnd else None
+            box=display_gate.choose(hwnd,client,state)
+            if state and display_gate.reason!=last_display_reason:
+                logical=state.get('screen')
+                print(f'Display: {display_gate.reason or "viewport confirmed"}; logical={logical}; '
+                      f'render={state.get("display")}; client={client}; overlay={box}',flush=True)
+                last_display_reason=display_gate.reason
+            visible=bool(state and box and not state.get('occluded')
                          and not state.get('transition') and not state.get('paused'))
             hero=state.get('hero','samira') if state else None
             if hero and hero!=audio_hero:
@@ -334,7 +349,7 @@ def run(args):
             if pointer:
                 pointer.draw(hwnd,box,state.get('nativeCursor',False))
             surface.present(box);surface.show()
-            presentation=(rendered,capabilities)
+            presentation=(rendered,capabilities,box)
             if new_scene or presentation!=last_presentation or now-last_ack>.1:
                 acknowledge(status,state,rendered,capabilities);last_ack=now;last_presentation=presentation
             count+=1

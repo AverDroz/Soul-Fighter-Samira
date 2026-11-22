@@ -191,6 +191,7 @@ noItems.withContext = function(context, fn)
     local result=fn();itemContextNow=previous;return result
 end
 noItems.tagTear = function(_,tear,context) tear:GetData().ItemContext=context end
+local fallbackRenderOffset
 function include(name)
     if name == 'samira_controls_settings' then return {init=function() end} end
     if name == 'samira_items' then return noItems end
@@ -207,7 +208,7 @@ function include(name)
     end
     if name == 'samira_character' then
         return {is=function() return selected == true end,player=function() return selected and player end,
-            drawFallback=function() return false end}
+            drawFallback=function(_, _, offset) fallbackRenderOffset=offset; return false end}
     end
     if name == 'samira_weapons' and not nativeMode then
         return {init=function() end,reset=function() end,update=function() end,input=function() end}
@@ -275,6 +276,12 @@ local function earnStyle()
 end
 include('main')
 assert(encounterPlayer()==nil, 'debug Samira skin on Isaac enabled encounter doubling')
+start()
+selected=true
+local nativeOffset=Vector(7,-80)
+event('PRE_PLAYER_RENDER',player,nativeOffset)
+selected=false
+assert(fallbackRenderOffset==nativeOffset, 'native Samira fallback lost the room render offset')
 
 -- Mouse door entry uses native walking, not a forced room transition. Test
 -- the extended clickable art and recovery from just outside each threshold.
@@ -455,7 +462,7 @@ assert(#shots==1, 'Q ignored its cooldown')
 local tear=shots[1]
 local function confirm(capabilities, seq)
     ack={version=1,session=packet.session,room=packet.room,time=now,ready=true,visible=true,
-        capabilities=capabilities,seq=seq or packet.seq}
+        capabilities=capabilities,seq=seq or packet.seq,display=packet.display.id}
     event('PRE_PLAYER_RENDER',player,Vector.Zero)
 end
 confirm({})

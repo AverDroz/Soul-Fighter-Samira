@@ -19,6 +19,7 @@ local Weapons = include('samira_weapons')
 local Kills = include('samira_kills')
 local Encounters = include('samira_encounters')
 local Yone = include('yone_character')
+local Display = include('samira_display')
 Combat.bindItems(Items)
 Combat.bindWeapons(Weapons)
 Items.bindCombat(Combat)
@@ -69,7 +70,7 @@ local reboundActions = {[ButtonAction.ACTION_BOMB] = Keyboard.KEY_G, [ButtonActi
 local active, session, sessionSerial = false, nil, 0
 local selectedCharacter = false
 local room, sequence = 0, 0
-local capturePosition, captureAt, ackAt, ackVisualSeq, ackStyleHud, pollAt, emitAt
+local ackAt, ackVisualSeq, ackStyleHud, pollAt, emitAt, ackDisplay, emitDisplay
 local leaving, lastOccluded, coverUntil, pendingAnimation
 local animation, animationAt, hurtUntil
 local face = Vector(0, 1)
@@ -84,6 +85,7 @@ local function stop()
         packet({version = 1, active = false})
     end
     active = false
+    Display.release('samira')
     Weapons.reset()
     Kills.reset()
     StyleHUD.render(nil, nil)
@@ -91,7 +93,7 @@ end
 
 local function resetRoom(keepCooldowns)
     room = room + 1
-    capturePosition, captureAt, ackAt, ackVisualSeq, ackStyleHud, pollAt, emitAt = nil, nil, nil, nil, nil, nil, nil
+    ackAt, ackVisualSeq, ackStyleHud, pollAt, emitAt, ackDisplay, emitDisplay = nil, nil, nil, nil, nil, nil, nil
     leaving, lastOccluded, coverUntil, pendingAnimation = nil, nil, nil, nil
     animation, animationAt, hurtUntil = nil, nil, nil
     Combat.reset(keepCooldowns)
@@ -107,6 +109,7 @@ local function start(continued)
     sequence = 0
     face = Vector(0, 1)
     active = true
+    Display.acquire('samira')
     selectedCharacter = Character.is(Isaac.GetPlayer(0))
     if Items.setEnabled then Items.setEnabled(true) end
     if Items.activate then Items.activate(Isaac.GetPlayer(0)) end
@@ -137,7 +140,11 @@ local function occluded(p, now)
         or name == 'LightTravel' or name == 'HoleIn' or name == 'FallIn'
 end
 
-local function readAck(now)
+local function readAck(now, display)
+    if ackDisplay ~= display.id then
+        ackDisplay = display.id
+        ackAt, ackVisualSeq, ackStyleHud, pollAt = nil, nil, nil, nil
+    end
     if pollAt and now < pollAt then return end
     pollAt = now + 40
 
@@ -145,7 +152,7 @@ local function readAck(now)
     if not ok or type(raw) ~= 'string' or #raw > 4096 then return end
     local decoded, ack = pcall(json.decode, raw)
     if not decoded or type(ack) ~= 'table' then return end
-    if ack.version == 1 and ack.session == session and ack.room == room
+    if ack.version == 1 and ack.session == session and ack.room == room and ack.display == display.id
         and ack.ready == true and ack.visible == true and type(ack.time) == 'number'
         and ack.time <= now + 100 and now - ack.time < leaseMs then
         ackAt = math.min(now, ack.time)
@@ -195,25 +202,26 @@ local function emit(force)
         return
     end
     local now = Isaac.GetTime()
+    local width, height, display = Display.sample()
     local hidden = occluded(p, now)
-    if not force and emitAt and now - emitAt < 30 and hidden == lastOccluded then return end
-    emitAt, lastOccluded = now, hidden
+    if not force and emitAt and now - emitAt < 30 and hidden == lastOccluded and emitDisplay == display.id then return end
+    emitAt, lastOccluded, emitDisplay = now, hidden, display.id
     sequence = sequence + 1
 
     local clock = game:GetFrameCount()
     local kind, clip, phase, looping, walkFace, phaseRate = animationFrame(p, clock)
-    local captured = captureAt ~= nil and now - captureAt < 100
-    local position = captured and capturePosition or Isaac.WorldToScreen(p.Position)
-    local width = Isaac.GetScreenWidth()
+    -- The external scene uses the same logical screen projection for actors
+    -- and effects. PRE_PLAYER_RENDER's offset belongs to the room draw pass.
+    local position = Isaac.WorldToScreen(p.Position)
     local renderFace = walkFace or face
     local x, fx = position.X, renderFace.X
     if game:GetRoom():IsMirrorWorld() then x, fx = width - x, -fx end
 
     packet({
         version = 1, companionProtocol = 1, active = true, preview = false,
-        presentation = 2, hudVisible = false, renderCaptured = captured,
+        presentation = 2, hudVisible = false, renderCaptured = not hidden,
         session = session, room = room, seq = sequence, time = now, clock = clock,
-        screen = {width, Isaac.GetScreenHeight()}, position = {x, position.Y}, face = {fx, renderFace.Y},
+        screen = {width, height}, display = display, position = {x, position.Y}, face = {fx, renderFace.Y},
         kind = kind, clip = clip, phase = phase, looping = looping, phaseRate = phaseRate,
         bodyScale = p.SpriteScale and {p.SpriteScale.X, p.SpriteScale.Y} or {1, 1},
         paused = game:IsPaused(), transition = transition(), occluded = hidden,
@@ -261,13 +269,12 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_RENDER, function(_, p, offset)
     local driver = player()
     if not driver or p.Index ~= driver.Index then return end
     local now = Isaac.GetTime()
-    capturePosition = Isaac.WorldToRenderPosition(p.Position) + offset
-    captureAt = now
-    if occluded(p, now) then
+    local _, _, display = Display.sample()
+    if occluded(p, now) or display.mode == 'exclusive' then
         ackAt = nil
         return
     end
-    readAck(now)
+    readAck(now, display)
     if ackAt and now - ackAt < leaseMs then return false end
     if Character.is(p) and Character.drawFallback(p, face, offset, game:GetFrameCount()) then return false end
 end)
@@ -320,7 +327,10 @@ end)
 mod:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, function(_, tear)
     if not ackVisualSeq or not Combat.rendersTear(tear, ackVisualSeq) then return end
     local p, now = player(), Isaac.GetTime()
-    if p and not occluded(p, now) and ackAt and now - ackAt < leaseMs then return false end
+    if p and not occluded(p, now) and ackAt and now - ackAt < leaseMs then
+        local _, _, display = Display.sample()
+        if display.mode ~= 'exclusive' and display.id == ackDisplay then return false end
+    end
 end)
 
 mod:AddCallback(ModCallbacks.MC_PRE_PROJECTILE_COLLISION, function(_, projectile, collider)
@@ -438,4 +448,4 @@ mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, function(_, continued)
     if Yone.is(Isaac.GetPlayer(0)) then return end
     if Character.player(game) or continued and Items.isEnabled and Items.isEnabled() then start(continued) end
 end)
-Yone.init(mod, game, Items, Inventory)
+Yone.init(mod, game, Items, Inventory, InventoryHUD.bounds, Display)

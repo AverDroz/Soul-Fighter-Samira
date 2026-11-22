@@ -18,19 +18,49 @@ class Windows:
     def __init__(self):
         from ctypes import wintypes as w
         self.u=ctypes.WinDLL('user32',use_last_error=True);self.w=w
+        self.kernel=ctypes.WinDLL('kernel32',use_last_error=True)
+        self.foreground_key=None
+        self.foreground_isaac=None
         try:self.u.SetProcessDpiAwarenessContext(ctypes.c_void_p(-4))
         except (AttributeError,OSError):pass
         signatures={'GetForegroundWindow':([],w.HWND),'IsWindowVisible':([w.HWND],w.BOOL),'IsIconic':([w.HWND],w.BOOL),
          'GetWindowTextW':([w.HWND,w.LPWSTR,ctypes.c_int],ctypes.c_int),'GetClientRect':([w.HWND,ctypes.POINTER(w.RECT)],w.BOOL),
          'ClientToScreen':([w.HWND,ctypes.POINTER(w.POINT)],w.BOOL),'GetCursorPos':([ctypes.POINTER(w.POINT)],w.BOOL),'GetWindowLongW':([w.HWND,ctypes.c_int],w.LONG),
+         'GetWindowThreadProcessId':([w.HWND,ctypes.POINTER(w.DWORD)],w.DWORD),
+         'GetWindow':([w.HWND,w.UINT],w.HWND),
          'SetWindowLongW':([w.HWND,ctypes.c_int,w.LONG],w.LONG),'ShowWindow':([w.HWND,ctypes.c_int],w.BOOL),
          'SetWindowPos':([w.HWND,w.HWND,ctypes.c_int,ctypes.c_int,ctypes.c_int,ctypes.c_int,ctypes.c_uint],w.BOOL)}
         for name,(args,result) in signatures.items():fn=getattr(self.u,name);fn.argtypes=args;fn.restype=result
+        self.kernel.OpenProcess.argtypes=[w.DWORD,w.BOOL,w.DWORD];self.kernel.OpenProcess.restype=w.HANDLE
+        self.kernel.QueryFullProcessImageNameW.argtypes=[w.HANDLE,w.DWORD,w.LPWSTR,ctypes.POINTER(w.DWORD)]
+        self.kernel.QueryFullProcessImageNameW.restype=w.BOOL
+        self.kernel.CloseHandle.argtypes=[w.HANDLE];self.kernel.CloseHandle.restype=w.BOOL
+
+    def is_isaac_process(self,pid):
+        process=self.kernel.OpenProcess(0x1000,False,pid)  # QUERY_LIMITED_INFORMATION
+        if not process:return None
+        try:
+            path=ctypes.create_unicode_buffer(4096);size=self.w.DWORD(len(path))
+            if not self.kernel.QueryFullProcessImageNameW(process,0,path,ctypes.byref(size)):
+                return None
+            return Path(path.value).name.casefold()=='isaac-ng.exe'
+        finally:
+            self.kernel.CloseHandle(process)
+
     def game(self):
         # Only the foreground game can be displayed. Enumerating unrelated desktop
         # windows here cost ~210ms per frame on the live desktop (under 5 FPS).
         front=self.u.GetForegroundWindow()
-        if not front or not self.u.IsWindowVisible(front):return None
+        if not front or not self.u.IsWindowVisible(front) or self.u.GetWindow(front,4):return None  # GW_OWNER
+        pid=self.w.DWORD()
+        self.u.GetWindowThreadProcessId(front,ctypes.byref(pid))
+        key=(front,pid.value)
+        if key!=self.foreground_key:
+            self.foreground_key=key
+            self.foreground_isaac=self.is_isaac_process(pid.value)
+        if self.foreground_isaac is not None:
+            return front if self.foreground_isaac else None
+        # A protected process may only expose its window title.
         title=ctypes.create_unicode_buffer(512);self.u.GetWindowTextW(front,title,512)
         return front if title.value.startswith('The Binding of Isaac') else None
     def bounds(self,hwnd):

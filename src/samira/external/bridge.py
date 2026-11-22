@@ -4,7 +4,7 @@ from pathlib import Path
 PREFIX='[SAMIRA_EXTERNAL] '
 
 def continuous(a,b):
-    keys=('session','room','screen','transition','paused','occluded','stasis')
+    keys=('session','room','screen','display','transition','paused','occluded','stasis')
     eligible=not b.get('transition') or b.get('presentation',0)>=2 and a.get('renderCaptured') and b.get('renderCaptured')
     return (a.get('hero','samira')==b.get('hero','samira') and all(a.get(k)==b.get(k) for k in keys)
             and eligible and not b.get('occluded')

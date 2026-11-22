@@ -9,7 +9,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 MODULES = ("overlay model bridge layered_surface samira_vfx client_vfx canvas system_pointer samira_audio "
            "combat_effects hud status visibility native_cursor shop_ui localization mastery_renderer mastery_glb "
-           "mastery_particles yone_combat_audio yone_vfx").split()
+           "mastery_particles yone_combat_audio yone_vfx display_geometry").split()
 YONE_FILES = ("yone.glb", "actions.json", "rig-events.json")
 YONE_AUDIO = (
     "manifest.json", "joke.wav", "taunt.wav", "dance.wav", "dance_loop.wav", "laugh.wav",

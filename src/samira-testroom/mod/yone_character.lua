@@ -5,8 +5,16 @@ local Navigation = include('samira_navigation')
 local json = require('json')
 local playerType
 local badge
+local Display
 local fps, leaseMs = 30, 500
 local floorRebindMs = 650
+local abilities = {'q', 'w', 'e', 'r'}
+local abilityHudHeight, abilityHudGap = 22, 3
+local abilityReady = {.92, .92, 1, 1}
+local abilityCooling = {.69, .67, .76, 1}
+local abilityCharged = {1, .75, .35, 1}
+local abilityRecast = {.56, .83, 1, 1}
+local abilityHudPalette
 local numberKeys = {Keyboard.KEY_1, Keyboard.KEY_2, Keyboard.KEY_3, Keyboard.KEY_4, Keyboard.KEY_5, Keyboard.KEY_6}
 local controls = {
     {'q', Keyboard.KEY_Q}, {'w', Keyboard.KEY_W}, {'e', Keyboard.KEY_E}, {'r', Keyboard.KEY_R},
@@ -156,9 +164,9 @@ local function mirrorPosition(room, position)
     return x, position.Y
 end
 
-local function visualSnapshot(room, picture, offset)
+local function visualSnapshot(room, picture)
     local function point(world)
-        return {mirrorPosition(room, Isaac.WorldToScreen(world) + offset)}
+        return {mirrorPosition(room, Isaac.WorldToScreen(world))}
     end
     local snapshot = {shield = picture.shield, fx = {}}
     for i, event in ipairs(picture.fx) do
@@ -176,14 +184,17 @@ local function visualSnapshot(room, picture, offset)
     return snapshot
 end
 
-local function readAck(state, now)
+local function readAck(state, now, display)
+    if state.ackDisplay ~= display.id then
+        state.ackDisplay, state.ackAt, state.pollAt = display.id, nil, nil
+    end
     if state.pollAt and now < state.pollAt then return end
     state.pollAt = now + 40
     local ok, raw = pcall(Isaac.LoadModDataFromFolder, 'samira_testroom_link')
     if not ok or type(raw) ~= 'string' or #raw > 4096 then return end
     local decoded, ack = pcall(json.decode, raw)
     if not decoded or type(ack) ~= 'table' then return end
-    if ack.version == 1 and ack.session == state.id and ack.room == state.room
+    if ack.version == 1 and ack.session == state.id and ack.room == state.room and ack.display == display.id
         and type(ack.time) == 'number' and ack.time <= now + 100 and now - ack.time < leaseMs
         and type(ack.capabilities) == 'table' then
         state.ackAt = math.min(now, ack.time)
@@ -201,16 +212,16 @@ end
 
 local function emit(game, state, player, force, picture)
     local now = Isaac.GetTime()
+    local width, height, display = Display.sample()
     local hidden = obscured(game, state, player)
-    if not force and state.emitAt and now - state.emitAt < 30 and hidden == state.wasHidden then return end
-    state.emitAt, state.wasHidden = now, hidden
+    if not force and state.emitAt and now - state.emitAt < 30 and hidden == state.wasHidden
+        and state.emitDisplay == display.id then return end
+    state.emitAt, state.wasHidden, state.emitDisplay = now, hidden, display.id
     state.seq = state.seq + 1
     local clock = game:GetFrameCount()
     local room = game:GetRoom()
-    local captured = state.captureAt and now - state.captureAt < 100
-    local projected = Isaac.WorldToScreen(player.Position)
-    local position = captured and state.capture or projected
-    local x, y = mirrorPosition(room, position)
+    -- Do not combine a room render-pass offset with screen-space marks/FX.
+    local x, y = mirrorPosition(room, Isaac.WorldToScreen(player.Position))
     local face = state.combat.face
     local fx = room:IsMirrorWorld() and -face.X or face.X
     local action, phase = Combat.presentation(state.combat, clock)
@@ -224,9 +235,9 @@ local function emit(game, state, player, force, picture)
     local mastery = not hidden and Emotes.mastery(state.emotes, clock)
     packet({
         version = 1, companionProtocol = 1, active = true, preview = false, hero = 'yone',
-        presentation = 2, hudVisible = false, renderCaptured = captured == true,
+        presentation = 2, hudVisible = false, renderCaptured = not hidden,
         session = state.id, room = state.room, seq = state.seq, time = now, clock = clock,
-        screen = {Isaac.GetScreenWidth(), Isaac.GetScreenHeight()}, position = {x, y}, face = {fx, face.Y},
+        screen = {width, height}, display = display, position = {x, y}, face = {fx, face.Y},
         kind = action, clip = action, phase = phase, looping = looping,
         actionFrame = actionFrame, actionId = expression and (clock - actionFrame) or nil,
         bodyScale = player.SpriteScale and {player.SpriteScale.X, player.SpriteScale.Y} or {1, 1},
@@ -234,7 +245,7 @@ local function emit(game, state, player, force, picture)
         occluded = hidden, hurt = clock < (state.hurtUntil or 0),
         nativeCursor = Options.MouseControl == true, sfxVolume = Options.SFXVolume,
         mastery = mastery and {at = mastery, position = {x, y}} or nil,
-        yone = not hidden and visualSnapshot(room, picture or Combat.visual(state.combat, clock), position - projected) or nil,
+        yone = not hidden and visualSnapshot(room, picture or Combat.visual(state.combat, clock)) or nil,
     })
 end
 
@@ -285,17 +296,62 @@ local function drawNativeEffects(room, player, picture, x, y, geometry)
     end
 end
 
-local function drawRoomHud(game, state, player, clock, picture)
-    local combat = state.combat
-    local labels = {}
-    for _, key in ipairs({'q', 'w', 'e', 'r'}) do
-        local remaining = math.max(0, (combat.ready[key] or 0) - clock)
-        local label = key:upper()
-        if key == 'q' then label = label .. ('+'):rep(combat.qStacks) end
-        if key == 'e' and combat.spirit then remaining, label = 0, 'E<' end
-        labels[#labels + 1] = label .. (remaining > 0 and (' %ds'):format(math.ceil(remaining / fps)) or '')
+local function drawAbilitySlot(x, y, width)
+    if not Isaac.DrawLine or not KColor then return end
+    if not abilityHudPalette then
+        abilityHudPalette = {rim = KColor(.44, .30, .38, .92), panel = KColor(.09, .07, .11, .95)}
     end
-    if clock < (combat.shieldUntil or 0) then labels[#labels + 1] = 'SHIELD' end
+    local middle = y + abilityHudHeight / 2
+    Isaac.DrawLine(Vector(x, middle), Vector(x + width, middle),
+        abilityHudPalette.rim, abilityHudPalette.rim, abilityHudHeight)
+    Isaac.DrawLine(Vector(x + 1, middle), Vector(x + width - 1, middle),
+        abilityHudPalette.panel, abilityHudPalette.panel, abilityHudHeight - 2)
+end
+
+local function drawAbilityHud(combat, clock, backpack)
+    local width, height = Isaac.GetScreenWidth(), Isaac.GetScreenHeight()
+    local markerOffset = Isaac.GetTextWidth('Q') + 5
+    local slotWidth = math.max(26, markerOffset + Isaac.GetTextWidth('++') + 4,
+        Isaac.GetTextWidth('999s') + 6)
+    local step = slotWidth + abilityHudGap
+    local rowWidth = #abilities * step - abilityHudGap
+    local x, y = 6, height - abilityHudHeight - 4
+    if backpack then
+        local right = backpack.x + backpack.width + 8
+        if right + rowWidth + 6 <= width then
+            x, y = right, backpack.y
+        else
+            -- Keep the wrapped row above the inventory and its drop hint.
+            y = backpack.y - abilityHudHeight - 19
+        end
+    end
+    x = math.max(0, math.min(x, width - rowWidth))
+    y = math.max(0, y)
+
+    for index, key in ipairs(abilities) do
+        local left = x + (index - 1) * step
+        local remaining = (combat.ready[key] or 0) - clock
+        local spirit = key == 'e' and combat.spirit
+        local tint = remaining > 0 and abilityCooling or abilityReady
+        if spirit and clock >= spirit.recastAt then tint = abilityRecast end
+        drawAbilitySlot(left, y, slotWidth)
+        Isaac.RenderText(key:upper(), left + 3, y + 1, table.unpack(tint))
+        if key == 'q' and combat.qStacks > 0 then
+            Isaac.RenderText(('+'):rep(combat.qStacks), left + markerOffset, y + 1, table.unpack(abilityCharged))
+        elseif spirit then
+            Isaac.RenderText('<', left + markerOffset, y + 1, table.unpack(tint))
+        end
+        if remaining > 0 and not spirit then
+            Isaac.RenderText(('%ds'):format(math.ceil(remaining / fps)), left + 3, y + 11,
+                table.unpack(abilityCooling))
+        end
+    end
+    if clock < (combat.shieldUntil or 0) then
+        Isaac.RenderText('SHIELD', x + step + 3, math.max(0, y - 10), table.unpack(abilityRecast))
+    end
+end
+
+local function drawRoomEffects(game, state, player, clock, picture)
     local pos = Isaac.WorldToScreen(player.Position)
     local x, y = mirrorPosition(game:GetRoom(), pos)
     local now = Isaac.GetTime()
@@ -324,10 +380,10 @@ local function drawRoomHud(game, state, player, clock, picture)
             Isaac.RenderText(expression:upper(), x - 15, y - 35, 1, .88, .72, 1)
         end
     end
-    Isaac.RenderText(table.concat(labels, '  '), 20, Isaac.GetScreenHeight() - 32, .92, .92, 1, 1)
 end
 
-function Yone.init(mod, game, items, inventory)
+function Yone.init(mod, game, items, inventory, inventoryBounds, display)
+    Display = display
     local state, serial = nil, 0
 
     local function driver()
@@ -359,11 +415,16 @@ function Yone.init(mod, game, items, inventory)
     end
 
     local function stop()
-        if state then packet({version = 1, active = false}); state = nil end
+        if state then
+            packet({version = 1, active = false})
+            state = nil
+            Display.release('yone')
+        end
     end
 
     local function start(player, continued)
         serial = serial + 1
+        Display.acquire('yone')
         state = {id = tostring(Isaac.GetNanoTime()) .. ':yone:' .. serial, room = 1, seq = 0,
             combat = Combat.new(items), emotes = Emotes.new(), commands = {}, held = {}}
         if items and items.activate then items.activate(player) end
@@ -458,13 +519,13 @@ function Yone.init(mod, game, items, inventory)
         return value > 0
     end)
 
-    mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_RENDER, function(_, player, offset)
+    mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_RENDER, function(_, player)
         local current = state and driver()
         if not current or current.Index ~= player.Index then return end
         local now = Isaac.GetTime()
-        state.capture, state.captureAt = Isaac.WorldToRenderPosition(player.Position) + offset, now
-        if obscured(game, state, player) then state.ackAt = nil; return end
-        readAck(state, now)
+        local _, _, display = Display.sample()
+        if obscured(game, state, player) or display.mode == 'exclusive' then state.ackAt = nil; return end
+        readAck(state, now, display)
         if leased(state, 'modelReady', now) then return false end
     end)
 
@@ -477,7 +538,10 @@ function Yone.init(mod, game, items, inventory)
         local action = Combat.presentation(state.combat, clock)
         sampleExpressions(state, clock, allowed, action ~= nil or player.Velocity:Length() > .6)
         local picture = allowed and Combat.visual(state.combat, clock) or nil
-        if picture then drawRoomHud(game, state, player, clock, picture) end
+        if picture then
+            drawRoomEffects(game, state, player, clock, picture)
+            drawAbilityHud(state.combat, clock, inventoryBounds and inventoryBounds(player))
+        end
         emit(game, state, player, false, picture)
     end)
 
@@ -526,7 +590,7 @@ function Yone.init(mod, game, items, inventory)
 
     local function enterRoom()
         state.room = state.room + 1
-        state.leaving, state.ackAt, state.captureAt, state.emitAt, state.pollAt = nil, nil, nil, nil, nil
+        state.leaving, state.ackAt, state.emitAt, state.pollAt = nil, nil, nil, nil
         state.coverFrame, state.hurtUntil = nil, nil
         state.commands = {}
         stopMoving(state)

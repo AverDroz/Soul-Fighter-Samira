@@ -22,15 +22,54 @@ def main():
     lua.globals().sourceFiles = lua.table_from({
         file.stem: file.read_text(encoding="utf-8") for file in MOD.glob("*.lua")
     })
-    lua.execute(mock_prelude() + r"""
+    prelude = mock_prelude().replace("include('main')", """
+local originalInclude = include
+function include(name)
+    local module = originalInclude(name)
+    if name == 'samira_inventory_hud' then
+        module.bounds = assert(load(sourceFiles[name], '@' .. name .. '.lua'))().bounds
+    end
+    return module
+end
+include('main')
+""", 1)
+    lua.execute(prelude + r"""
 start()
 local kind = 130
+Options.Fullscreen, Options.UseBorderlessFullscreen = false, false
 Isaac.GetPlayerTypeByName = function(name) assert(name == 'Yone'); return 130 end
 function player:GetPlayerType() return kind end
+function player:GetTrinket(slot) return slot == 0 and 1 or 0 end
 local itemUpdates, lastCast = 0, nil
 noItems.update = function(owner) assert(owner == player); itemUpdates = itemUpdates + 1 end
 noItems.onCast = function(owner, skill) assert(owner == player); lastCast = skill end
 Isaac.RenderText = function() end
+Isaac.GetTextWidth = function(text) return #text * 6 end
+Isaac.DrawLine = function() end
+KColor = Color
+local function captureHud()
+    local originalRender = Isaac.RenderText
+    local text = {}
+    Isaac.RenderText = function(label, x, y, r, g, b, a)
+        text[label] = {x = x, y = y, color = {r, g, b, a}}
+    end
+    event('POST_RENDER')
+    Isaac.RenderText = originalRender
+    local previousX = -1
+    for _, key in ipairs({'Q', 'W', 'E', 'R'}) do
+        local slot = assert(text[key], 'native HUD did not draw a separate ' .. key .. ' slot')
+        assert(slot.x > previousX and slot.x + 6 <= Isaac.GetScreenWidth(), 'ability slot fell outside the row')
+        assert(slot.y == text.Q.y and slot.y >= 0 and slot.y + 8 <= Isaac.GetScreenHeight(),
+            'ability slot fell outside the viewport')
+        previousX = slot.x
+    end
+    return text
+end
+local function sameSlots(before, after)
+    for _, key in ipairs({'Q', 'W', 'E', 'R'}) do
+        assert(before[key].x == after[key].x and before[key].y == after[key].y, key .. ' slot moved')
+    end
+end
 local pressed = Input.IsButtonPressed
 Input.IsButtonPressed = function(key, ...) return key == input.ctrl or pressed(key, ...) end
 local nativeShows = 0
@@ -43,7 +82,15 @@ end
 event('POST_GAME_STARTED', false)
 tick()
 assert(packet.active and packet.hero == 'yone' and packet.clip == 'idle')
+assert(Options.UseBorderlessFullscreen and packet.display.mode == 'windowed')
 assert(itemDriver() == player and itemUpdates > 0, 'ordinary Yone run did not bind shared items')
+local readyHud = captureHud()
+assert(readyHud.R.y + 8 < Isaac.GetScreenHeight() - 26, 'narrow ability row collided with the backpack')
+local width, height = Isaac.GetScreenWidth, Isaac.GetScreenHeight
+Isaac.GetScreenWidth, Isaac.GetScreenHeight = function() return 688 end, function() return 288 end
+local wideHud = captureHud()
+assert(wideHud.Q.x > 70 + 147 and wideHud.Q.y > 288 - 26, 'wide ability row did not clear the backpack')
+Isaac.GetScreenWidth, Isaac.GetScreenHeight = width, height
 local session = packet.session
 assert(callAction('ACTION_SHOOTRIGHT') == 0)
 assert(callAction('ACTION_RESTART') == 0, 'holding R can restart the run')
@@ -52,9 +99,24 @@ tick('KEY_RIGHT')
 assert(callAction('ACTION_RIGHT') > .9, 'arrow did not start movement')
 tick()
 assert(callAction('ACTION_RIGHT') == 0, 'movement continued after arrow release')
+local qTarget = makeEntity('enemy', player.Position.X + 25, player.Position.Y, 11)
+entities = {qTarget}
 tick('KEY_Q')
 assert(packet.clip == 'q' and packet.hero == 'yone')
 assert(lastCast == 'q', 'Yone ability did not reach item cast hooks')
+for _ = 1, 7 do tick() end
+local stackedHud = captureHud()
+sameSlots(readyHud, stackedHud)
+assert(stackedHud['+'] and stackedHud['1s'] and stackedHud['1s'].x == stackedHud.Q.x,
+    'Q lost its charge or cooldown display')
+assert(stackedHud.Q.color[1] < readyHud.Q.color[1], 'cooldown did not dim the ability key')
+for _ = 1, 24 do tick() end
+tick('KEY_Q')
+for _ = 1, 7 do tick() end
+local doubleStackHud = captureHud()
+sameSlots(readyHud, doubleStackHud)
+assert(doubleStackHud['++'] and doubleStackHud['+'] == nil, 'Q lost its second charge')
+entities = {}
 for _ = 1, 18 do tick() end
 
 input.ctrl = 'KEY_LEFT_CONTROL'
@@ -72,13 +134,23 @@ assert(packet.mastery and packet.mastery.at == 0 and packet.clip == 'laugh')
 assert(packet.mastery.position[1] == packet.position[1])
 assert(nativeShows > 0, 'mastery badge was not rendered without the Companion')
 assert(event('PRE_PLAYER_RENDER', player, Vector.Zero) == nil)
-ack = {version=1, session=session, room=packet.room, time=now, ready=true, visible=true,
+ack = {version=1, session=session, room=packet.room, time=now, ready=true, visible=true, display=packet.display.id,
     capabilities={mastery=true}}
 tick()
 assert(event('PRE_PLAYER_RENDER', player, Vector.Zero) == nil, 'crest ACK hid the native body')
 ack.capabilities.yoneModel = true
 tick(); tick()
 assert(event('PRE_PLAYER_RENDER', player, Vector.Zero) == false, 'Yone model ACK did not hide the native body')
+local oldDisplay = packet.display.id
+Options.Fullscreen = true
+assert(event('PRE_PLAYER_RENDER', player, Vector(0, -80)) == nil,
+    'the previous window ACK hid the native body after entering fullscreen')
+tick()
+assert(packet.display.id ~= oldDisplay and packet.display.mode == 'borderless')
+assert(packet.position[2] == player.Position.Y * projection, 'room-pass offset moved the external actor')
+ack.display, ack.time = packet.display.id, now
+tick(); tick()
+assert(event('PRE_PLAYER_RENDER', player, Vector.Zero) == false, 'borderless display never reacquired the model')
 event('PRE_CHANGE_ROOM')
 event('POST_NEW_ROOM')
 tick('KEY_6')
@@ -91,6 +163,10 @@ entities = {attacker}
 function player:SetMinDamageCooldown(frames) self.shieldCooldown = frames end
 tick('KEY_W')
 for _ = 1, 9 do tick() end
+local shieldHud = captureHud()
+sameSlots(readyHud, shieldHud)
+assert(shieldHud['10s'] and shieldHud['10s'].x == shieldHud.W.x and shieldHud.SHIELD,
+    'W lost its cooldown or shield display')
 assert(event('ENTITY_TAKE_DMG', player, 1, DamageFlag.DAMAGE_FAKE, EntityRef(attacker)) == nil)
 assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(attacker)) == false)
 assert(player.shieldCooldown == 15)
@@ -99,6 +175,9 @@ assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(attacker)) == nil)
 local positionBeforeE = player.Position
 tick('KEY_E')
 for _ = 1, 4 do tick() end
+local spiritHud = captureHud()
+sameSlots(readyHud, spiritHud)
+assert(spiritHud['<'], 'E lost its active spirit marker')
 assert(packet.yone.spirit.anchor[1] == positionBeforeE.X * projection)
 assert(packet.yone.spirit.anchor[1] < packet.position[1])
 attacker.Position = player.Position + Vector(21, 0)
@@ -116,7 +195,7 @@ local mark = packet.yone.spirit.marks[1]
 assert(mark and mark.position[1] == attacker.Position.X * projection and mark.amount > 0)
 local rendered = {}
 Isaac.RenderText = function(text) rendered[text] = true end
-ack.room, ack.time = packet.room, now
+ack.room, ack.time, ack.display = packet.room, now, packet.display.id
 ack.capabilities.yoneVfx, ack.capabilities.yoneModel = true, nil
 event('PRE_PLAYER_RENDER', player, Vector.Zero)
 tick()
@@ -171,7 +250,7 @@ tick()
 assert(packet.session == session and packet.room == doorRoom + 1 and not packet.occluded
     and not packet.transition, 'Yone did not resume after the floor and finished trapdoor clip')
 assert(event('PRE_PLAYER_RENDER', player, Vector.Zero) == nil, 'old level ACK hid the native body')
-ack.room, ack.time = packet.room, now
+ack.room, ack.time, ack.display = packet.room, now, packet.display.id
 tick(); tick()
 assert(event('PRE_PLAYER_RENDER', player, Vector.Zero) == false, 'new level never acquired the model lease')
 playerAnimation = 'Walk'
@@ -195,12 +274,18 @@ tick()
 assert(packet.active and packet.session == session and packet.room == firstFloorRoom + 1
     and not packet.occluded, 'direct level arrival did not rebind the same run')
 assert(packet.clip == 'idle', 'a queued ability leaked to the next floor')
+tick('KEY_R')
+local ultimateHud = captureHud()
+sameSlots(readyHud, ultimateHud)
+assert(ultimateHud['30s'] and ultimateHud['30s'].x == ultimateHud.R.x, 'R lost its cooldown display')
 
 kind = 0
 tick()
 assert(packet.active == false, 'fallback scene was not closed on character change')
+assert(Options.Fullscreen and not Options.UseBorderlessFullscreen,
+    'the original fullscreen preference was not restored')
 """)
-    print("PASS Yone registration, input, emotes, independent leases and room/floor lifecycle")
+    print("PASS Yone registration, input, emotes, independent leases, HUD and room/floor lifecycle")
 
 
 if __name__ == "__main__":
