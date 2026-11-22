@@ -9,13 +9,13 @@ local Display
 local fps, leaseMs = 30, 500
 local floorRebindMs = 650
 local abilities = {'q', 'w', 'e', 'r'}
-local abilityHudHeight, abilityHudGap = 34, 3
+local abilityHudHeight, abilityHudGap = 38, 2
 local abilityReady = {.92, .92, 1, 1}
 local abilityCooling = {.69, .67, .76, 1}
-local abilityCharged = {1, .75, .35, 1}
 local abilityRecast = {.56, .83, 1, 1}
 local abilityHudPalette
 local abilityFont
+local abilityIcons
 local aimColors = {
     q = {.60, .93, 1}, w = {.99, .49, .60}, e = {.99, .39, .65}, r = {1, .53, .73},
 }
@@ -31,7 +31,6 @@ local axes = {
 local blocked = {
     [ButtonAction.ACTION_SHOOTLEFT] = true, [ButtonAction.ACTION_SHOOTRIGHT] = true,
     [ButtonAction.ACTION_SHOOTUP] = true, [ButtonAction.ACTION_SHOOTDOWN] = true,
-    [ButtonAction.ACTION_RESTART] = true,
 }
 local rebound = {[ButtonAction.ACTION_BOMB] = Keyboard.KEY_G, [ButtonAction.ACTION_PILLCARD] = Keyboard.KEY_4}
 
@@ -264,7 +263,7 @@ local function visualSnapshot(room, picture)
     local spirit = picture.spirit
     if spirit then
         local marks = {}
-        for i, mark in ipairs(spirit.marks) do marks[i] = {position = point(mark.position), amount = mark.amount} end
+        for i, mark in ipairs(spirit.marks) do marks[i] = {position = point(mark.position), amount = mark.amount, lethal = mark.lethal == true} end
         local x = room:IsMirrorWorld() and -spirit.face.X or spirit.face.X
         snapshot.spirit = {anchor = point(spirit.anchor), face = {x, spirit.face.Y},
             viewFace = screenHeading(room, spirit.anchor, spirit.face),
@@ -396,12 +395,14 @@ local function drawNativeEffects(room, player, picture, x, y, geometry, clock)
                 local c = enemy + Vector(0, -25)
                 local top, right, bottom, left = c + Vector(0, -6), c + Vector(5, 0),
                     c + Vector(0, 6), c + Vector(-5, 0)
-                line(top, right, 2, 1, .36, .54, .95)
-                line(right, bottom, 2, 1, .36, .54, .95)
-                line(bottom, left, 2, 1, .36, .54, .95)
-                line(left, top, 2, 1, .36, .54, .95)
+                local lethal = mark.lethal == true
+                local green, blue = lethal and .84 or .36, lethal and .55 or .54
+                line(top, right, 2, 1, green, blue, .95)
+                line(right, bottom, 2, 1, green, blue, .95)
+                line(bottom, left, 2, 1, green, blue, .95)
+                line(left, top, 2, 1, green, blue, .95)
                 line(c + Vector(-2, 2), c + Vector(2, -2), 1, 1, .83, .88, 1)
-                Isaac.RenderText(('*%.1f'):format(mark.amount), enemy.X + 6, enemy.Y - 31, 1, .65, .72, 1)
+                if lethal then line(c + Vector(-4, -9), c + Vector(4, -9), 2, 1, .84, .55, 1) end
             end
         end
     end
@@ -432,7 +433,7 @@ end
 local function drawAbilitySlot(x, y, width)
     if not Isaac.DrawLine or not KColor then return end
     if not abilityHudPalette then
-        abilityHudPalette = {rim = KColor(.44, .30, .38, .92), panel = KColor(.09, .07, .11, .95)}
+        abilityHudPalette = {rim = KColor(.42, .34, .29, .95), panel = KColor(.075, .065, .09, .95)}
     end
     local middle = y + abilityHudHeight / 2
     Isaac.DrawLine(Vector(x, middle), Vector(x + width, middle),
@@ -463,17 +464,20 @@ local function drawAbilityIcon(key, x, y, tint)
     end
 end
 
-local function drawAbilityHud(combat, clock, backpack, aiming)
+local function drawAbilityHud(combat, clock, backpack, aiming, spiritPicture)
     local width, height = Isaac.GetScreenWidth(), Isaac.GetScreenHeight()
     if abilityFont == nil and Font then
         local candidate, loaded = Font('font/samira_items_ru.fnt')
         abilityFont = loaded and candidate or false
     end
-    local keyScale = .87
-    local markerOffset = (abilityFont and abilityFont:GetStringWidthUTF8('W') * keyScale
-        or Isaac.GetTextWidth('W')) + 5
-    local slotWidth = math.max(48, markerOffset + Isaac.GetTextWidth('++') + 4,
-        Isaac.GetTextWidth('999s') + 6)
+    if abilityIcons == nil then
+        local icon, loaded = Sprite('gfx/yone/ability_icons.anm2', true)
+        abilityIcons = loaded and icon or false
+    end
+    local keyScale = .72
+    local slotWidth = math.min(42, math.floor((width - 4 - (#abilities - 1) * abilityHudGap) / #abilities))
+    local iconSize = math.min(32, slotWidth - 6)
+    local iconInset = math.floor((slotWidth - iconSize) / 2)
     local step = slotWidth + abilityHudGap
     local rowWidth = #abilities * step - abilityHudGap
     local x, y = 6, height - abilityHudHeight - 4
@@ -486,9 +490,14 @@ local function drawAbilityHud(combat, clock, backpack, aiming)
             y = backpack.y - abilityHudHeight - 19
         end
     end
-    x = math.max(0, math.min(x, width - rowWidth))
-    y = math.max(0, y)
+    x = math.max(2, math.min(x, width - rowWidth - 2))
+    y = math.max(2, math.min(y, height - abilityHudHeight - 4))
 
+    if Isaac.DrawLine and KColor then
+        local frame = KColor(.025, .025, .045, .94)
+        Isaac.DrawLine(Vector(x - 2, y + abilityHudHeight / 2), Vector(x + rowWidth + 2, y + abilityHudHeight / 2),
+            frame, frame, abilityHudHeight + 4)
+    end
     for index, key in ipairs(abilities) do
         local left = x + (index - 1) * step
         local remaining = (combat.ready[key] or 0) - clock
@@ -500,26 +509,64 @@ local function drawAbilityHud(combat, clock, backpack, aiming)
             tint = {r, g, b, 1}
         end
         drawAbilitySlot(left, y, slotWidth)
-        drawAbilityIcon(key, left + slotWidth - 13, y + 9, tint)
+        local iconX, iconY = left + iconInset, y + 3
+        if abilityIcons then
+            local iconName = key == 'q' and combat.qStacks >= 2 and 'Q3'
+                or key == 'e' and spirit and 'E2' or key:upper()
+            abilityIcons:SetFrame(iconName, 0)
+            abilityIcons.Scale = Vector(iconSize / 64, iconSize / 64)
+            abilityIcons.Color = Color(1, 1, 1, 1)
+            abilityIcons:Render(Vector(iconX, iconY))
+            if remaining > 0 and not spirit and Isaac.DrawLine and KColor then
+                local shade = KColor(.015, .015, .03, .62)
+                local middle = iconY + iconSize / 2
+                Isaac.DrawLine(Vector(iconX, middle), Vector(iconX + iconSize, middle), shade, shade, iconSize)
+            end
+        else
+            drawAbilityIcon(key, left + slotWidth / 2, y + 12, tint)
+        end
         local label = key:upper()
         if abilityFont then
-            abilityFont:DrawStringScaledUTF8(label, left + 3, y, keyScale, keyScale,
+            local shadow = KColor(.025, .025, .04, 1)
+            abilityFont:DrawStringScaledUTF8(label, left + 4, y + 28, keyScale, keyScale, shadow, 0, false)
+            abilityFont:DrawStringScaledUTF8(label, left + 3, y + 27, keyScale, keyScale,
                 KColor(table.unpack(tint)), 0, false)
         else
-            Isaac.RenderText(label, left + 3, y + 1, table.unpack(tint))
+            Isaac.RenderText(label, left + 3, y + 26, table.unpack(tint))
         end
-        if key == 'q' and combat.qStacks > 0 then
-            Isaac.RenderText(('+'):rep(combat.qStacks), left + markerOffset, y + 1, table.unpack(abilityCharged))
-        elseif spirit then
-            Isaac.RenderText('<', left + markerOffset, y + 1, table.unpack(tint))
+        if key == 'q' and Isaac.DrawLine and KColor then
+            local filled, empty = KColor(1, .78, .40, 1), KColor(.22, .20, .25, 1)
+            for i = 1, 2 do
+                local pipX = iconX + iconSize - 14 + (i - 1) * 7
+                local pip = i <= combat.qStacks and filled or empty
+                Isaac.DrawLine(Vector(pipX, y + 33), Vector(pipX + 4, y + 33), pip, pip, 3)
+            end
         end
+        local status
         if spirit then
             local ticks = math.max(0, spirit.untilFrame - clock)
-            local status = ticks == 0 and 'HOLD' or ('%.1fs'):format(ticks / fps)
-            Isaac.RenderText(status, left + 3, y + 20, table.unpack(abilityRecast))
+            if Isaac.DrawLine and KColor then
+                local x1, y1 = iconX - 1, iconY - 1
+                local x2, y2 = iconX + iconSize + 1, iconY + iconSize + 1
+                local corners = {Vector(x1, y1), Vector(x2, y1), Vector(x2, y2), Vector(x1, y2), Vector(x1, y1)}
+                local color = KColor(1, .38, .55, 1)
+                local remain = spiritPicture.remaining * 4
+                for edge = 1, 4 do
+                    local portion = math.max(0, math.min(1, remain - edge + 1))
+                    if portion > 0 then
+                        local a, b = corners[edge], corners[edge + 1]
+                        Isaac.DrawLine(a, a + (b - a) * portion, color, color, 2)
+                    end
+                end
+            end
+            status = ticks == 0 and 'HOLD' or ('%.1fs'):format(ticks / fps)
         elseif remaining > 0 then
-            Isaac.RenderText(('%ds'):format(math.ceil(remaining / fps)), left + 3, y + 20,
-                table.unpack(abilityCooling))
+            status = ('%ds'):format(math.ceil(remaining / fps))
+        end
+        if status then
+            local center = left + math.floor((slotWidth - Isaac.GetTextWidth(status)) / 2)
+            Isaac.RenderText(status, center + 1, y + 14, .025, .025, .04, 1)
+            Isaac.RenderText(status, center, y + 13, table.unpack(spirit and abilityRecast or abilityReady))
         end
     end
     if clock < (combat.shieldUntil or 0) then
@@ -677,6 +724,11 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display)
         sampleExpressions(state, clock, true, action ~= nil or moving)
     end)
 
+    mod:AddPriorityCallback(ModCallbacks.MC_INPUT_ACTION, CallbackPriority.EARLY, function(_, _, hook, action)
+        if hook == InputHook.IS_ACTION_PRESSED and action == ButtonAction.ACTION_RESTART
+            and pressed(Keyboard.KEY_R) and driver() then return false end
+    end, InputHook.IS_ACTION_PRESSED)
+
     mod:AddCallback(ModCallbacks.MC_INPUT_ACTION, function(_, entity, hook, action)
         local direction, key = axes[action], rebound[action]
         if not direction and not key and not blocked[action] then return end
@@ -727,7 +779,7 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display)
         if picture then
             drawAim(game:GetRoom(), state.combat, player, clock, state.aimAbility)
             drawRoomEffects(game, state, player, clock, picture)
-            drawAbilityHud(state.combat, clock, inventoryBounds and inventoryBounds(player), state.aimAbility)
+            drawAbilityHud(state.combat, clock, inventoryBounds and inventoryBounds(player), state.aimAbility, picture.spirit)
         end
         emit(game, state, player, false, picture)
     end)
@@ -735,10 +787,14 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display)
     mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function(_, target, _, flags, source)
         local player = state and driver()
         local attacker = source and source.Entity
-        if not player or target.Type ~= EntityType.ENTITY_PLAYER or target.Index ~= player.Index or not attacker then return end
-        if flags & DamageFlag.DAMAGE_FAKE ~= 0 then return end
-        if (attacker.Type == EntityType.ENTITY_PROJECTILE or Combat.hostile(attacker))
-            and Combat.absorb(state.combat, game:GetFrameCount(), player.Position) then
+        if not player or target.Type ~= EntityType.ENTITY_PLAYER or target.Index ~= player.Index then return end
+        if flags & (DamageFlag.DAMAGE_FAKE or 0) ~= 0 then return end
+        local bypass = (DamageFlag.DAMAGE_IV_BAG or 0) | (DamageFlag.DAMAGE_CHEST or 0)
+            | (DamageFlag.DAMAGE_CURSED_DOOR or 0) | (DamageFlag.DAMAGE_INVINCIBLE or 0)
+        if flags & bypass == 0 and Combat.q3Invulnerable
+            and Combat.q3Invulnerable(state.combat, game:GetFrameCount()) then return false end
+        if not attacker or (attacker.Type ~= EntityType.ENTITY_PROJECTILE and not Combat.hostile(attacker)) then return end
+        if Combat.absorb(state.combat, game:GetFrameCount(), player.Position) then
             player:SetMinDamageCooldown(15)
             return false
         end

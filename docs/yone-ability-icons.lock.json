@@ -1,0 +1,31 @@
+{
+  "source": "Riot Games, installed League of Legends client, Yone.wad.client",
+  "tile_size": 64,
+  "atlas_sha256": "28e21da0735c36c8740d064e5595f3901ce63874a14cca05c6510343a1cd4153",
+  "icons": {
+    "Q": {
+      "member": "assets/characters/yone/hud/icons2d/yoneq.dds",
+      "dds_sha256": "1d6b1fe061b8f852d2c914efb6a2bb29734b5071b2fd5f4208afb44a6d81b324"
+    },
+    "Q3": {
+      "member": "assets/characters/yone/hud/icons2d/yoneq3.dds",
+      "dds_sha256": "e6ce30cd1797fce6c1e543db1628232632dc46254a30f843e5bb8d7c13e5284b"
+    },
+    "W": {
+      "member": "assets/characters/yone/hud/icons2d/yonew.dds",
+      "dds_sha256": "1d6cc9c8d3976f6e3afbfafb5325362cae4753d3c600904eb68e147a4a8ad8e5"
+    },
+    "E": {
+      "member": "assets/characters/yone/hud/icons2d/yonee.dds",
+      "dds_sha256": "f60900b3f7b9703c2d989f89fd872bad7c8f7fb64cc07eeb859d9d9615f31662"
+    },
+    "E2": {
+      "member": "assets/characters/yone/hud/icons2d/yonee2.dds",
+      "dds_sha256": "10dedd314c0b52964c811bb972c8c686bb06e02112b7c74cb0b68c2c629144e8"
+    },
+    "R": {
+      "member": "assets/characters/yone/hud/icons2d/yoner.dds",
+      "dds_sha256": "fde57ece31bf9809ed09e66f68956e075b92e8202732d36fe154fca9fb7c009a"
+    }
+  }
+}

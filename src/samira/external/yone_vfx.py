@@ -87,7 +87,7 @@ class YoneVFX:
         if self.spirit:
             for mark in entries(self.spirit.get('marks'))[:32]:
                 if isinstance(mark, dict) and point(mark.get('position')) and number(mark.get('amount')) and mark['amount'] > 0:
-                    self.mark(mark['position'], mark['amount'])
+                    self.mark(mark['position'], mark.get('lethal') is True)
         for event in entries(self.payload.get('fx'))[:24]:
             if isinstance(event, dict):
                 self.event(event)
@@ -144,16 +144,16 @@ class YoneVFX:
                 p = int((i / 5 + self.clock * .62) % 1 * 12)
                 self.canvas.line(path[p], path[p + 1], 1.3, (*ROSE, .74))
 
-    def mark(self, position, amount):
+    def mark(self, position, lethal):
         x, y = position[0], position[1] - 24
         pulse = .83 + .13 * math.sin(self.clock * 8 + x)
         halo = [(x, y - 6.5), (x + 6, y), (x, y + 6.5), (x - 6, y)]
         self.canvas.polygon(halo, (*SHADE, .92))
-        self.canvas.lines([*halo, halo[0]], 1.45, (*RUBY, pulse))
+        hue = (1., .84, .55) if lethal else RUBY
+        self.canvas.lines([*halo, halo[0]], 1.8, (*hue, pulse))
         self.canvas.line((x - 2, y + 2.5), (x + 2, y - 2.5), 1.8, (*ROSE, .95))
-        label = f'{max(.1, amount):.1f}'.removesuffix('.0') if amount < 100 else f'{min(amount, 9999):.0f}'
-        self.canvas.text(label, x + .5, y - 15.5, 8, (*SHADE, .98), center=True)
-        self.canvas.text(label, x, y - 16, 8, (*ROSE, .98), center=True)
+        if lethal:
+            self.canvas.line((x - 4, y - 9), (x + 4, y - 9), 2, (*hue, .98))
 
     def shield(self, center, progress, opacity):
         radii = (17 + progress * 11, 19 + progress * 13)

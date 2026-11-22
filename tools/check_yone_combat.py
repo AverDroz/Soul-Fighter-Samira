@@ -39,18 +39,22 @@ local function enemy(x, y, id)
     return e
 end
 local aim = Vector(350, 100)
-props = {{Position=Vector(95, 100), CollisionClass=1, GetType=function() return GridEntityType.GRID_POOP end}}
+local function poop(x, stateValue)
+    return {Position = Vector(x, 100), State = stateValue, CollisionClass = GridCollisionClass.COLLISION_NONE,
+        GetType = function() return GridEntityType.GRID_POOP end}
+end
+props = {poop(95, 0), poop(105, 1000)}
 assert(combat.cast(state, 'q', player, aim, 1)); combat.update(state, room, player, {}, 8)
-assert(props[1].destroyed, 'Q did not break poop')
+assert(props[1].destroyed and not props[2].destroyed, 'Q did not distinguish live poop from destroyed poop')
 props = {{Position=Vector(140, 100), CollisionClass=1, GetType=function() return GridEntityType.GRID_ROCK_ALT end}}
 state = combat.new(); state.qStacks = 2
 assert(combat.cast(state, 'q', player, aim, 20)); combat.update(state, room, player, {}, 27)
 assert(props[1].destroyed, 'Q3 did not break a destructible prop')
-props = {{Position=Vector(155, 100), CollisionClass=1, GetType=function() return GridEntityType.GRID_POOP end}}
+props = {poop(155, 0)}
 player.Position = Vector(60,100); state = combat.new(); state.qStacks = 2
 wall[2 * room:GetGridWidth() + 3] = GridCollisionClass.COLLISION_WALL
 assert(combat.cast(state, 'q', player, aim, 40)); combat.update(state, room, player, {}, 47)
-assert(not props[1].destroyed, 'Q3 broke a prop behind a solid wall')
+assert(props[1].destroyed, 'Q3 failed to break a prop behind a solid wall')
 wall = {}; props = {}
 player.Position = Vector(60,100); state = combat.new(); state.qStacks, state.qExpires = 2, 52
 local q3Edge = enemy(160, 100, 6)
@@ -93,7 +97,7 @@ entities = {front, wide}
 cast('w', 155); resolve(167)
 assert(#wide.damage == 1, 'W failed to reach a target within its wider sector')
 local wfx = combat.visual(state, 167).fx[#combat.visual(state, 167).fx]
-assert(wfx.footprint.reach == 100 and #wfx.contacts == 2, 'W grouped contacts incorrect')
+assert(wfx.footprint.reach == 112 and #wfx.contacts == 2, 'W grouped contacts incorrect')
 assert(combat.absorb(state, 168) and not combat.absorb(state, 169), 'W shield must stop one hit')
 state = combat.new()
 entities = {}
@@ -131,6 +135,10 @@ front.Position = Vector(145, 105)
 visual = combat.visual(state, 18)
 assert(#visual.spirit.marks == 1 and visual.spirit.marks[1].position.X == 145)
 assert(math.abs(visual.spirit.marks[1].amount - front.damage[1] * .3) < .0001)
+assert(visual.spirit.marks[1].lethal == false)
+front.HitPoints = visual.spirit.marks[1].amount
+assert(combat.visual(state, 18).spirit.marks[1].lethal == true)
+front.HitPoints = 100
 cast('e', 20); resolve(21)
 assert(player.Position.X == 60 and not state.spirit and #front.damage == 2)
 assert(math.abs(front.damage[2] - front.damage[1] * .3) < .0001)
@@ -274,6 +282,48 @@ for _, spec in ipairs({{'q', 6}, {'q3', 7}, {'w', 8}, {'r', 23}}) do
         'locked hit area or impact telemetry changed with player movement')
     assert(not combat.activeFootprint(state, player, room), 'area persisted after impact')
 end
+state = combat.new(); player.Position = Vector(60,100)
+local through = enemy(145,100,301)
+entities = {through}
+wall[2 * room:GetGridWidth() + 3] = GridCollisionClass.COLLISION_WALL
+cast('q', 1); resolve(7)
+assert(#through.damage == 1, 'Q failed to hit across an interior obstacle')
+wall = {}
+state = combat.new(); player.Position = Vector(60,100)
+props = {poop(145, 0)}
+wall[2 * room:GetGridWidth() + 3] = GridCollisionClass.COLLISION_WALL
+cast('q', 1); resolve(7); assert(props[1].destroyed, 'Q did not break poop behind wall')
+wall = {}; props = {}
+state = combat.new(); player.Position = Vector(60,100); player.MaxFireDelay = 9
+cast('q', 1); assert(state.ready.q == 31, 'base Q cooldown must be 30 frames')
+state = combat.new(); player.MaxFireDelay = 4
+cast('q', 1); assert(state.ready.q == 13, 'bonus attack speed did not reduce Q cooldown')
+state = combat.new(); player.MaxFireDelay = 0
+cast('q', 1); assert(state.ready.q == 11, 'Q cooldown floor wrong')
+player.MaxFireDelay = 9
+local castCount, cooldownCount = 0, 0
+state = combat.new({onCast=function() castCount = castCount + 1 end,
+    cooldown=function() cooldownCount = cooldownCount + 1; return 1 end})
+cast('q', 1)
+assert(state.ready.q == 31 and castCount == 1 and cooldownCount == 0,
+    'Q incorrectly used ability haste or skipped on-cast items')
+local baseInside = room.IsPositionInRoom
+function room:IsPositionInRoom(point, margin)
+    if point.Y >= 90 and point.Y <= 110 and point.X > 120 and point.X < 170 then return false end
+    return baseInside(self, point, margin)
+end
+state = combat.new(); player.Position = Vector(60,100); entities = {enemy(180,100,302)}
+cast('q', 1); resolve(7)
+assert(#entities[1].damage == 0 and combat.visual(state, 7).fx[1].target.X == 120,
+    'Q crossed exterior room gap')
+room.IsPositionInRoom = baseInside
+state = combat.new(); state.qStacks = 2; player.Position = Vector(60,100); entities = {}
+cast('q', 1); resolve(8)
+assert(player.Position.X >= 180, 'Q3 dash did not reach its extended distance')
+assert(combat.q3Invulnerable(state, 8) and combat.q3Invulnerable(state, 12)
+    and not combat.q3Invulnerable(state, 13), 'Q3 dash immunity timing incorrect')
+combat.resetRoom(state, 9)
+assert(not combat.q3Invulnerable(state, 9), 'Q3 immunity survived room reset')
 """)
     print("PASS Yone strikes, spirit presentation, accepted damage marks, transitions and R line/pull")
 

@@ -11,7 +11,7 @@ local skills = {
     e_return = {windup = 0, duration = 13},
     r = {windup = 23, duration = 40, cooldown = 900},
 }
-local meleeRange, qRange, ultRange, wRange = 44, 76, 168, 100
+local meleeRange, qRange, ultRange, wRange = 44, 96, 168, 112
 local spiritDuration, markDamage, wCosine = 150, .30, .35
 local effectFrames, effectLimit, markerLimit = 21, 12, 24
 
@@ -58,7 +58,7 @@ end
 
 function Combat.resetRoom(state, clock)
     state.pending, state.action, state.spirit, state.shieldUntil = nil, nil, nil, nil
-    state.directImpact, state.effects = nil, {}
+    state.directImpact, state.effects, state.q3InvulnerableUntil = nil, {}, nil
     state.qStacks, state.qExpires = 0, nil
     if state.lastClock and clock < state.lastClock then
         for key, deadline in pairs(state.ready) do
@@ -117,9 +117,12 @@ function Combat.cast(state, input, player, aim, clock, room)
     end
     if key ~= 'e_return' then
         local cooldown = skill.cooldown or attackDelay(player)
-        if input == 'q' then cooldown = math.max(18, cooldown * 2) end
+        if input == 'q' then
+            local bonus = math.max(0, 10 / math.max(1, player.MaxFireDelay + 1) - 1)
+            cooldown = math.max(10, math.ceil(30 * (1 - math.min(2 / 3, .6 * bonus)) - .000001))
+        end
         if input ~= 'attack' and state.items then
-            if state.items.cooldown then cooldown = math.max(12, state.items.cooldown(player, input, cooldown)) end
+            if input ~= 'q' and state.items.cooldown then cooldown = math.max(12, state.items.cooldown(player, input, cooldown)) end
             if state.items.onCast then state.items.onCast(player, input, clock) end
         end
         state.ready[input] = clock + cooldown
@@ -139,22 +142,23 @@ function Combat.footprint(state, player, input, aim, room)
             reach = toAnchor:Length(), width = math.max(6, player.Size * .6)}
     end
     local reach, width, shape, cosine
-    if key == 'q' then reach, width = qRange * Artifacts.range(player), 14
-    elseif key == 'q3' then reach, width = 112 * Artifacts.range(player), 19
+    if key == 'q' then reach, width = qRange * Artifacts.range(player), 18
+    elseif key == 'q3' then reach, width = 168 * Artifacts.range(player), 22
     elseif key == 'w' then reach, shape, cosine = wRange, 'sector', wCosine
     elseif key == 'e' then reach, width = 54, math.max(6, player.Size * .6)
     elseif key == 'r' then
         reach, width = ultRange, 16
-        if room then
-            -- The line may cross interior grids but never leave and re-enter a room.
-            for distance = 1, ultRange do
-                if not room:IsPositionInRoom(player.Position + facing * distance, 0) then
-                    reach = distance - 1
-                    break
-                end
+    else return nil end
+    if room and (key == 'q' or key == 'q3' or key == 'r') then
+        -- The hit line may cross interior grids but never leave and re-enter a room.
+        for distance = 1, math.ceil(reach) do
+            local sample = math.min(distance, reach)
+            if not room:IsPositionInRoom(player.Position + facing * sample, 0) then
+                reach = distance - 1
+                break
             end
         end
-    else return nil end
+    end
     return {shape = shape or 'line', origin = player.Position, facing = facing,
         reach = reach, width = width, cosine = cosine}
 end
@@ -261,13 +265,15 @@ local function breakProps(room, start, facing, width, reach)
     local side = Vector(-facing.Y, facing.X)
     for index = 0, room:GetGridSize() - 1 do
         local grid = room:GetGridEntity(index)
-        if grid and grid.CollisionClass ~= GridCollisionClass.COLLISION_NONE then
+        if grid then
             local kind = grid:GetType()
-            if kind == GridEntityType.GRID_POOP or kind == GridEntityType.GRID_ROCK_ALT then
+            local intactPoop = kind == GridEntityType.GRID_POOP and grid.State < 1000
+            local intactProp = kind == GridEntityType.GRID_ROCK_ALT
+                and grid.CollisionClass ~= GridCollisionClass.COLLISION_NONE
+            if intactPoop or intactProp then
                 local delta = grid.Position - start
                 local along = delta:Dot(facing)
-                if along >= 0 and along <= reach and math.abs(delta:Dot(side)) <= width + 16
-                    and room:CheckLine(start, start + facing * math.max(0, along - 20), 3, 0, false, false) then
+                if along >= 0 and along <= reach and math.abs(delta:Dot(side)) <= width + 16 then
                     room:DestroyGrid(index, false)
                 end
             end
@@ -293,14 +299,6 @@ local function effect(state, clock, kind, origin, target, footprint, landingPoin
     effects[#effects + 1] = {id = state.effectSerial, at = clock, kind = kind,
         origin = origin, target = target, footprint = footprint, landing = landingPoint,
         contacts = contacts, bodyFace = bodyFace, bodyRemaining = bodyRemaining}
-end
-
-local function lineEnd(room, start, facing, reach)
-    for distance = reach, 4, -4 do
-        local endpoint = start + facing * distance
-        if room:CheckLine(start, endpoint, 3, 0, false, false) then return endpoint end
-    end
-    return start
 end
 
 local function returnSpirit(state, room, player, clock)
@@ -354,18 +352,19 @@ local function resolve(state, room, player, enemies, strike, clock)
         effect(state, clock, strike.clip, start, start + facing * reach)
     elseif key == 'q' then
         local reach, contacts = footprint.reach, {}
-        if blade(state, room, player, enemies, strike, footprint.width, reach, 1.4, false, nil, false, contacts) then
+        if blade(state, room, player, enemies, strike, footprint.width, reach, 1.4, false, nil, true, contacts) then
             state.qStacks, state.qExpires = math.min(2, state.qStacks + 1), clock + 180
         end
         breakProps(room, start, facing, footprint.width, reach)
-        effect(state, clock, key, start, lineEnd(room, start, facing, reach), nil, nil, contacts)
+        effect(state, clock, key, start, start + facing * reach, nil, nil, contacts)
     elseif key == 'q3' then
         state.qStacks, state.qExpires = 0, nil
         local reach, contacts = footprint.reach, {}
-        blade(state, room, player, enemies, strike, footprint.width, reach, 1.6, false, nil, false, contacts)
+        blade(state, room, player, enemies, strike, footprint.width, reach, 1.6, false, nil, true, contacts)
         breakProps(room, start, facing, footprint.width, reach)
-        teleport(player, safeDestination(room, player, start, start + facing * 90))
-        effect(state, clock, key, start, lineEnd(room, start, facing, reach), nil, player.Position, contacts)
+        teleport(player, safeDestination(room, player, start, start + facing * math.min(124, reach)))
+        state.q3InvulnerableUntil = clock + 5
+        effect(state, clock, key, start, start + facing * reach, nil, player.Position, contacts)
     elseif key == 'w' then
         local contacts = {}
         if blade(state, room, player, enemies, strike, 0, footprint.reach, 1.15, true, nil, false, contacts) then
@@ -409,6 +408,10 @@ function Combat.update(state, room, player, enemies, clock)
     end
 end
 
+function Combat.q3Invulnerable(state, clock)
+    return state.q3InvulnerableUntil ~= nil and clock < state.q3InvulnerableUntil
+end
+
 function Combat.absorb(state, clock, position)
     if clock >= (state.shieldUntil or 0) then return false end
     state.shieldUntil = nil
@@ -450,7 +453,8 @@ function Combat.visual(state, clock)
     local marks = {}
     for index = 1, math.min(#keys, markerLimit) do
         local mark = spirit.marks[keys[index]]
-        marks[index] = {position = mark.entity.Position, amount = mark.amount}
+        marks[index] = {position = mark.entity.Position, amount = mark.amount,
+            lethal = mark.amount >= math.max(0, mark.entity.HitPoints)}
     end
     picture.spirit = {anchor = spirit.anchor, face = spirit.face, marks = marks,
         remaining = math.max(0, math.min(1, (spirit.untilFrame - clock) / spiritDuration))}

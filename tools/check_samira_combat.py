@@ -157,12 +157,21 @@ ImGui={IsVisible=function() return console end}
 Console={RegisterCommand=function() end}
 Options={MouseControl=false,SFXVolume=.6}
 function EntityRef(e) return {Entity=e} end
+CallbackPriority = {EARLY = -100, DEFAULT = 0}
 function RegisterMod()
     callbacks={}
-    return {AddCallback=function(self,name,func)
-        callbacks[name]=callbacks[name] or {}
-        table.insert(callbacks[name],func)
-    end}
+    local function add(_, name, priority, func, filter)
+        local list = callbacks[name] or {}
+        callbacks[name] = list
+        local function dispatch(_, entity, hook, ...)
+            if filter == nil or hook == filter then return func(nil, entity, hook, ...) end
+        end
+        table.insert(list, priority < 0 and 1 or #list + 1, dispatch)
+    end
+    return {
+        AddCallback = function(self, name, func) add(self, name, CallbackPriority.DEFAULT, func) end,
+        AddPriorityCallback = add,
+    }
 end
 package.preload.json=function()
     return {encode=function(value) packet=value;return 'packet' end,decode=function() return ack end}

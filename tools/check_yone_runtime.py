@@ -47,14 +47,22 @@ Isaac.RenderText = function() end
 Isaac.GetTextWidth = function(text) return #text * 6 end
 Isaac.DrawLine = function() end
 KColor = Color
+local draws = {}
 local function captureHud()
-    local originalRender = Isaac.RenderText
-    local text = {}
+    local originalRender, originalLine = Isaac.RenderText, Isaac.DrawLine
+    local text = {pips = 0, ring = 0, icons = {}}
+    draws = text.icons
     Isaac.RenderText = function(label, x, y, r, g, b, a)
         text[label] = {x = x, y = y, color = {r, g, b, a}}
     end
+    Isaac.DrawLine = function(a, b, color, endColor, thickness)
+        originalLine(a, b, color, endColor, thickness)
+        if thickness == 3 and color[1] == 1 and color[2] == .78 then text.pips = text.pips + 1 end
+        if thickness == 2 and color[1] == 1 and color[2] == .38 then text.ring = text.ring + a:Distance(b) end
+    end
     event('POST_RENDER')
-    Isaac.RenderText = originalRender
+    Isaac.RenderText, Isaac.DrawLine = originalRender, originalLine
+    draws = {}
     local previousX = -1
     for _, key in ipairs({'Q', 'W', 'E', 'R'}) do
         local slot = assert(text[key], 'native HUD did not draw a separate ' .. key .. ' slot')
@@ -63,7 +71,16 @@ local function captureHud()
             'ability slot fell outside the viewport')
         previousX = slot.x
     end
+    assert(#text.icons == 4, 'the HUD did not draw four native ability icons')
+    for _, icon in ipairs(text.icons) do
+        assert(icon.x >= 0 and icon.x + icon.size <= Isaac.GetScreenWidth()
+            and icon.y >= 0 and icon.y + icon.size <= Isaac.GetScreenHeight(), 'ability image was clipped')
+    end
     return text
+end
+local function statusOver(hud, label, index)
+    local status, icon = hud[label], hud.icons[index]
+    return status and status.x >= icon.x and status.x + Isaac.GetTextWidth(label) <= icon.x + icon.size
 end
 local function sameSlots(before, after)
     for _, key in ipairs({'Q', 'W', 'E', 'R'}) do
@@ -74,6 +91,14 @@ local pressed = Input.IsButtonPressed
 Input.IsButtonPressed = function(key, ...) return key == input.ctrl or pressed(key, ...) end
 local nativeShows = 0
 Sprite = function(path)
+    if path == 'gfx/yone/ability_icons.anm2' then
+        return {
+            SetFrame=function(self, animation, frame) assert(frame == 0); self.animation = animation end,
+            Render=function(self, pos)
+                draws[#draws + 1] = {name = self.animation, x = pos.X, y = pos.Y, size = self.Scale.X * 64}
+            end,
+        }, true
+    end
     assert(path == 'gfx/hero_mastery/badge.anm2')
     return {
         SetFrame=function() end, Render=function() nativeShows = nativeShows + 1 end,
@@ -87,7 +112,9 @@ assert(itemDriver() == player and itemUpdates > 0, 'ordinary Yone run did not bi
 local glyphLines = 0
 Isaac.DrawLine = function() glyphLines = glyphLines + 1 end
 local readyHud = captureHud()
-assert(glyphLines >= 24, 'ability slots did not render their distinct glyph geometry')
+assert(glyphLines >= 8, 'ability slots did not render their frames')
+assert(readyHud.icons[1].name == 'Q' and readyHud.icons[2].name == 'W'
+    and readyHud.icons[3].name == 'E' and readyHud.icons[4].name == 'R' and readyHud.pips == 0)
 Isaac.DrawLine = function() end
 assert(readyHud.R.y + 8 < Isaac.GetScreenHeight() - 26, 'narrow ability row collided with the backpack')
 local width, height = Isaac.GetScreenWidth, Isaac.GetScreenHeight
@@ -97,7 +124,16 @@ assert(wideHud.Q.x > 70 + 147 and wideHud.Q.y > 288 - 26, 'wide ability row did 
 Isaac.GetScreenWidth, Isaac.GetScreenHeight = width, height
 local session = packet.session
 assert(callAction('ACTION_SHOOTRIGHT') == 0)
-assert(callAction('ACTION_RESTART') == 0, 'holding R can restart the run')
+assert(callAction('ACTION_RESTART', 'IS_ACTION_PRESSED') == nil, 'unheld R blocked restart')
+input.key = 'KEY_R'
+assert(callAction('ACTION_RESTART', 'IS_ACTION_PRESSED') == false, 'held R allowed restart')
+assert(callAction('ACTION_RESTART', 'IS_ACTION_PRESSED', makeEntity('enemy', 0, 0, 71)) == false)
+player.ControllerIndex = 1
+assert(callAction('ACTION_RESTART', 'IS_ACTION_PRESSED', player) == false)
+player.ControllerIndex = 0
+kind = 999
+assert(callAction('ACTION_RESTART', 'IS_ACTION_PRESSED') == nil, 'other character restart blocked')
+kind, input.key = 130, nil
 assert(callAction('ACTION_LEFT') == 0)
 tick('KEY_RIGHT')
 assert(callAction('ACTION_RIGHT') > .9, 'arrow did not start movement')
@@ -147,7 +183,7 @@ assert(callAction('ACTION_RIGHT') == 0 and player.Position:Distance(committedPos
 for _ = 1, 7 do tick() end
 local stackedHud = captureHud()
 sameSlots(readyHud, stackedHud)
-assert(stackedHud['+'] and stackedHud['1s'] and stackedHud['1s'].x == stackedHud.Q.x,
+assert(stackedHud.pips == 1 and statusOver(stackedHud, '1s', 1),
     'Q lost its charge or cooldown display')
 assert(stackedHud.Q.color[1] < readyHud.Q.color[1], 'cooldown did not dim the ability key')
 for _ = 1, 24 do tick() end
@@ -155,10 +191,27 @@ castKey('KEY_Q')
 for _ = 1, 7 do tick() end
 local doubleStackHud = captureHud()
 sameSlots(readyHud, doubleStackHud)
-assert(doubleStackHud['++'] and doubleStackHud['+'] == nil, 'Q lost its second charge')
+assert(doubleStackHud.pips == 2 and doubleStackHud.icons[1].name == 'Q3', 'Q lost its second charge')
 assert(packet.yone.qReady == true, 'charged Q state was omitted from the visual packet')
 entities = {}
-for _ = 1, 18 do tick() end
+for _ = 1, 30 do tick() end
+DamageFlag = {DAMAGE_FAKE = 1, DAMAGE_IV_BAG = 2}
+local dashAttacker = makeEntity('enemy', player.Position.X + 25, player.Position.Y, 89)
+castKey('KEY_Q')
+assert(packet.kind == 'q3', 'charged Q did not begin dash')
+for _ = 1, 7 do tick() end
+assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(dashAttacker)) == false,
+    'Q3 did not block hostile damage on dash')
+assert(event('ENTITY_TAKE_DMG', player, 1, 0, nil) == false, 'Q3 did not block environmental damage')
+assert(event('ENTITY_TAKE_DMG', player, 1, DamageFlag.DAMAGE_FAKE, EntityRef(dashAttacker)) == nil,
+    'Q3 blocked fake damage')
+assert(event('ENTITY_TAKE_DMG', player, 1, DamageFlag.DAMAGE_IV_BAG, EntityRef(player)) == nil,
+    'Q3 blocked payment or self-inflicted damage')
+for _ = 1, 5 do tick() end
+assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(dashAttacker)) == nil,
+    'Q3 invulnerability lasted beyond its dash')
+for _ = 1, 12 do tick() end
+player.Position = Vector(60, 100)
 
 input.ctrl = 'KEY_LEFT_CONTROL'
 tick('KEY_4')
@@ -210,7 +263,7 @@ assert(math.abs(cleave.arc[7][1] - cleave.target[1]) < .001
     and math.abs(cleave.arc[7][2] - cleave.target[2]) < .001, 'W arc and axial endpoint disagreed')
 local shieldHud = captureHud()
 sameSlots(readyHud, shieldHud)
-assert(shieldHud['10s'] and shieldHud['10s'].x == shieldHud.W.x and shieldHud.SHIELD,
+assert(statusOver(shieldHud, '10s', 2) and shieldHud.SHIELD,
     'W lost its cooldown or shield display')
 assert(event('ENTITY_TAKE_DMG', player, 1, DamageFlag.DAMAGE_FAKE, EntityRef(attacker)) == nil)
 assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(attacker)) == false)
@@ -222,7 +275,7 @@ castKey('KEY_E')
 for _ = 1, 4 do tick() end
 local spiritHud = captureHud()
 sameSlots(readyHud, spiritHud)
-assert(spiritHud['<'], 'E lost its active spirit marker')
+assert(spiritHud.icons[3].name == 'E2' and spiritHud.ring > 0, 'E lost its active frame or recast icon')
 assert(spiritHud['4.9s'] or spiritHud['5.0s'], 'E did not show remaining spirit time')
 assert(packet.yone.spirit.anchor[1] == positionBeforeE.X * projection)
 assert(packet.yone.spirit.anchor[1] < packet.position[1])
@@ -239,6 +292,7 @@ tick('KEY_A')
 for _ = 1, 8 do tick() end
 local mark = packet.yone.spirit.marks[1]
 assert(mark and mark.position[1] == attacker.Position.X * projection and mark.amount > 0)
+assert(captureHud().ring < spiritHud.ring, 'the E duration ring did not shrink')
 local nativeMarkLines = 0
 local drawLineBeforeMark = Isaac.DrawLine
 Isaac.DrawLine = function(a, b, ...)
@@ -340,10 +394,22 @@ tick()
 assert(packet.active and packet.session == session and packet.room == firstFloorRoom + 1
     and not packet.occluded, 'direct level arrival did not rebind the same run')
 assert(packet.clip == 'idle', 'a queued ability leaked to the next floor')
-castKey('KEY_R')
+local rCasts = 0
+local previousOnCast = noItems.onCast
+noItems.onCast = function(owner, skill, clock)
+    if skill == 'r' then rCasts = rCasts + 1 end
+    return previousOnCast(owner, skill, clock)
+end
+for _ = 1, 45 do
+    tick('KEY_R')
+    assert(callAction('ACTION_RESTART', 'IS_ACTION_PRESSED') == false, 'long R hold allowed restart')
+    assert(rCasts == 0, 'R cast before release')
+end
+tick()
+assert(rCasts == 1, 'R release did not cast exactly once')
 local ultimateHud = captureHud()
 sameSlots(readyHud, ultimateHud)
-assert(ultimateHud['30s'] and ultimateHud['30s'].x == ultimateHud.R.x, 'R lost its cooldown display')
+assert(statusOver(ultimateHud, '30s', 4), 'R lost its cooldown display')
 
 local roomKey, claimed = 1, {[1] = true}
 noItems.claimCombatRoomReset = function()

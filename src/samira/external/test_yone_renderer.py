@@ -110,11 +110,31 @@ class YoneRendererTests(unittest.TestCase):
         self.assertEqual(renderer.actor.rig_sample, ('idle', .35))
         self.assertGreater(np.count_nonzero(self.region(19, 91, 50, 105)[:, :, 3]), 20)
         self.assertGreater(np.count_nonzero(self.region(47, 106, 85, 119)[:, :, 3]), 10)
-        self.assertGreater(np.count_nonzero(self.region(116, 37, 144, 57)[:, :, 3]), 25)
+        self.assertGreater(np.count_nonzero(self.region(116, 38, 144, 56)[:, :, 3]), 25)
         spirit = self.region(87, 93, 112, 114)
         self.assertGreater(np.count_nonzero(normal != spirit), 100)
         self.assertGreater(float(spirit[:, :, 2].mean()), float(normal[:, :, 2].mean()) + 5)
         self.assertEqual(self.ctx.error, 'GL_NO_ERROR')
+
+    def test_mark_lethality_changes_symbol_without_printing_damage(self):
+        from run_testroom_renderer import YoneRenderer
+        renderer = YoneRenderer(self.ctx, Path('unavailable-yone.glb'))
+        self.addCleanup(renderer.close)
+        mark = {'position': [125, 80], 'amount': 17}
+        state = {'kind': 'idle', 'phase': 0, 'screen': [160, 160], 'position': [40, 120],
+                 'face': [1, 0], 'clock': 120,
+                 'yone': {'spirit': {'anchor': [30, 120], 'face': [1, 0],
+                                     'remaining': .5, 'marks': [mark]}}}
+        with patch.object(renderer.vfx.canvas, 'text', wraps=renderer.vfx.canvas.text) as text:
+            renderer.draw(state, 0)
+            self.assertFalse(text.called)
+        normal = self.region(110, 40, 142, 66).copy()
+        self.fbo.clear(0, 0, 0, 0)
+        mark['lethal'] = True
+        renderer.draw(state, 0)
+        lethal = self.region(110, 40, 142, 66).copy()
+        self.assertFalse(np.array_equal(normal, lethal))
+        self.assertGreater(np.count_nonzero(lethal[:, :, 3]), np.count_nonzero(normal[:, :, 3]))
 
     def test_contact_bursts_require_authoritative_targets(self):
         from run_testroom_renderer import YoneRenderer

@@ -377,7 +377,7 @@ function Get-LauncherArguments([string]$Isaac) {
 if ($LibraryOnly) { return }
 
 $releaseHash = '__YONE_RELEASE_SHA256__'
-$releaseUrl = 'https://github.com/N1kromant/Soul-Fighter-Samira/releases/download/yone-immersion-v7/Soul-Fighter-Samira-Yone-MenuHotfix-Windows.zip'
+$releaseUrl = 'https://github.com/N1kromant/Soul-Fighter-Samira/releases/download/yone-immersion-v8/Soul-Fighter-Samira-Yone-CombatHud-Windows.zip'
 $launcherHash = '7e4a45d8b9f099ea79e42f86bc24c2a05b35e239d7bc4d597c11b5bceaccfd6a'
 $launcherUrl = 'https://github.com/TeamREPENTOGON/Launcher/releases/download/v0.4.9-beta/REPENTOGONLauncher.zip'
 $cache = Join-Path $env:LOCALAPPDATA 'YoneInstaller'
@@ -426,7 +426,7 @@ try {
     Write-Host "Папка обмена Companion: $($paths.Status)"
     Assert-ModDestination (Join-Path $paths.Mods $modDirectory)
 
-    $releaseZip = Join-Path $cache 'Yone-MenuHotfix.zip'
+    $releaseZip = Join-Path $cache 'Yone-CombatHud.zip'
     $launcherZip = Join-Path $cache 'REPENTOGONLauncher-0.4.9-beta.zip'
     Get-VerifiedFile $releaseUrl $releaseZip $releaseHash
     Get-VerifiedFile $launcherUrl $launcherZip $launcherHash
@@ -435,6 +435,7 @@ try {
     Stop-OldCompanions $cache @($paths.Status, $paths.HostStatus)
     Install-CachedArchive $releaseZip $payload $releaseHash 'Soul-Fighter-Samira' @(
         'samira_testroom\main.lua', 'samira_testroom\metadata.xml', 'samira_testroom\content\players.xml',
+        'samira_testroom\resources\gfx\yone\ability_icons.anm2', 'samira_testroom\resources\gfx\yone\ability_icons.png',
         'companion\assets\yone-local\yone.glb', 'companion\assets\yone-local\actions.json',
         'companion\python\pythonw.exe', 'companion\tools\run_testroom_renderer.py'
     )
