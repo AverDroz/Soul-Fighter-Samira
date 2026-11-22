@@ -195,7 +195,7 @@ class YoneRenderer:
     def draw(self,state,dt):
         if state.get('occluded') or state.get('transition') or state.get('paused'):
             return False,{}
-        capabilities={};model_drawn=badge_drawn=False
+        capabilities={};model_drawn=False
         spirit=None
         dash=None
         if state['kind'] in YONE_DASH_TICKS:
@@ -226,6 +226,22 @@ class YoneRenderer:
                                     body_scale=scale,anchor_root=True)
             except Exception as error:
                 self.disable_vfx(error);spirit=None
+        if self.mastery:
+            try:
+                badge = state.get('mastery')
+                anchor = None
+                if badge:
+                    x, y = state['position']
+                    # Packets from older mods put the crest at the actor's feet.
+                    rise = badge.get('rise')
+                    if rise is None:
+                        rise = 40 + 46 * abs(state.get('bodyScale', (1, 1))[1])
+                    anchor = (x, y - rise)
+                self.mastery.draw(state, normalized=True, position=anchor)
+                capabilities['mastery']=True
+            except Exception as error:
+                print('Mastery renderer disabled: '+repr(error),flush=True)
+                self.mastery.close();self.mastery=None
         if self.actor:
             try:
                 clip,phase=yone_animation(state,self.actor.model.durations)
@@ -245,14 +261,8 @@ class YoneRenderer:
                 if self.vfx.finish():capabilities['yoneVfx']=True
             except Exception as error:
                 self.disable_vfx(error)
-        if self.mastery:
-            try:
-                badge_drawn=self.mastery.draw(state,normalized=True)
-                capabilities['mastery']=True
-            except Exception as error:
-                print('Mastery renderer disabled: '+repr(error),flush=True)
-                self.mastery.close();self.mastery=None
-        return model_drawn or badge_drawn,capabilities
+        # Only an actor frame can take ownership of the native player render.
+        return model_drawn,capabilities
 
     def close(self):
         if self.mastery:self.mastery.close()

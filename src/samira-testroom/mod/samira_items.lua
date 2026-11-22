@@ -408,8 +408,10 @@ function Items.newAttack(p, nativeKind, tick)
     room.actionSequence = room.actionSequence + 1
     local kind = ({attack = 'aa', melee = 'aa', qmelee = 'q', q3 = 'q'})[nativeKind] or nativeKind
     local chance = (stats.crit_chance_pct or 0) / 100
-    if isYone(p) and kind ~= 'aa' and kind ~= 'q' then chance = 0 end
     if owned[3032] then chance = chance + math.min(25, math.floor(run.yunTalHits / 5)) / 100 end
+    if isYone(p) then
+        chance = (kind == 'aa' or kind == 'q') and math.min(1, chance * 2) or 0
+    end
     local barrage = kind == 'aa' and owned[2512] and live('barrage') and (room.barrageShots or 0) > 0
     if barrage then
         room.barrageShots = room.barrageShots - 1
@@ -773,6 +775,17 @@ local function queueBolts(entity, damage)
     end
 end
 
+local function axiomRefund(p, entity, enemy)
+    if enemy.axiomRefunded or not enemy.deadSeen or not enemy.axiomAt or not isYone(p) or not state(p)[6696] then return end
+    local now = game:GetFrameCount()
+    if now < enemy.axiomAt or now - enemy.axiomAt > 90 then return end
+    local driver = itemCombat(p)
+    if driver and driver.reduceUltimateCooldown then
+        enemy.axiomRefunded = true
+        driver.reduceUltimateCooldown(boss(entity) and .10 or .03, now)
+    end
+end
+
 local function finishDamage(p, entity, amount, source, extraSource)
     local ctx = contextFrom(p, source, extraSource)
     if not ctx then return end
@@ -795,6 +808,8 @@ local function finishDamage(p, entity, amount, source, extraSource)
     end
     local enemy = enemyState(entity)
     enemy.directAt = clock
+    enemy.axiomAt = game:GetFrameCount()
+    axiomRefund(p, entity, enemy)
     if owned[2523] and not plan.mortalBefore and mortalDamage(entity) then
         enemy.hexopticsKill = true
         if enemy.deadSeen then defeat(p, entity, enemy) end
@@ -937,6 +952,7 @@ defeat = function(p, entity, enemy)
     end
     if enemy.deadSeen then return end
     enemy.deadSeen = true
+    axiomRefund(p, entity, enemy)
     if not boss(entity) then return end
     local owned = state(p)
     if owned[2517] and enemy.directAt and clock <= enemy.directAt + 90 then start('feast', 180) end
@@ -1192,7 +1208,7 @@ end
 local function vampStatus()
     local p = getPlayer()
     if not p then
-        Isaac.ConsoleOutput('Samira is not active.\n')
+        Isaac.ConsoleOutput('Select Samira or Yone or enable their test mode.\n')
         return
     end
     state(p)
@@ -1267,10 +1283,12 @@ function Items.init(host, currentGame, playerProvider, saveSettings, yoneModule)
         loadingCheckpoint = nil
     end)
     callback('MC_EXECUTE_CMD', function(_, command)
-        if command == 'samiravamp' then vampStatus() end
+        if command == 'samiravamp' or command == 'yonevamp' then vampStatus() end
     end)
     if Console and Console.RegisterCommand then
         Console.RegisterCommand('samiravamp', 'Show Samira healing and hit diagnostics', 'samiravamp',
+            false, AutocompleteType.NONE)
+        Console.RegisterCommand('yonevamp', 'Show Yone healing and hit diagnostics', 'yonevamp',
             false, AutocompleteType.NONE)
     end
     if CollectibleType then

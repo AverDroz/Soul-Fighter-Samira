@@ -217,10 +217,14 @@ local function debugPedestals(player, selected, priced)
     return true
 end
 
+local yoneCommands = {yoneitems = 'samiraitems', yoneitem = 'samiraitem', yoneshop = 'samirashop'}
+
 local function execute(_, command, args)
+    local displayName = command
+    command = yoneCommands[command] or command
     if command ~= 'samiraitems' and command ~= 'samiraitem' and command ~= 'samirashop' then return end
     local player = getPlayer()
-    if not player then log('Run samiratest in a single-player run first.') return end
+    if not player then log('Select Samira or Yone, or enable their test mode in a single-player run.') return end
     local arg = (args or ''):match('^%s*(.-)%s*$')
     loadCatalog()
     local selected, priced
@@ -228,7 +232,7 @@ local function execute(_, command, args)
         local page = arg == '' and 1 or tonumber(arg)
         local pages = math.ceil(#entries / PAGE_SIZE)
         if not page or page % 1 ~= 0 or page < 1 or page > pages then
-            log('Usage: samiraitems [1-' .. pages .. ']') return
+            log('Usage: ' .. displayName .. ' [1-' .. pages .. ']') return
         end
         selected = {}
         for i = (page - 1) * PAGE_SIZE + 1, math.min(page * PAGE_SIZE, #entries) do
@@ -236,10 +240,10 @@ local function execute(_, command, args)
         end
     elseif command == 'samiraitem' then
         local entry = byRiotId[tonumber(arg)]
-        if not entry then log('Usage: samiraitem <Riot item ID>') return end
+        if not entry then log('Usage: ' .. displayName .. ' <Riot item ID>') return end
         selected = {entry}
     else
-        if arg ~= '' then log('Usage: samirashop') return end
+        if arg ~= '' then log('Usage: ' .. displayName) return end
         priced = true
         selected = shopInventory(game:GetRoom():GetSpawnSeed(), player)
     end
@@ -457,6 +461,9 @@ function RoomItems.init(mod, ownerGame, playerProvider, itemRuntime)
     Console.RegisterCommand('samiraitems', 'Spawn a page of Samira collectibles', 'samiraitems [1-4]', false, AutocompleteType.NONE)
     Console.RegisterCommand('samiraitem', 'Spawn a Samira collectible', 'samiraitem <Riot item ID>', false, AutocompleteType.NONE)
     Console.RegisterCommand('samirashop', 'Spawn a paid Samira test assortment', 'samirashop', false, AutocompleteType.NONE)
+    Console.RegisterCommand('yoneitems', 'Spawn a page of League collectibles', 'yoneitems [1-4]', false, AutocompleteType.NONE)
+    Console.RegisterCommand('yoneitem', 'Spawn a League collectible for a test', 'yoneitem <Riot item ID>', false, AutocompleteType.NONE)
+    Console.RegisterCommand('yoneshop', 'Spawn a paid Yone test assortment', 'yoneshop', false, AutocompleteType.NONE)
 end
 
 return RoomItems

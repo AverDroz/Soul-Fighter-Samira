@@ -15,6 +15,23 @@ function Emotes.new()
     return {held = {}, pocketSuppressed = false}
 end
 
+local function startMastery(state, frame)
+    if frame < (state.masteryReady or 0) then return false end
+    state.masteryAt, state.masteryReady = frame, frame + masteryCooldown
+    return true
+end
+
+function Emotes.trigger(state, frame, action)
+    if action == 'mastery' then return startMastery(state, frame) end
+    for _, expression in ipairs(expressions) do
+        if expression.action == action then
+            state.expression, state.expressionAt = expression, frame
+            return true
+        end
+    end
+    return false
+end
+
 function Emotes.update(state, frame, keys, interrupted)
     if state.lastFrame and frame < state.lastFrame then
         local remaining = math.max(0, (state.masteryReady or 0) - state.lastFrame)
@@ -41,9 +58,7 @@ function Emotes.update(state, frame, keys, interrupted)
     if selected and not interrupted then
         state.expression, state.expressionAt = expressions[selected], frame
     end
-    if masteryPressed and frame >= (state.masteryReady or 0) then
-        state.masteryAt, state.masteryReady = frame, frame + masteryCooldown
-    end
+    if masteryPressed then startMastery(state, frame) end
 end
 
 function Emotes.cancel(state, clearMastery)

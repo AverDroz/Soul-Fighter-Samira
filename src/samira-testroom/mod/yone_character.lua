@@ -1,14 +1,18 @@
 local Yone = {}
 local Combat = include('yone_combat')
+local Debug = include('yone_debug')
 local Emotes = include('yone_emotes')
 local Navigation = include('samira_navigation')
 local json = require('json')
 local playerType
+local testMode = false
 local badge
 local Display
 local fps, leaseMs = 30, 500
+-- Crest clearance and the on-screen body height for each renderer.
+local masteryCrestRise, masteryModelHeight = 40, 46
+local masteryAtlasRise, masteryNativeHeight = 36, 31
 local spiritWarningTicks = 2 * fps
-local floorRebindMs = 650
 local abilities = {'q', 'w', 'e', 'r'}
 local abilityHudHeight, abilityHudGap = 38, 2
 local abilityReady = {.92, .92, 1, 1}
@@ -35,13 +39,21 @@ local blocked = {
 }
 local rebound = {[ButtonAction.ACTION_BOMB] = Keyboard.KEY_G, [ButtonAction.ACTION_PILLCARD] = Keyboard.KEY_4}
 
-function Yone.is(player)
+function Yone.isNative(player)
     if not player or not player.GetPlayerType then return false end
     if not playerType then
         local result = Isaac.GetPlayerTypeByName('Yone', false)
         if result >= 0 then playerType = result end
     end
     return playerType ~= nil and player:GetPlayerType() == playerType
+end
+
+function Yone.is(player)
+    if testMode and player and player.GetPlayerType and Isaac.IsInGame() then
+        local owner = Isaac.GetPlayer(0)
+        if owner and player.Index == owner.Index then return true end
+    end
+    return Yone.isNative(player)
 end
 
 function Yone.player(game)
@@ -342,12 +354,18 @@ local function emit(game, state, player, force, picture)
     local action, phase, hit, length, travel = Combat.presentation(state.combat, clock)
     local expression, actionFrame = Emotes.action(state.emotes, clock)
     if expression then action, phase = expression, 0 end
+    local preview = state.debugAnimation
+    if not action and preview and clock < preview.finish then
+        action, phase = preview.clip, (clock - preview.start) / (preview.finish - preview.start)
+    end
     local looping = not action
     if not action then
         action = player.Velocity:Length() > .6 and 'run' or 'idle'
         phase = clock / (action == 'run' and 38 or 60) % 1
     end
     local mastery = not hidden and Emotes.mastery(state.emotes, clock)
+    local bodyScale = player.SpriteScale
+    local masteryRise = mastery and (masteryCrestRise + masteryModelHeight * math.abs(bodyScale and bodyScale.Y or 1))
     packet({
         version = 1, companionProtocol = 1, active = true, preview = false, hero = 'yone',
         presentation = 2, hudVisible = false, renderCaptured = not hidden,
@@ -358,11 +376,11 @@ local function emit(game, state, player, force, picture)
         yoneTiming = not expression and hit and {hit = hit, length = length, travel = travel} or nil,
         yoneMoving = player.Velocity:Length() > .6,
         actionFrame = actionFrame, actionId = expression and (clock - actionFrame) or nil,
-        bodyScale = player.SpriteScale and {player.SpriteScale.X, player.SpriteScale.Y} or {1, 1},
+        bodyScale = bodyScale and {bodyScale.X, bodyScale.Y} or {1, 1},
         paused = game:IsPaused(), transition = state.leaving or RoomTransition.GetTransitionMode() ~= 0,
         occluded = hidden, hurt = clock < (state.hurtUntil or 0),
         nativeCursor = Options.MouseControl == true, sfxVolume = Options.SFXVolume,
-        mastery = mastery and {at = mastery, position = {x, y}} or nil,
+        mastery = mastery and {at = mastery, position = {x, y - masteryRise}, rise = masteryRise} or nil,
         yone = not hidden and visualSnapshot(room, picture or Combat.visual(state.combat, clock)) or nil,
     })
 end
@@ -663,29 +681,33 @@ local function drawAbilityHud(combat, clock, backpack, aiming, picture, requeste
 end
 
 local function drawRoomEffects(game, state, player, clock, picture)
+    local room = game:GetRoom()
     local pos = Isaac.WorldToScreen(player.Position)
-    local x, y = mirrorPosition(game:GetRoom(), pos)
+    local x, y = mirrorPosition(room, pos)
     local now = Isaac.GetTime()
     local vfx, model = leased(state, 'vfxReady', now), leased(state, 'modelReady', now)
     if not vfx or not model then
-        drawNativeEffects(game:GetRoom(), player, picture, x, y, not vfx, clock)
+        drawNativeEffects(room, player, picture, x, y, not vfx, clock)
     end
     local phase = Emotes.mastery(state.emotes, clock)
-    if phase and not leased(state, 'masteryReady', Isaac.GetTime()) then
+    if phase and not leased(state, 'masteryReady', now) then
         if badge == nil then
             local sprite, loaded = Sprite('gfx/hero_mastery/badge.anm2', true)
             badge = loaded and sprite or false
         end
+        local scale, offset = player.SpriteScale, player.SpriteOffset
+        local badgeX, badgeY = mirrorPosition(room, offset and pos + offset or pos)
+        badgeY = badgeY - masteryAtlasRise - masteryNativeHeight * math.abs(scale and scale.Y or 1)
         local alpha = math.min(1, (phase * 120 + 1) / 6, (1 - phase) * 12)
         if badge then
             badge:SetFrame('Play', math.floor(phase * 120))
             badge.Scale, badge.Color = Vector(.5, .5), Color(1, 1, 1, alpha)
-            badge:Render(Vector(x, y - 67))
+            badge:Render(Vector(badgeX, badgeY))
         else
-            Isaac.RenderText('* M *', x - 13, y - 54, 1, .75, .28, alpha)
+            Isaac.RenderText('* M *', badgeX - 13, badgeY + 13, 1, .75, .28, alpha)
         end
     end
-    if not leased(state, 'modelReady', Isaac.GetTime()) then
+    if not model then
         local expression = Emotes.action(state.emotes, clock)
         if expression then
             Isaac.RenderText(expression:upper(), x - 15, y - 35, 1, .88, .72, 1)
@@ -693,7 +715,7 @@ local function drawRoomEffects(game, state, player, clock, picture)
     end
 end
 
-function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHudScale, readR)
+function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHudScale, readR, switchTestHero)
     Display = display
     local state, serial = nil, 0
 
@@ -730,6 +752,10 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
         if state then Combat.reduceCooldowns(state.combat, fraction, clock) end
     end
 
+    function Yone.reduceUltimateCooldown(fraction, clock)
+        if state then Combat.reduceUltimateCooldown(state.combat, fraction, clock) end
+    end
+
     local function stop()
         if state then
             stopSpiritWarning(state)
@@ -752,21 +778,62 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
         sampleInput(game:GetRoom(), false)
     end
 
+    local function runDebugCommands(player, room, clock)
+        local queued = state.debugCommands
+        state.debugCommands = nil
+        for _, command in ipairs(queued or {}) do
+            local operation, arg = command[1], command[2]
+            if operation == 'reset' then
+                Combat.reduceCooldowns(state.combat, 1, clock)
+            elseif operation == 'charge' then
+                Combat.chargeQ3(state.combat, clock)
+            elseif operation == 'cast' then
+                if arg == 'q3' then
+                    Combat.chargeQ3(state.combat, clock)
+                    arg = 'q'
+                end
+                if Combat.cast(state.combat, arg, player, Navigation.worldCursor(room), clock, room) then
+                    state.debugAnimation = nil
+                    stopMoving(state)
+                else
+                    Isaac.ConsoleOutput('Yone cast unavailable. Check cooldowns or use yonereset.\n')
+                end
+            elseif arg == 'mastery' then
+                if Emotes.trigger(state.emotes, clock, arg) then
+                    playMasterySound()
+                else
+                    Isaac.ConsoleOutput('Yone mastery is on cooldown.\n')
+                end
+            elseif not Emotes.trigger(state.emotes, clock, arg) then
+                state.debugAnimation = {clip = arg, start = clock, finish = clock + 30}
+            end
+        end
+    end
+
     mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, function(_, continued)
+        testMode = false
         stop()
         local player = driver()
         if player then start(player, continued) end
     end)
-    mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, stop)
+    mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, function()
+        testMode = false
+        stop()
+    end)
     mod:AddCallback(ModCallbacks.MC_PRE_MOD_UNLOAD, function(_, unloading)
-        if unloading == mod then stop() end
+        if unloading == mod then
+            testMode = false
+            stop()
+        end
     end)
 
     mod:AddCallback(ModCallbacks.MC_POST_UPDATE, function()
         local player = driver()
         if not player then
-            if state and (state.floorPending or Isaac.GetTime() < (state.floorRebindUntil or 0)) then return end
-            stop()
+            -- A missing player or a temporarily unavailable run is not a
+            -- character switch. Floor rebinding can outlast any wall timer.
+            if state and not state.floorRebinding and Isaac.IsInGame()
+                and game:GetNumPlayers() > 0 and Isaac.GetPlayer(0) then stop() end
             return
         end
         if not state then start(player) end
@@ -783,7 +850,7 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
             end
             return
         end
-        state.floorRebindUntil = nil
+        if not state.floorPending then state.floorRebinding = nil end
 
         if inventory then inventory.update(player, clock) end
         if items and items.update then items.update(player, clock) end
@@ -792,6 +859,7 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
         end
         local enemies = Isaac.GetRoomEntities()
         Combat.update(state.combat, room, player, enemies, clock)
+        if state.debugCommands then runDebugCommands(player, room, clock) end
         if state.qAfterE and not state.combat.pending then
             local aim = player.Position + state.qAfterE
             if Combat.cast(state.combat, 'q', player, aim, clock, room) then stopMoving(state) end
@@ -915,6 +983,7 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
     local function beginDeparture(player)
         if state.leaving then return end
         state.leaving, state.ackAt = true, nil
+        state.debugCommands, state.debugAnimation = nil, nil
         stopSpiritWarning(state)
         stopMoving(state)
         sampleInput(game:GetRoom(), false)
@@ -931,6 +1000,7 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
     mod:AddCallback(ModCallbacks.MC_PRE_ROOM_EXIT, function(_, player, newLevel)
         if state and newLevel and Yone.is(player) then
             state.floorPending = true
+            state.floorRebinding = true
             beginDeparture(player)
         end
     end)
@@ -941,6 +1011,7 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
         state.leaving, state.ackAt, state.emitAt, state.pollAt = nil, nil, nil, nil
         state.coverFrame, state.hurtUntil = nil, nil
         state.continuingRoom = nil
+        state.debugCommands, state.debugAnimation = nil, nil
         sampleInput(game:GetRoom(), false)
         stopMoving(state)
         Combat.resetRoom(state.combat, game:GetFrameCount())
@@ -957,7 +1028,49 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
         if not state then return end
         if state.floorPending or state.leaving then enterRoom() end
         state.floorPending, state.coverFrame = nil, nil
-        state.floorRebindUntil = Isaac.GetTime() + floorRebindMs
+        state.floorRebinding = true
+    end)
+
+    Debug.init(mod, function(enable)
+        if not enable then
+            if testMode then
+                testMode = false
+                stop()
+                switchTestHero(false)
+            end
+            return 'Yone test mode off.'
+        end
+        if not Isaac.IsInGame() or game:GetNumPlayers() ~= 1 or not Isaac.GetPlayer(0) then
+            return 'Start a single-player run first.'
+        end
+        local player = Isaac.GetPlayer(0)
+        if not Yone.isNative(player) and not testMode then
+            testMode = true
+            switchTestHero(true)
+        end
+        if not state then
+            start(player)
+        elseif state.leaving or state.floorPending then
+            state.floorPending, state.floorRebinding = nil, nil
+            enterRoom()
+        else
+            state.ackAt, state.pollAt, state.emitAt = nil, nil, nil
+        end
+        return testMode and 'Yone testing enabled. Close the console.' or 'Yone reconnected. Close the console.'
+    end, function(operation, arg)
+        if not (driver() and state) then return 'Select Yone or run yonetest first.' end
+        state.debugCommands = state.debugCommands or {}
+        if #state.debugCommands >= 12 then return 'Close the console to run queued Yone commands.' end
+        state.debugCommands[#state.debugCommands + 1] = {operation, arg}
+        return 'Close the console to run the command.'
+    end, function()
+        local player = driver()
+        if not player or not state then return 'Select Yone or run yonetest first.' end
+        local remaining = Combat.exportCooldowns(state.combat, game:GetFrameCount())
+        return ('Yone %s | next blade %s | damage %.2f | Q stacks %d | Q %.1fs W %.1fs E %.1fs R %.1fs')
+            :format(testMode and 'test' or 'selected', state.combat.secondBlade and 'Azakana' or 'steel',
+                player.Damage, state.combat.qStacks, (remaining.q or 0) / fps, (remaining.w or 0) / fps,
+                (remaining.e or 0) / fps, (remaining.r or 0) / fps)
     end)
     local function hideDuringCutscene()
         local player = state and driver()

@@ -11,7 +11,7 @@ local skills = {
     e_return = {windup = 0, duration = 13},
     r = {windup = 23, duration = 40, cooldown = 900},
 }
-local meleeRange, qRange, q3Range, ultRange, wRange = 44, 124, 212, 168, 112
+local meleeRange, qRange, q3Range, ultRange, wRange = 54, 124, 212, 168, 112
 local spiritDuration, markDamage, wCosine, qStackDuration = 150, .30, .35, 180
 local spiritDash, q3Dash, spiritReturnFrames = 84, 156, 8
 local effectFrames, effectLimit, markerLimit = 21, 12, 24
@@ -19,6 +19,10 @@ local effectFrames, effectLimit, markerLimit = 21, 12, 24
 function Combat.new(items)
     return {ready = {}, qStacks = 0, secondBlade = false, face = Vector(0, 1),
         effects = {}, effectSerial = 0, items = items}
+end
+
+function Combat.chargeQ3(state, clock)
+    state.qStacks, state.qExpires = 2, clock + qStackDuration
 end
 
 function Combat.hostile(entity)
@@ -85,6 +89,7 @@ end
 function Combat.exportCooldowns(state, clock)
     local remaining = {}
     for key, deadline in pairs(state.ready) do remaining[key] = math.max(0, deadline - clock) end
+    if state.rCooldown then remaining.rDuration = state.rCooldown end
     return remaining
 end
 
@@ -95,6 +100,14 @@ function Combat.restoreCooldowns(state, remaining, clock)
         local ticks = remaining[key]
         if type(ticks) == 'number' and ticks >= 0 then state.ready[key] = clock + math.min(ticks, 900) end
     end
+    state.rCooldown = type(remaining.rDuration) == 'number' and math.max(0, math.min(900, remaining.rDuration)) or nil
+end
+
+function Combat.reduceUltimateCooldown(state, fraction, clock)
+    local remaining = math.max(0, (state.ready.r or clock) - clock)
+    local total = state.rCooldown or remaining
+    local refund = math.floor(total * math.max(0, math.min(1, fraction)) + .5)
+    state.ready.r = clock + math.max(0, remaining - refund)
 end
 
 function Combat.reduceCooldowns(state, fraction, clock)
@@ -140,6 +153,7 @@ function Combat.cast(state, input, player, aim, clock, room)
             if state.items.onCast then state.items.onCast(player, input, clock) end
         end
         state.ready[input] = clock + cooldown
+        if input == 'r' then state.rCooldown = cooldown end
     end
     return key
 end

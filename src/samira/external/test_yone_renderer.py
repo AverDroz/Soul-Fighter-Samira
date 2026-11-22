@@ -410,6 +410,7 @@ class YoneRendererTests(unittest.TestCase):
         self.addCleanup(renderer.close)
         renderer.draw({'hero': 'yone', 'kind': 'idle', 'phase': .35, 'screen': [160, 160],
                        'position': [100, 115], 'face': [1, 0], 'clock': 120,
+                       'mastery': {'at': .32, 'position': [100, 29], 'rise': 86},
                        'yone': {'spirit': {'anchor': [35, 115], 'face': [1, 0], 'remaining': .75}}}, 0)
         self.fbo.clear(0, 0, 0, 0)
         samira.reset()
@@ -438,6 +439,50 @@ class YoneRendererTests(unittest.TestCase):
         self.assertGreater(np.count_nonzero(self.pixels()[:, :, 3]), 100)
         self.assertIs(mastery.draw(dict(state, paused=True), normalized=True), False)
 
+    def test_mastery_draws_above_the_model_without_changing_its_pixels(self):
+        from run_testroom_renderer import YoneRenderer
+
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'yone.glb'
+            write_rig(path)
+            renderer = YoneRenderer(self.ctx, path)
+        self.addCleanup(renderer.close)
+        state = {'kind': 'idle', 'phase': .35, 'clock': 120, 'screen': [160, 160],
+                 'position': [80, 138], 'face': [0, 1]}
+        renderer.draw(state, 0)
+        body = self.region(45, 110, 115, 159).copy()
+        self.assertGreater(np.count_nonzero(body[:, :, 3]), 30)
+        crest_packets = ({'at': .32, 'position': [80, 138]},
+                         {'at': .32, 'position': [80, 52], 'rise': 86})
+        for badge in crest_packets:
+            with self.subTest(badge=badge):
+                self.fbo.clear(0, 0, 0, 0)
+                rendered, capabilities = renderer.draw(dict(state, mastery=badge), 0)
+                self.assertTrue(rendered)
+                self.assertEqual(capabilities, {'yoneModel': True, 'mastery': True})
+                self.assertGreater(np.count_nonzero(self.region(35, 16, 125, 90)[:, :, 3]), 100)
+                np.testing.assert_array_equal(self.region(45, 110, 115, 159), body)
+
+    def test_mastery_anchor_follows_the_model_during_a_dash(self):
+        from run_testroom_renderer import YoneRenderer
+
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'yone.glb'
+            write_rig(path)
+            renderer = YoneRenderer(self.ctx, path)
+        self.addCleanup(renderer.close)
+        state = {'kind': 'q3', 'phase': .48, 'clock': 120, 'screen': [160, 160],
+                 'position': [124, 112], 'face': [-1, 0], 'bodyScale': [1.5, 1.5],
+                 'mastery': {'at': .32, 'position': [124, 3], 'rise': 109},
+                 'yone': {'fx': [{'kind': 'q3', 'id': 4, 'age': 2/30, 'origin': [124, 112],
+                                  'target': [44, 127], 'landing': [44, 127]}]}}
+        with (patch.object(renderer.actor, 'draw', wraps=renderer.actor.draw) as actor,
+              patch.object(renderer.mastery, 'draw', wraps=renderer.mastery.draw) as crest):
+            renderer.draw(state, 0)
+        x, y = actor.call_args.args[2]
+        self.assertLess(x, state['position'][0])
+        self.assertEqual(crest.call_args.kwargs['position'], (x, y - 109))
+
     def test_missing_rig_leaves_native_actor_and_draws_mastery(self):
         from run_testroom_renderer import YoneRenderer, acknowledge
 
@@ -445,7 +490,8 @@ class YoneRendererTests(unittest.TestCase):
             folder = Path(folder)
             renderer = YoneRenderer(self.ctx, folder / 'yone.glb')
             self.addCleanup(renderer.close)
-            state = {'hero': 'yone', 'kind': 'idle', 'clock': 3000, 'screen': [160, 160]}
+            state = {'hero': 'yone', 'kind': 'idle', 'clock': 3000, 'screen': [160, 160],
+                     'position': [80, 138]}
             visible, capabilities = renderer.draw(state, 0)
             self.assertFalse(visible)
             self.assertEqual(capabilities, {'mastery': True})
@@ -454,11 +500,14 @@ class YoneRendererTests(unittest.TestCase):
             self.assertFalse(ack['visible'])
             self.assertEqual(ack['hero'], 'yone')
             self.assertEqual(ack['capabilities'], {'mastery': True})
-            state['mastery'] = {'at': .32, 'position': [80, 100]}
+            state['mastery'] = {'at': .32, 'position': [80, 52], 'rise': 86}
             visible, capabilities = renderer.draw(state, 0)
-            self.assertTrue(visible)
+            self.assertFalse(visible)
             self.assertEqual(capabilities, {'mastery': True})
-            self.assertGreater(np.count_nonzero(self.pixels()[:, :, 3]), 100)
+            self.assertGreater(np.count_nonzero(self.region(35, 16, 125, 90)[:, :, 3]), 100)
+            acknowledge(folder, state, visible, capabilities)
+            ack = json.loads((folder / 'save1.dat').read_text(encoding='utf8'))
+            self.assertEqual((ack['ready'], ack['visible'], ack['capabilities']), (False, False, {'mastery': True}))
 
 
 class YoneAnimationTests(unittest.TestCase):

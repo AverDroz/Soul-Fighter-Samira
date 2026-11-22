@@ -356,6 +356,13 @@ run('samirashop', '')
 assert(#roomEntities() == 6 and single.removed)
 assert(not unrelated.removed and not foe.removed)
 assert(printed[#printed]:find('4 Samira offers', 1, true))
+run('yoneitem', '3084')
+for _, e in ipairs(roomEntities()) do if byId[e.SubType] then single = e end end
+assert(#roomEntities() == 3 and byId[single.SubType].riotId == 3084)
+run('yoneitems', '1')
+assert(#roomEntities() == 14 and single.removed)
+run('yoneshop', '')
+assert(#roomEntities() == 6)
 
 local backpack = {x = 86, width = 147, y = 244, height = 22}
 for _, width in ipairs({480, 640}) do

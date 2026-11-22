@@ -109,6 +109,25 @@ local function resolve(clock)
     combat.update(state, room, player, entities, clock)
 end
 
+do
+    local edge=enemy(120,100,900)
+    assert(combat.inMeleeRange(room,player,edge), 'click attack cannot acquire the extended range')
+    state=combat.new(); entities={edge}; cast('attack',1); resolve(5)
+    assert(#edge.damage==1, 'direct attack cannot hit the extended range')
+    state=combat.new({cooldown=function(_,key,base) return key=='r' and base/2 or base end})
+    player.Position=Vector(60,100); entities={}; cast('r',1)
+    assert(state.ready.r==451)
+    combat.reduceUltimateCooldown(state,.1,31)
+    assert(state.ready.r==406 and not state.ready.q, 'refund must remove 10% of full R duration only')
+    local saved=combat.exportCooldowns(state,100)
+    local restored=combat.new(); combat.restoreCooldowns(restored,saved,1000)
+    combat.reduceUltimateCooldown(restored,.03,1000)
+    assert(restored.ready.r==1292, 'restored refund lost haste-adjusted full duration')
+    combat.reduceUltimateCooldown(restored,1,2000)
+    assert(restored.ready.r==2000, 'refund must not produce a past deadline')
+    state=combat.new(); player.Position=Vector(60,100); entities={front,behind}
+end
+
 cast('attack', 1); resolve(10)
 cast('attack', 20)
 assert(combat.presentation(state, 20) == 'attack2', 'second blade reused the first animation')

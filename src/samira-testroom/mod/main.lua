@@ -68,6 +68,7 @@ local reboundActions = {[ButtonAction.ACTION_BOMB] = Keyboard.KEY_G, [ButtonActi
 
 local active, session, sessionSerial = false, nil, 0
 local selectedCharacter = false
+local floorRebinding, floorLevelSeen = false, false
 local room, sequence = 0, 0
 local ackAt, ackVisualSeq, ackStyleHud, pollAt, emitAt, ackDisplay, emitDisplay
 local leaving, lastOccluded, coverUntil, pendingAnimation
@@ -84,6 +85,7 @@ local function stop()
         packet({version = 1, active = false})
     end
     active = false
+    floorRebinding, floorLevelSeen = false, false
     Display.release('samira')
     Weapons.reset()
     Kills.reset()
@@ -119,7 +121,9 @@ end
 
 local function player()
     if active and Isaac.IsInGame() and game:GetNumPlayers() == 1 then
-        return Isaac.GetPlayer(0)
+        local p = Isaac.GetPlayer(0)
+        if floorRebinding and selectedCharacter and not Character.is(p) then return end
+        return p
     end
 end
 
@@ -209,10 +213,7 @@ end
 
 local function emit(force)
     local p = player()
-    if not p then
-        if active then stop() end
-        return
-    end
+    if not p then return end
     local now = Isaac.GetTime()
     local width, height, display = Display.sample()
     local hidden = occluded(p, now)
@@ -370,7 +371,15 @@ end)
 
 mod:AddCallback(ModCallbacks.MC_POST_UPDATE, function()
     Encounters.update()
-    if active and selectedCharacter and not Character.player(game) then stop() end
+    if active and selectedCharacter then
+        local selected = Isaac.IsInGame() and Character.player(game)
+        if selected then
+            if floorLevelSeen and canControl(selected) then floorRebinding, floorLevelSeen = false, false end
+        elseif not floorRebinding and Isaac.IsInGame() and game:GetNumPlayers() > 0
+            and Isaac.GetPlayer(0) then
+            stop()
+        end
+    end
     local p = player()
     if p and Yone.is(p) then stop(); return end
     if not p then return end
@@ -432,6 +441,16 @@ mod:AddCallback(ModCallbacks.MC_PRE_CHANGE_ROOM, function()
     emit(true)
 end)
 
+mod:AddCallback(ModCallbacks.MC_PRE_ROOM_EXIT, function(_, p, newLevel)
+    if active and selectedCharacter and newLevel and Character.is(p) then
+        floorRebinding, floorLevelSeen = true, false
+    end
+end)
+
+mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, function()
+    if active and selectedCharacter then floorRebinding, floorLevelSeen = true, true end
+end)
+
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function()
     -- Apply the engine's rewind and the normal first-combat reset in the
     -- first update, after both room entry and Hourglass callbacks have run.
@@ -471,7 +490,13 @@ Weapons.init(mod, game, player, Items, function(kind, heading, context)
 end)
 Kills.init(mod, game, player, Combat.onKill)
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, function(_, continued)
-    if Yone.is(Isaac.GetPlayer(0)) then return end
+    if Yone.isNative(Isaac.GetPlayer(0)) then return end
     if Character.player(game) or continued and Items.isEnabled and Items.isEnabled() then start(continued) end
 end)
-Yone.init(mod, game, Items, Inventory, InventoryHUD.bounds, Display, ControlsSettings.hudScale, readR)
+Yone.init(mod, game, Items, Inventory, InventoryHUD.bounds, Display, ControlsSettings.hudScale, readR, function(enable)
+    if enable then
+        if active then stop() end
+    elseif not active and Character.player(game) then
+        start()
+    end
+end)

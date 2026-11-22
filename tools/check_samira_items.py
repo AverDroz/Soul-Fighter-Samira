@@ -123,6 +123,10 @@ local yone = {
     reset = function(keep) assert(keep); yoneRoutes.reset = true end,
     restoreCooldowns = function(saved, frame) yoneRoutes.restored = {saved=saved, frame=frame} end,
     reduceCooldowns = function(fraction) assert(fraction == .15); yoneRoutes.reductions = yoneRoutes.reductions + 1 end,
+    reduceUltimateCooldown = function(fraction, tick)
+        yoneRoutes.refunds = yoneRoutes.refunds or {}
+        table.insert(yoneRoutes.refunds, {fraction=fraction, tick=tick})
+    end,
 }
 Items.init(host, game, function() return p end, nil, yone)
 local reductions = 0
@@ -173,6 +177,7 @@ local function entity(seed, kind, x, y)
         elseif not self.instantReset then
             self.HitPoints = self.HitPoints - amount
         end
+        if self.deathBeforePost and self:IsDead() then fire('MC_POST_NPC_DEATH', self) end
         fire('MC_POST_ENTITY_TAKE_DMG', self, amount, flags, origin, countdown, extra)
         if self:IsDead() then fire('MC_POST_NPC_DEATH', self) end
         return true
@@ -693,6 +698,45 @@ appliedAt=nil; Items.applyCooldownCheckpoint(1542); assert(appliedAt==nil, 'chec
 
 -- Yone-specific profile applies only to Yone; Samira assertions above ran
 -- against the same registered callbacks and must remain untouched.
+start({3031}, 6, 6); p.yone=true; random=.49
+for _,kind in ipairs({'attack','q','q3'}) do
+    assert(Items.newAttack(p,kind,clock).crit, 'Yone must double crit chance for '..kind)
+end
+random=.51
+assert(not Items.newAttack(p,'attack',clock).crit, 'Yone crit chance exceeded the doubled rate')
+p.yone=false; random=.49
+assert(not Items.newAttack(p,'attack',clock).crit, 'Samira inherited Yone passive')
+start({3031,6675},6,6); p.yone=true; random=.99
+local before=rolls
+assert(Items.newAttack(p,'q',clock).crit and rolls==before, 'Yone crit did not cap at 100%')
+start({3031,3032},6,6); p.yone=true; random=0
+local dummy=enemy(890)
+for i=1,5 do hit(dummy,'attack') end
+random=.51
+assert(Items.newAttack(p,'q',clock).crit, 'Yun Tal crit bonus was not doubled')
+before=rolls
+assert(not Items.newAttack(p,'r',clock).crit and rolls==before, 'Yun Tal enabled a Yone R crit roll')
+
+start({6696},6,6); p.yone=true; yoneRoutes.refunds={}
+local slain=enemy(891); slain.HitPoints=1
+hit(slain,'q')
+assert(#yoneRoutes.refunds==1 and yoneRoutes.refunds[1].fraction==.03, 'Axiom missed a normal kill')
+fire('MC_POST_NPC_DEATH',slain)
+assert(#yoneRoutes.refunds==1, 'Axiom counted the same death twice')
+local slainBoss=enemy(892); slainBoss.boss=true; slainBoss.HitPoints=1
+hit(slainBoss,'q')
+assert(#yoneRoutes.refunds==2 and yoneRoutes.refunds[2].fraction==.10, 'Axiom missed boss kill refund')
+local early=enemy(895); early.HitPoints=1; early.deathBeforePost=true
+hit(early,'q')
+assert(#yoneRoutes.refunds==3, 'Axiom missed death before accepted post-damage')
+local deferred=enemy(896); deferred.HitPoints=1; deferred.bufferDamage=true
+hit(deferred,'q'); assert(#yoneRoutes.refunds==3, 'Axiom refunded before deferred death')
+step(); assert(#yoneRoutes.refunds==4, 'Axiom missed deferred death')
+local untouched=enemy(893); untouched.HitPoints=0; fire('MC_POST_NPC_DEATH',untouched)
+assert(#yoneRoutes.refunds==4, 'Axiom rewarded an unrelated kill')
+local expired=enemy(894); hit(expired,'attack'); step(91); expired.HitPoints=0; fire('MC_POST_NPC_DEATH',expired)
+assert(#yoneRoutes.refunds==4, 'Axiom rewarded a stale hit')
+
 start({2520, 3031, 6675, 3053, 6673, 2525}, 3, 12)
 p.yone = true
 step()

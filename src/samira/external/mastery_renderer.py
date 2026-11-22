@@ -30,12 +30,13 @@ class MasteryRenderer:
         return np.concatenate([np.c_[position[p['indices']],p['uv'][p['indices']]]
             for p,position in zip(self.model.parts,self.model.positions(self.clip,seconds))]).astype('f4')
 
-    def draw(self,state,canvas=None,*,normalized=False):
+    def draw(self,state,canvas=None,*,normalized=False,position=None):
         badge=state.get('mastery')
         if not badge or state.get('paused') or state.get('dead') or state.get('shop') or state.get('preview'):return False
         seconds=badge['at']*self.duration if normalized else (state.get('clock',0)-badge['at'])/30
         if not 0<=seconds<self.duration:return False
-        ctx=self.ctx;x,y=badge['position'];sw,sh=state['screen'];vx,vy,vw,vh=ctx.viewport
+        ctx=self.ctx;x,y=badge['position'] if position is None else position
+        sw,sh=state['screen'];vx,vy,vw,vh=ctx.viewport
         size=(max(160,int(160*vw/sw)),max(160,int(160*vh/sh)))
         if canvas is not None:canvas.flush()
         previous=ctx.fbo;viewport=ctx.viewport
@@ -47,7 +48,7 @@ class MasteryRenderer:
         try:
             self.particles.meshes[self.mesh][2].write(self.vertices(seconds).tobytes())
             self.particles.begin((160,160),(1,1),state['clock'])
-            # Original crest uses uniform 1.4 scale and y=250. Anchor its center above the hero.
+            # Original crest uses uniform 1.4 scale and y=250. Center it on the supplied anchor.
             units=54/(114.96*1.4)
             key=(state.get('session'),state.get('room')) if normalized else badge['at']
             self.particles.draw('Mastery',seconds,(80,80+(250+44.128*1.4)*units),(-1,0),units,key=key)

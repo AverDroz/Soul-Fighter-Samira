@@ -223,7 +223,7 @@ function include(name)
         return {init=function(_,_,provider) encounterPlayer=provider end, update=function() end}
     end
     if name == 'samira_character' then
-        return {is=function() return selected == true end,player=function() return selected and player end,
+        return {is=function(p) return p ~= nil and selected == true end,player=function() return selected and Isaac.GetPlayer(0) end,
             drawFallback=function(_, _, offset) fallbackRenderOffset=offset; return false end}
     end
     if name == 'samira_weapons' and not nativeMode then
@@ -1182,5 +1182,36 @@ for _,v in pairs(packet.visual.cooldowns) do assert(v==0, 'expired cooldown came
 combat.restoreCooldowns({q=3000,w=2000,e=1000,r=500},frame)
 local clamped=combat.exportCooldowns(frame)
 assert(clamped.q==60 and clamped.w==660 and clamped.e==360 and clamped.r==150)
+-- A selected Samira keeps her actual run and cooldowns while Isaac replaces
+-- the player across either ordering of floor callbacks.
+for _, levelFirst in ipairs({false,true}) do
+    event('EXECUTE_CMD','samiratest','off')
+    selected=true
+    event('POST_GAME_STARTED',false)
+    tick()
+    combat.restoreCooldowns({q=40,w=400,e=0,r=0},frame)
+    local oldSession, oldRoom = packet.session, packet.room
+    confirm({visual=1,projectiles=true})
+    event('PRE_ROOM_EXIT',player,true)
+    local getPlayer, inGame = Isaac.GetPlayer, Isaac.IsInGame
+    Isaac.GetPlayer = function() return nil end
+    Isaac.IsInGame = function() return false end
+    if levelFirst then event('POST_NEW_LEVEL') else event('POST_NEW_ROOM') end
+    for _=1,30 do tick() end
+    if levelFirst then event('POST_NEW_ROOM') else event('POST_NEW_LEVEL') end
+    Isaac.GetPlayer, Isaac.IsInGame = getPlayer, inGame
+    selected=false -- transient player object has not yet regained Samira's type
+    for _=1,30 do tick() end
+    selected=true
+    tick()
+    assert(packet.active and packet.session==oldSession and packet.room==oldRoom+1,
+        'selected Samira lost her session across the floor')
+    assert(combat.exportCooldowns(frame).w>0, 'floor reset Samira cooldowns')
+    assert(event('PRE_PLAYER_RENDER',player,Vector.Zero)==nil,
+        'old renderer acknowledgement hid Samira after the floor')
+    tick(); tick(); confirm({visual=1,projectiles=true})
+    assert(event('PRE_PLAYER_RENDER',player,Vector.Zero)==false,
+        'new renderer acknowledgement did not bind Samira')
+end
 print('Passed production native Q/AA, R style gating, pause input, E kill reset and rewind clock integration.')
 ''')

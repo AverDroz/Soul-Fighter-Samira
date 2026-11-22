@@ -99,7 +99,7 @@ local function sameSlots(before, after)
 end
 local pressed = Input.IsButtonPressed
 Input.IsButtonPressed = function(key, ...) return key == input.ctrl or pressed(key, ...) end
-local nativeShows = 0
+local nativeShows, nativeBadge = 0, nil
 Sprite = function(path)
     if path == 'gfx/yone/ability_icons.anm2' then
         return {
@@ -111,7 +111,9 @@ Sprite = function(path)
     end
     assert(path == 'gfx/hero_mastery/badge.anm2')
     return {
-        SetFrame=function() end, Render=function() nativeShows = nativeShows + 1 end,
+        SetFrame=function() end, Render=function(_, pos)
+            nativeShows, nativeBadge = nativeShows + 1, pos
+        end,
     }, true
 end
 event('POST_GAME_STARTED', false)
@@ -267,8 +269,18 @@ assert(callAction('ACTION_PILLCARD', 'IS_ACTION_TRIGGERED') == true, 'clean 4 wa
 input.ctrl = 'KEY_RIGHT_CONTROL'
 tick('KEY_6')
 assert(packet.mastery and packet.mastery.at == 0 and packet.clip == 'laugh')
-assert(packet.mastery.position[1] == packet.position[1])
-assert(nativeShows > 0, 'mastery badge was not rendered without the Companion')
+assert(packet.mastery.position[1] == packet.position[1] and packet.mastery.position[2] == packet.position[2] - 86
+    and packet.mastery.rise == 86, 'the external crest was placed at the actor instead of over its head')
+assert(nativeBadge and nativeBadge.X == packet.position[1] and nativeBadge.Y == packet.position[2] - 67,
+    'the native crest did not appear above the visible actor')
+player.SpriteScale, player.SpriteOffset, mirror = Vector(1.5, 1.5), Vector(6, -8), true
+tick()
+assert(packet.mastery.position[1] == Isaac.GetScreenWidth() - player.Position.X * projection
+    and packet.mastery.position[2] == packet.position[2] - 109,
+    'the external crest lost its anchor under reflection or a larger body')
+assert(nativeBadge.X == packet.position[1] - 6 and nativeBadge.Y == packet.position[2] - 90.5,
+    'the native crest used the wrong sprite offset under reflection or a larger body')
+player.SpriteScale, player.SpriteOffset, mirror = Vector(1, 1), nil, false
 assert(event('PRE_PLAYER_RENDER', player, Vector.Zero) == nil)
 ack = {version=1, session=session, room=packet.room, time=now, ready=true, visible=true, display=packet.display.id,
     capabilities={mastery=true}}
@@ -277,6 +289,13 @@ assert(event('PRE_PLAYER_RENDER', player, Vector.Zero) == nil, 'crest ACK hid th
 ack.capabilities.yoneModel = true
 tick(); tick()
 assert(event('PRE_PLAYER_RENDER', player, Vector.Zero) == false, 'Yone model ACK did not hide the native body')
+ack.capabilities.yoneModel, ack.ready, ack.visible = nil, false, false
+tick(); tick()
+assert(event('PRE_PLAYER_RENDER', player, Vector.Zero) == nil, 'active crest retained the previous model lease')
+local previousShows = nativeShows
+tick()
+assert(nativeShows == previousShows, 'crest-only Companion frame also drew the native badge')
+ack.capabilities.yoneModel, ack.ready, ack.visible = true, true, true
 local oldDisplay = packet.display.id
 Options.Fullscreen = true
 assert(event('PRE_PLAYER_RENDER', player, Vector(0, -80)) == nil,
@@ -284,6 +303,7 @@ assert(event('PRE_PLAYER_RENDER', player, Vector(0, -80)) == nil,
 tick()
 assert(packet.display.id ~= oldDisplay and packet.display.mode == 'borderless')
 assert(packet.position[2] == player.Position.Y * projection, 'room-pass offset moved the external actor')
+assert(packet.mastery.position[2] == packet.position[2] - 86, 'room-pass offset moved the external crest')
 ack.display, ack.time = packet.display.id, now
 tick(); tick()
 assert(event('PRE_PLAYER_RENDER', player, Vector.Zero) == false, 'borderless display never reacquired the model')
@@ -419,8 +439,9 @@ kind = 130
 event('POST_NIGHTMARE_SCENE_RENDER')
 assert(packet.room == doorRoom and packet.occluded, 'published the floor room before level arrival')
 kind = 0
+frame = 1 -- a new scene can report a backwards game clock
 event('POST_NEW_LEVEL')
-tick()
+for _ = 1, 30 do tick() end -- longer than the former 650 ms lease
 assert(packet.active, 'new level callback raced player rebinding')
 kind = 130
 event('POST_NIGHTMARE_SCENE_RENDER')
@@ -454,6 +475,24 @@ tick()
 assert(packet.active and packet.session == session and packet.room == firstFloorRoom + 1
     and not packet.occluded, 'direct level arrival did not rebind the same run')
 assert(packet.clip == 'idle', 'a queued ability leaked to the next floor')
+-- The reverse callback order must retain the same run and require a fresh
+-- renderer acknowledgement even after a long period with no player object.
+local oldGetPlayer = Isaac.GetPlayer
+event('PRE_ROOM_EXIT', player, true)
+Isaac.GetPlayer = function() return nil end
+event('POST_NEW_LEVEL')
+for _ = 1, 30 do tick() end
+event('POST_NEW_ROOM')
+Isaac.GetPlayer = oldGetPlayer
+tick()
+assert(packet.active and packet.session == session and not packet.occluded,
+    'level-first transition lost the Yone session')
+assert(event('PRE_PLAYER_RENDER', player, Vector.Zero) == nil,
+    'level-first transition reused the previous renderer acknowledgement')
+ack.room, ack.time, ack.display = packet.room, now, packet.display.id
+tick(); tick()
+assert(event('PRE_PLAYER_RENDER', player, Vector.Zero) == false,
+    'level-first transition failed to acquire a fresh renderer acknowledgement')
 local rCasts = 0
 local previousOnCast = noItems.onCast
 noItems.onCast = function(owner, skill, clock)
@@ -642,8 +681,59 @@ assert(#warnings == 4 and warnings[4] == castFrame + 90 and warningStops == 3,
 for _ = 1, 45 do tick() end
 assert(#warnings == 4 and warningStops == 4, 'deferred return did not clean up the warning once')
 event('PRE_GAME_EXIT')
+
+-- Exercise the public console commands through the genuine mod callback.
+local messages = {}
+Isaac.ConsoleOutput = function(line) messages[#messages + 1] = line end
+kind, selected, entities, ack = 0, true, {}, nil
+event('POST_GAME_STARTED', false)
+tick()
+assert(packet.active and packet.hero ~= 'yone', 'precondition: Samira was not active')
+console = true
+event('EXECUTE_CMD', 'yonetest', '')
+assert(messages[#messages]:find('testing enabled', 1, true) and player:GetPlayerType() == 0)
+event('EXECUTE_CMD', 'yoneq3', '')
+tick()
+assert(packet.occluded, 'test command ran its presentation while the console was open')
+console = false
+tick()
+assert(packet.hero == 'yone' and packet.yone.qReady, 'yonetest did not activate the test hero or charge Q3')
+local testSession = packet.session
+event('EXECUTE_CMD', 'yoneanim', 'q3')
+tick()
+assert(packet.session == testSession and packet.clip == 'q3' and packet.yone.qReady,
+    'yoneanim was not a visual-only preview')
+event('EXECUTE_CMD', 'yonecast', 'invalid')
+assert(messages[#messages]:find('Usage: yonecast', 1, true))
+event('EXECUTE_CMD', 'yonereset', '')
+event('EXECUTE_CMD', 'yonecast', 'q3')
+tick()
+assert(packet.yoneTiming.hit == 7, 'yonecast did not queue a real Q3')
+for _ = 1, 8 do tick() end
+assert(not packet.yone.qReady and lastCast == 'q', 'test cast did not consume Q stacks')
+event('EXECUTE_CMD', 'yonemastery', '')
+tick()
+assert(packet.mastery, 'yonemastery did not display the badge')
+event('EXECUTE_CMD', 'yoneweapon', '')
+assert(messages[#messages]:find('next blade steel', 1, true))
+event('EXECUTE_CMD', 'yonehelp', '')
+assert(messages[#messages]:find('yoneitem <Riot item ID>', 1, true))
+event('EXECUTE_CMD', 'yonetest', 'off')
+tick()
+assert(packet.active and packet.hero ~= 'yone', 'yonetest off did not restore Samira')
+
+kind, selected = 130, false
+event('POST_GAME_STARTED', false)
+tick()
+local nativeSession = packet.session
+castKey('KEY_W')
+event('EXECUTE_CMD', 'yonetest', '')
+tick()
+assert(packet.session == nativeSession and captureHud()['6s'],
+    'yonetest reset the selected hero or discarded cooldowns')
+event('PRE_GAME_EXIT')
 """)
-    print("PASS Yone registration, input, emotes, independent leases, HUD and room/floor lifecycle")
+    print("PASS Yone registration, input, emotes, leases, HUD, floor lifecycle and console commands")
 
 
 if __name__ == "__main__":

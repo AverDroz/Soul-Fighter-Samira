@@ -26,7 +26,9 @@ def parse(line):
         if value.get('hero')=='yone':
             frame=value.get('actionFrame',0);badge=value.get('mastery')
             if not math.isfinite(frame) or frame<0:return None
-            if badge is not None and (not 0<=badge['at']<=1 or not coordinates(badge['position'])):return None
+            if badge is not None:
+                if not 0<=badge['at']<=1 or not coordinates(badge['position']):return None
+                if 'rise' in badge and (not math.isfinite(badge['rise']) or badge['rise']<=0):return None
         return value
     except (ValueError,KeyError,TypeError,AttributeError):return None
 
