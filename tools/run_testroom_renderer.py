@@ -8,10 +8,12 @@ from model import Model,GPURenderer
 from bridge import BufferedTail
 from layered_surface import LayeredFrame
 from samira_audio import MAX_PACKET_AGE_MS, Mixer, SamiraAudio
+from yone_combat_audio import YoneCombatAudio
 
 YONE_ASSETS=ROOT/'assets/yone-local'
 YONE_EMOTES={'joke','taunt','dance','laugh'}
 YONE_DANCE_INTRO_SECONDS=3.1
+YONE_SPIRIT_SECONDS=5
 YONE_ANCHORED_CASTS={'attack','attack2','q','q_follow','q3','q3_in','q3_out','w','e','e_dash',
                      'e_return','e_return_out','r','r_out'}
 
@@ -75,7 +77,7 @@ def yone_animation(state,durations):
 
 class YoneRenderer:
     def __init__(self,ctx,path):
-        self.actor=self.mastery=None
+        self.actor=self.mastery=self.vfx=None
         if path.is_file():
             try:
                 self.actor=GPURenderer(ctx,Model(path,hero='yone'))
@@ -86,23 +88,54 @@ class YoneRenderer:
             self.mastery=MasteryRenderer(ctx)
         except Exception as error:
             print('Mastery renderer unavailable: '+repr(error),flush=True)
+        try:
+            from yone_vfx import YoneVFX
+            self.vfx=YoneVFX(ctx)
+        except Exception as error:
+            print('Yone effects unavailable: '+repr(error),flush=True)
 
     def reset(self):
         if self.actor:self.actor.reset()
 
+    def disable_vfx(self,error):
+        print('Yone effects disabled; native cues restored: '+repr(error),flush=True)
+        self.vfx.close();self.vfx=None
+
     def draw(self,state,dt):
+        if state.get('occluded') or state.get('transition') or state.get('paused'):
+            return False,{}
         capabilities={};model_drawn=badge_drawn=False
+        spirit=None
+        if self.vfx:
+            try:
+                spirit=self.vfx.begin(state)
+                if spirit and self.actor and 'e_body' in self.actor.model.tracks:
+                    remaining=spirit['remaining']
+                    duration=self.actor.model.durations['e_body']
+                    phase=min(1,(1-remaining)*YONE_SPIRIT_SECONDS/duration)
+                    yaw=actor_yaw({'kind':'e_body','face':spirit['face']})
+                    self.actor.draw('e_body',phase,tuple(spirit['anchor']),tuple(state['screen']),yaw,dt,
+                                    clip='e_body',detached=True,form='body',opacity=.46+.43*remaining,
+                                    body_scale=state.get('bodyScale',(1,1)),anchor_root=True)
+            except Exception as error:
+                self.disable_vfx(error);spirit=None
         if self.actor:
             try:
                 clip,phase=yone_animation(state,self.actor.model.durations)
                 self.actor.draw(state['kind'],phase,tuple(state['position']),tuple(state['screen']),actor_yaw(state),dt,
                                 clip=clip,hurt=state.get('hurt',False),body_scale=state.get('bodyScale',(1,1)),
-                                anchor_root=clip in YONE_ANCHORED_CASTS)
+                                anchor_root=clip in YONE_ANCHORED_CASTS,
+                                form='spirit' if spirit else None,opacity=.90 if spirit else 1)
                 model_drawn=True
                 capabilities['yoneModel']=True
             except Exception as error:
                 print('Yone model disabled; native character restored: '+repr(error),flush=True)
                 self.actor.close();self.actor=None
+        if self.vfx:
+            try:
+                if self.vfx.finish():capabilities['yoneVfx']=True
+            except Exception as error:
+                self.disable_vfx(error)
         if self.mastery:
             try:
                 badge_drawn=self.mastery.draw(state,normalized=True)
@@ -115,6 +148,7 @@ class YoneRenderer:
     def close(self):
         if self.mastery:self.mastery.close()
         if self.actor:self.actor.close()
+        if self.vfx:self.vfx.close()
 
 
 class YoneAudio:
@@ -123,7 +157,10 @@ class YoneAudio:
     def __init__(self, root, backend=Mixer, *, dance_intro=YONE_DANCE_INTRO_SECONDS):
         self.samples = {clip: [{'file': f'{clip}.wav'}] for clip in sorted(YONE_EMOTES | {'dance_loop'})
                         if (root / f'{clip}.wav').is_file()}
-        self.backend = backend(root, self.samples) if self.samples else None
+        combat_samples = YoneCombatAudio.load_samples(root)
+        samples = {**self.samples, **combat_samples}
+        self.backend = backend(root, samples) if samples else None
+        self.combat = YoneCombatAudio(root, mixer=self.backend, samples=combat_samples) if combat_samples else None
         self.dance_intro = dance_intro
         self.scene = self.action = None
         self.playing = False
@@ -132,6 +169,8 @@ class YoneAudio:
     def update(self, state, visible, _now):
         if self.backend is None:
             return
+        if self.combat:
+            self.combat.update(state, visible, _now)
         active = state and state.get('active') and state.get('hero') == 'yone'
         scene, action = self.scene, self.action
         if active:
@@ -150,7 +189,7 @@ class YoneAudio:
         audible = bool(active and visible and fresh and action and volume > 0)
         changed = action != self.action
         if self.playing and (changed or scene != self.scene or not audible):
-            self.backend.stop_all()
+            self.backend.stop('voice')
             self.playing = False
             self.dance_looping = False
         if audible:
@@ -179,7 +218,7 @@ def open_audio(hero, *, dance_intro=YONE_DANCE_INTRO_SECONDS):
         if hero == 'yone':
             audio = YoneAudio(YONE_ASSETS / 'audio', dance_intro=dance_intro)
             if audio.backend:
-                print('Yone local emote audio ready', flush=True)
+                print('Yone local audio ready', flush=True)
                 return audio
     except Exception as error:
         print(f'{hero} audio unavailable: {error!r}', flush=True)

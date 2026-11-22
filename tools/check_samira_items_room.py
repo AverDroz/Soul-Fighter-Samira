@@ -302,6 +302,29 @@ shops['shop:6'] = {stocked = {[tostring(legacy.InitSeed)] = legacy.SubType}}
 update()
 assert(#roomEntities() == 1 and legacy.Price == byId[legacy.SubType].price and not legacy.removed)
 
+-- Profile filtering affects newly generated bonus offers, not native stock,
+-- and persisted bonus offers survive later predicate changes.
+enter(7)
+entities, roomType, visit = {}, 2, true
+local vanillaYone, heartYone = fakeVanilla()
+local allowed = {}
+for i = 1, 4 do allowed[catalog[i].riotId] = true end
+runtime.shopEligible = function(_, riotId) return allowed[riotId] == true end
+update()
+local curated = {}
+for _, e in ipairs(roomEntities()) do
+    if byId[e.SubType] then
+        assert(allowed[byId[e.SubType].riotId]); curated[#curated + 1] = e
+    end
+end
+assert(#curated == 4 and not vanillaYone.removed and not heartYone.removed)
+runtime.shopEligible = function() return false end
+curated[1].Price = 99
+visit = false
+enter(7); update()
+assert(curated[1].Price == byId[curated[1].SubType].price and not curated[1].removed)
+runtime.shopEligible = nil
+
 enter(4)
 entities, roomType = {}, 1
 local unrelated = entity(5, 100, 90, Vector(280, 160), 0)

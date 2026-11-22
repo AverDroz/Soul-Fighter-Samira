@@ -27,6 +27,9 @@ start()
 local kind = 130
 Isaac.GetPlayerTypeByName = function(name) assert(name == 'Yone'); return 130 end
 function player:GetPlayerType() return kind end
+local itemUpdates, lastCast = 0, nil
+noItems.update = function(owner) assert(owner == player); itemUpdates = itemUpdates + 1 end
+noItems.onCast = function(owner, skill) assert(owner == player); lastCast = skill end
 Isaac.RenderText = function() end
 local pressed = Input.IsButtonPressed
 Input.IsButtonPressed = function(key, ...) return key == input.ctrl or pressed(key, ...) end
@@ -40,6 +43,7 @@ end
 event('POST_GAME_STARTED', false)
 tick()
 assert(packet.active and packet.hero == 'yone' and packet.clip == 'idle')
+assert(itemDriver() == player and itemUpdates > 0, 'ordinary Yone run did not bind shared items')
 local session = packet.session
 assert(callAction('ACTION_SHOOTRIGHT') == 0)
 assert(callAction('ACTION_RESTART') == 0, 'holding R can restart the run')
@@ -50,6 +54,7 @@ tick()
 assert(callAction('ACTION_RIGHT') == 0, 'movement continued after arrow release')
 tick('KEY_Q')
 assert(packet.clip == 'q' and packet.hero == 'yone')
+assert(lastCast == 'q', 'Yone ability did not reach item cast hooks')
 for _ = 1, 18 do tick() end
 
 input.ctrl = 'KEY_LEFT_CONTROL'
@@ -91,6 +96,48 @@ assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(attacker)) == false)
 assert(player.shieldCooldown == 15)
 assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(attacker)) == nil)
 
+local positionBeforeE = player.Position
+tick('KEY_E')
+for _ = 1, 4 do tick() end
+assert(packet.yone.spirit.anchor[1] == positionBeforeE.X * projection)
+assert(packet.yone.spirit.anchor[1] < packet.position[1])
+attacker.Position = player.Position + Vector(21, 0)
+local itemKinds = {}
+noItems.newAttack = function(_, skill) return {kind = skill} end
+function attacker:TakeDamage(amount, _, source)
+    itemKinds[#itemKinds + 1] = itemContextNow and itemContextNow.kind or 'echo'
+    event('POST_ENTITY_TAKE_DMG', self, amount, 0, source)
+    self.HitPoints = self.HitPoints - amount
+    return true
+end
+tick('KEY_A')
+for _ = 1, 8 do tick() end
+local mark = packet.yone.spirit.marks[1]
+assert(mark and mark.position[1] == attacker.Position.X * projection and mark.amount > 0)
+local rendered = {}
+Isaac.RenderText = function(text) rendered[text] = true end
+ack.room, ack.time = packet.room, now
+ack.capabilities.yoneVfx, ack.capabilities.yoneModel = true, nil
+event('PRE_PLAYER_RENDER', player, Vector.Zero)
+tick()
+assert(rendered.BODY and rendered.SPIRIT and not rendered['*'],
+    'VFX-only Companion lease suppressed the native E body or duplicated a mark')
+ack.capabilities.yoneModel = true
+tick()
+event('PRE_PLAYER_RENDER', player, Vector.Zero)
+rendered = {}
+tick()
+assert(not rendered.BODY and not rendered.SPIRIT, 'native E body overlapped the Companion rig')
+mirror = true
+tick()
+assert(packet.yone.spirit.marks[1].position[1] == Isaac.GetScreenWidth() - mark.position[1])
+assert(packet.yone.spirit.face[1] == -1)
+mirror = false
+tick('KEY_E')
+assert(not packet.yone.spirit and packet.yone.fx[#packet.yone.fx].kind == 'e_return')
+assert(#itemKinds == 2 and itemKinds[1] == 'attack' and itemKinds[2] == 'echo',
+    'E replay repeated a shared on-hit effect')
+
 -- Floor exits have their own player-exit callback, and new-room can fire
 -- before the new-level callback while the old cutscene is still rendering.
 local doorRoom = packet.room
@@ -103,7 +150,8 @@ function player:GetSprite()
 end
 event('PRE_ROOM_EXIT', player, true)
 event('POST_NIGHTMARE_SCENE_SHOW')
-assert(packet.active and packet.transition, 'floor exit did not publish the transition')
+assert(packet.active and packet.transition and packet.yone == nil,
+    'floor exit did not hide combat visuals and audio')
 kind = 0
 tick()
 assert(packet.active and packet.session == session, 'temporary player rebinding stopped the Yone session')

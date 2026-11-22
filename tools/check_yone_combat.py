@@ -74,10 +74,21 @@ front = enemy(142, 100, 9)
 entities = {front}
 cast('e', 1); resolve(7)
 assert(state.spirit and player.Position.X > 60)
+local visual = combat.visual(state, 7)
+assert(visual.spirit.anchor.X == 60 and visual.spirit.face.X == 1)
+assert(visual.fx[1].kind == 'e' and visual.fx[1].target.X == player.Position.X)
 cast('attack', 10); resolve(18)
+front.Position = Vector(145, 105)
+visual = combat.visual(state, 18)
+assert(#visual.spirit.marks == 1 and visual.spirit.marks[1].position.X == 145)
+assert(math.abs(visual.spirit.marks[1].amount - front.damage[1] * .3) < .0001)
 cast('e', 20); resolve(21)
 assert(player.Position.X == 60 and not state.spirit and #front.damage == 2)
 assert(math.abs(front.damage[2] - front.damage[1] * .3) < .0001)
+visual = combat.visual(state, 21)
+local recall = visual.fx[#visual.fx]
+assert(not visual.spirit and recall.kind == 'e_return' and recall.target.X == 60)
+assert(recall.origin.X > recall.target.X and recall.id > visual.fx[1].id)
 assert(not combat.cast(state, 'e', player, aim, 22), 'E recast bypassed cooldown')
 
 state = combat.new()
@@ -86,6 +97,8 @@ local hits = #front.damage
 combat.resetRoom(state, 80)
 resolve(260)
 assert(not state.spirit and #front.damage == hits, 'room exit replayed E damage')
+visual = combat.visual(state, 80)
+assert(not visual.spirit and #visual.fx == 0, 'room exit retained old marks or effects')
 resolve(20)
 assert(state.ready.e > 20 and state.ready.e < 900, 'rewound clock lost E cooldown')
 
@@ -105,8 +118,35 @@ entities = {far, aside, boss}
 cast('r', 1); resolve(20)
 assert(#far.damage == 1 and #boss.damage == 1 and #aside.damage == 0)
 assert(player.Position.X > 200 and far.Position.X > 200 and boss.Position.X == 165)
+visual = combat.visual(state, 20)
+assert(visual.fx[1].kind == 'r' and visual.fx[1].origin.X == 60 and visual.fx[1].target.X > 200)
+assert(#combat.visual(state, 90).fx == 0, 'expired combat sound/visual event was retained')
+
+state = combat.new()
+player.Position = Vector(60,100)
+front = enemy(142,100,14)
+entities = {front}
+function front:TakeDamage(value, _, source)
+    self.damage[#self.damage+1] = value
+    -- REPENTOGON can report accepted damage before subtracting HP.
+    combat.confirmDamage(state, self, value * .5, source)
+    return true
+end
+cast('e', 1); resolve(4)
+cast('attack', 10); resolve(15)
+visual = combat.visual(state, 15)
+assert(#visual.spirit.marks == 1 and math.abs(visual.spirit.marks[1].amount - .6) < .0001)
+
+state = combat.new()
+player.Position = Vector(60,100)
+function player:HasCollectible(id) return id == CollectibleType.COLLECTIBLE_20_20 end
+local nearest, farther = enemy(80,100,15), enemy(98,100,16)
+entities = {farther, nearest}
+cast('attack', 1); resolve(9)
+assert(math.abs(nearest.damage[1] - 5.6) < .0001 and farther.damage[1] == 4,
+    'multishot bonus followed arbitrary entity order instead of the first enemy reached')
 """)
-    print("PASS Yone melee, Q stacks/dash, W shield, E return/rooms and R line/pull")
+    print("PASS Yone strikes, spirit presentation, accepted damage marks, transitions and R line/pull")
 
 
 if __name__ == "__main__":

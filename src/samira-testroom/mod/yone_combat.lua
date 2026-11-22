@@ -1,4 +1,5 @@
 local Combat = {}
+local Artifacts = include('yone_artifacts')
 
 -- Timings are Isaac update frames (30 Hz).
 local skills = {
@@ -12,9 +13,11 @@ local skills = {
 }
 local meleeRange, qRange, ultRange = 44, 76, 168
 local spiritDuration, markDamage = 150, .30
+local effectFrames, effectLimit, markerLimit = 21, 12, 24
 
-function Combat.new()
-    return {ready = {}, qStacks = 0, secondBlade = false, face = Vector(0, 1)}
+function Combat.new(items)
+    return {ready = {}, qStacks = 0, secondBlade = false, face = Vector(0, 1),
+        effects = {}, effectSerial = 0, items = items}
 end
 
 function Combat.hostile(entity)
@@ -55,6 +58,7 @@ end
 
 function Combat.resetRoom(state, clock)
     state.pending, state.action, state.spirit, state.shieldUntil = nil, nil, nil, nil
+    state.directImpact, state.effects = nil, {}
     state.qStacks, state.qExpires = 0, nil
     if state.lastClock and clock < state.lastClock then
         for key, deadline in pairs(state.ready) do
@@ -62,6 +66,28 @@ function Combat.resetRoom(state, clock)
         end
     end
     state.lastClock = clock
+end
+
+function Combat.exportCooldowns(state, clock)
+    local remaining = {}
+    for key, deadline in pairs(state.ready) do remaining[key] = math.max(0, deadline - clock) end
+    return remaining
+end
+
+function Combat.restoreCooldowns(state, remaining, clock)
+    if type(remaining) ~= 'table' then return end
+    state.ready, state.lastClock = {}, clock
+    for _, key in ipairs({'attack', 'q', 'w', 'e', 'r'}) do
+        local ticks = remaining[key]
+        if type(ticks) == 'number' and ticks >= 0 then state.ready[key] = clock + math.min(ticks, 900) end
+    end
+end
+
+function Combat.reduceCooldowns(state, fraction, clock)
+    for _, key in ipairs({'q', 'w', 'e', 'r'}) do
+        local remaining = math.max(0, (state.ready[key] or clock) - clock)
+        state.ready[key] = clock + math.ceil(remaining * (1 - fraction))
+    end
 end
 
 function Combat.cast(state, input, player, aim, clock)
@@ -81,26 +107,62 @@ function Combat.cast(state, input, player, aim, clock)
     if delta:Length() > .01 then state.face = delta:Normalized() end
     local clip = key == 'attack' and state.secondBlade and 'attack2' or key
     state.action = {key = clip, at = clock, finish = clock + skill.duration}
-    state.pending = {key = key, at = clock + skill.windup, facing = state.face}
+    state.pending = {kind = key, clip = clip, at = clock + skill.windup, facing = state.face}
     if key ~= 'e_return' then
         local cooldown = skill.cooldown or attackDelay(player)
         if input == 'q' then cooldown = math.max(18, cooldown * 2) end
+        if input ~= 'attack' and state.items then
+            if state.items.cooldown then cooldown = math.max(12, state.items.cooldown(player, input, cooldown)) end
+            if state.items.onCast then state.items.onCast(player, input, clock) end
+        end
         state.ready[input] = clock + cooldown
     end
     return key
 end
 
-local function damage(state, player, enemy, amount)
+function Combat.confirmDamage(state, entity, amount, source)
+    local impact = state.directImpact
+    local dealer = source and source.Entity
+    if impact and amount > 0 and dealer and GetPtrHash(dealer) == impact.player
+        and GetPtrHash(entity) == impact.target then
+        impact.accepted = amount
+    end
+end
+
+local function damage(state, player, enemy, amount, strike)
     local before = enemy.HitPoints
-    if not enemy:TakeDamage(amount, 0, EntityRef(player), 0) then return false end
-    if state.spirit then
+    local spirit = state.spirit
+    local impact = spirit and {player = GetPtrHash(player), target = GetPtrHash(enemy)}
+    local previous = state.directImpact
+    state.directImpact = impact
+    local source = EntityRef(player)
+    if strike then amount = amount * Artifacts.multiplier(player, strike) end
+    local accepted
+    if strike and strike.itemContext then
+        accepted = state.items.withContext(strike.itemContext, function()
+            return enemy:TakeDamage(amount, 0, source, 0)
+        end)
+    else
+        accepted = enemy:TakeDamage(amount, 0, source, 0)
+    end
+    state.directImpact = previous
+    if not accepted then return false end
+    if impact and state.spirit == spirit then
         local after = enemy:Exists() and math.max(0, enemy.HitPoints) or 0
-        local applied = math.max(0, before - after)
+        -- REPENTOGON can confirm the final damage before HP is subtracted.
+        local applied = math.min(before, impact.accepted or math.max(0, before - after))
         if applied > 0 then
-            local id = GetPtrHash(enemy)
-            local mark = state.spirit.marks[id] or {entity = enemy, amount = 0}
+            local id = impact.target
+            local mark = spirit.marks[id] or {entity = enemy, amount = 0}
             mark.amount = mark.amount + applied * markDamage
-            state.spirit.marks[id] = mark
+            spirit.marks[id] = mark
+        end
+    end
+    if strike then
+        Artifacts.onHit(player, strike, enemy)
+        if state.items and state.items.onMelee and strike.kind == 'attack' and not strike.itemMelee then
+            strike.itemMelee = true
+            state.items.onMelee(player, nil, enemy)
         end
     end
     return true
@@ -111,32 +173,63 @@ local function teleport(player, destination)
     player.Velocity = Vector.Zero
 end
 
-local function blade(state, room, player, enemies, facing, width, reach, multiplier, sweep, hitTargets)
+local function blade(state, room, player, enemies, strike, width, reach, multiplier, sweep, hitTargets)
     local hit, furthest = false, 0
+    local facing = strike.facing
     local side = Vector(-facing.Y, facing.X)
+    local candidates = {}
     for _, enemy in ipairs(enemies) do
         if Combat.hostile(enemy) then
             local delta = enemy.Position - player.Position
             local along = delta:Dot(facing)
             local across = math.abs(delta:Dot(side))
-            local inRange = sweep and delta:Length() <= reach + enemy.Size and along >= delta:Length() * .35
+            local distance = delta:Length()
+            local inRange = sweep and distance <= reach + enemy.Size and along >= distance * .35
                 or not sweep and along >= 0 and along <= reach + enemy.Size and across <= width + enemy.Size
-            if inRange and room:CheckLine(player.Position, enemy.Position, 3, 0, false, false)
-                and damage(state, player, enemy, player.Damage * multiplier) then
-                hit = true
-                furthest = math.max(furthest, along)
-                if hitTargets then hitTargets[#hitTargets + 1] = enemy end
+            if inRange and room:CheckLine(player.Position, enemy.Position, 3, 0, false, false) then
+                candidates[#candidates + 1] = {entity = enemy, along = along, distance = sweep and distance or along,
+                    seed = enemy.InitSeed}
             end
         end
     end
+    -- First-target item effects follow the strike along its path.
+    table.sort(candidates, function(a, b)
+        if a.distance ~= b.distance then return a.distance < b.distance end
+        return a.seed < b.seed
+    end)
+    for _, candidate in ipairs(candidates) do
+        local enemy = candidate.entity
+        if Combat.hostile(enemy) and damage(state, player, enemy, player.Damage * multiplier, strike) then
+            hit = true
+            furthest = math.max(furthest, candidate.along)
+            if hitTargets then hitTargets[#hitTargets + 1] = enemy end
+        end
+    end
     return hit, furthest
+end
+
+local function effect(state, clock, kind, origin, target)
+    state.effectSerial = state.effectSerial + 1
+    local effects = state.effects
+    if #effects == effectLimit then table.remove(effects, 1) end
+    effects[#effects + 1] = {id = state.effectSerial, at = clock, kind = kind, origin = origin, target = target}
+end
+
+local function lineEnd(room, start, facing, reach)
+    for distance = reach, 4, -4 do
+        local endpoint = start + facing * distance
+        if room:CheckLine(start, endpoint, 3, 0, false, false) then return endpoint end
+    end
+    return start
 end
 
 local function returnSpirit(state, room, player, clock)
     local spirit = state.spirit
     if not spirit then return end
     state.spirit = nil
+    local start = player.Position
     if Combat.clearPoint(room, player, spirit.anchor) then teleport(player, spirit.anchor) end
+    effect(state, clock, 'e_return', start, player.Position)
     state.action = {key = 'e_return', at = clock, finish = clock + skills.e_return.duration}
     for _, mark in pairs(spirit.marks) do
         if Combat.hostile(mark.entity) then damage(state, player, mark.entity, mark.amount) end
@@ -151,35 +244,54 @@ local function pullFoes(room, enemies, pull)
     end
 end
 
+local function attackReach(player, items)
+    local reach = meleeRange * Artifacts.range(player)
+    if items and items.attackRange then reach = math.min(84, items.attackRange(player, reach)) end
+    return reach
+end
+
 local function resolve(state, room, player, enemies, strike, clock)
-    local key, facing = strike.key, strike.facing
+    local key, facing = strike.kind, strike.facing
     local start = player.Position
+    local items = state.items
+    if items and items.newAttack and (key == 'attack' or key == 'q' or key == 'q3' or key == 'w' or key == 'r') then
+        strike.itemContext = items.newAttack(player, key == 'q3' and 'q' or key, clock)
+    end
     if key == 'attack' then
         state.secondBlade = not state.secondBlade
-        blade(state, room, player, enemies, facing, 14, meleeRange, state.secondBlade and 1 or 1.25)
+        local reach = attackReach(player, items)
+        blade(state, room, player, enemies, strike, 14, reach, state.secondBlade and 1 or 1.25)
+        effect(state, clock, strike.clip, start, start + facing * reach)
     elseif key == 'q' then
-        if blade(state, room, player, enemies, facing, 14, qRange, 1.4) then
+        local reach = qRange * Artifacts.range(player)
+        if blade(state, room, player, enemies, strike, 14, reach, 1.4) then
             state.qStacks, state.qExpires = math.min(2, state.qStacks + 1), clock + 180
         end
+        effect(state, clock, key, start, lineEnd(room, start, facing, reach))
     elseif key == 'q3' then
         state.qStacks, state.qExpires = 0, nil
-        blade(state, room, player, enemies, facing, 19, 112, 1.6)
+        local reach = 112 * Artifacts.range(player)
+        blade(state, room, player, enemies, strike, 19, reach, 1.6)
         teleport(player, safeDestination(room, player, start, start + facing * 90))
+        effect(state, clock, key, start, lineEnd(room, start, facing, reach))
     elseif key == 'w' then
-        if blade(state, room, player, enemies, facing, 0, 74, 1.15, true) then
+        if blade(state, room, player, enemies, strike, 0, 74, 1.15, true) then
             state.shieldUntil = clock + 60
         end
+        effect(state, clock, key, start, start + facing * 74)
     elseif key == 'e' then
-        state.spirit = {anchor = start, untilFrame = clock + spiritDuration, recastAt = clock + 8, marks = {}}
+        state.spirit = {anchor = start, face = facing, untilFrame = clock + spiritDuration, recastAt = clock + 8, marks = {}}
         teleport(player, safeDestination(room, player, start, start + facing * 54))
+        effect(state, clock, key, start, player.Position)
     elseif key == 'e_return' then
         returnSpirit(state, room, player, clock)
     elseif key == 'r' then
         local targets = {}
-        local hit, far = blade(state, room, player, enemies, facing, 16, ultRange, 2.5, false, targets)
+        local hit, far = blade(state, room, player, enemies, strike, 16, ultRange, 2.5, false, targets)
         local destination = safeDestination(room, player, start, start + facing * (hit and far + 23 or ultRange))
         teleport(player, destination)
         pullFoes(room, targets, destination - facing * 10)
+        effect(state, clock, key, start, lineEnd(room, start, facing, ultRange))
     end
 end
 
@@ -199,9 +311,10 @@ function Combat.update(state, room, player, enemies, clock)
     end
 end
 
-function Combat.absorb(state, clock)
+function Combat.absorb(state, clock, position)
     if clock >= (state.shieldUntil or 0) then return false end
     state.shieldUntil = nil
+    if position then effect(state, clock, 'shield', position, position) end
     return true
 end
 
@@ -212,9 +325,35 @@ function Combat.presentation(state, clock)
     end
 end
 
-function Combat.inMeleeRange(room, player, target)
-    return player.Position:Distance(target.Position) <= meleeRange + target.Size
+function Combat.inMeleeRange(room, player, target, items)
+    return player.Position:Distance(target.Position) <= attackReach(player, items) + target.Size
         and room:CheckLine(player.Position, target.Position, 3, 0, false, false)
+end
+
+function Combat.visual(state, clock)
+    local picture = {fx = {}, shield = clock < (state.shieldUntil or 0)}
+    for _, event in ipairs(state.effects) do
+        local age = clock - event.at
+        if age >= 0 and age < effectFrames then
+            picture.fx[#picture.fx + 1] = {id = event.id, kind = event.kind, age = age / 30,
+                origin = event.origin, target = event.target}
+        end
+    end
+    local spirit = state.spirit
+    if not spirit then return picture end
+    local keys = {}
+    for key, mark in pairs(spirit.marks) do
+        if Combat.hostile(mark.entity) then keys[#keys + 1] = key end
+    end
+    table.sort(keys)
+    local marks = {}
+    for index = 1, math.min(#keys, markerLimit) do
+        local mark = spirit.marks[keys[index]]
+        marks[index] = {position = mark.entity.Position, amount = mark.amount}
+    end
+    picture.spirit = {anchor = spirit.anchor, face = spirit.face, marks = marks,
+        remaining = math.max(0, math.min(1, (spirit.untilFrame - clock) / spiritDuration))}
+    return picture
 end
 
 return Combat

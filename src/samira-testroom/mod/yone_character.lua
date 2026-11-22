@@ -32,6 +32,12 @@ function Yone.is(player)
     return playerType ~= nil and player:GetPlayerType() == playerType
 end
 
+function Yone.player(game)
+    if not Isaac.IsInGame() or game:GetNumPlayers() ~= 1 then return end
+    local player = Isaac.GetPlayer(0)
+    if Yone.is(player) then return player end
+end
+
 local function pressed(key)
     return Input.IsButtonPressed(key, 0)
 end
@@ -126,7 +132,7 @@ local function updateMovement(state, room, player, clock)
 
     local target = state.target
     if target and not Combat.hostile(target) then stopMoving(state); return end
-    if target and Combat.inMeleeRange(room, player, target) then
+    if target and Combat.inMeleeRange(room, player, target, state.combat.items) then
         state.intent = nil
         Combat.cast(state.combat, 'attack', player, target.Position, clock)
         return
@@ -150,6 +156,26 @@ local function mirrorPosition(room, position)
     return x, position.Y
 end
 
+local function visualSnapshot(room, picture, offset)
+    local function point(world)
+        return {mirrorPosition(room, Isaac.WorldToScreen(world) + offset)}
+    end
+    local snapshot = {shield = picture.shield, fx = {}}
+    for i, event in ipairs(picture.fx) do
+        snapshot.fx[i] = {id = event.id, kind = event.kind, age = event.age,
+            origin = point(event.origin), target = point(event.target)}
+    end
+    local spirit = picture.spirit
+    if spirit then
+        local marks = {}
+        for i, mark in ipairs(spirit.marks) do marks[i] = {position = point(mark.position), amount = mark.amount} end
+        local x = room:IsMirrorWorld() and -spirit.face.X or spirit.face.X
+        snapshot.spirit = {anchor = point(spirit.anchor), face = {x, spirit.face.Y},
+            remaining = spirit.remaining, marks = marks}
+    end
+    return snapshot
+end
+
 local function readAck(state, now)
     if state.pollAt and now < state.pollAt then return end
     state.pollAt = now + 40
@@ -163,6 +189,7 @@ local function readAck(state, now)
         state.ackAt = math.min(now, ack.time)
         state.masteryReady = ack.capabilities.mastery == true
         state.modelReady = ack.ready == true and ack.visible == true and ack.capabilities.yoneModel == true
+        state.vfxReady = ack.capabilities.yoneVfx == true
     else
         state.ackAt = nil
     end
@@ -172,7 +199,7 @@ local function leased(state, capability, now)
     return state[capability] and state.ackAt and now - state.ackAt < leaseMs
 end
 
-local function emit(game, state, player, force)
+local function emit(game, state, player, force, picture)
     local now = Isaac.GetTime()
     local hidden = obscured(game, state, player)
     if not force and state.emitAt and now - state.emitAt < 30 and hidden == state.wasHidden then return end
@@ -181,7 +208,8 @@ local function emit(game, state, player, force)
     local clock = game:GetFrameCount()
     local room = game:GetRoom()
     local captured = state.captureAt and now - state.captureAt < 100
-    local position = captured and state.capture or Isaac.WorldToScreen(player.Position)
+    local projected = Isaac.WorldToScreen(player.Position)
+    local position = captured and state.capture or projected
     local x, y = mirrorPosition(room, position)
     local face = state.combat.face
     local fx = room:IsMirrorWorld() and -face.X or face.X
@@ -206,10 +234,58 @@ local function emit(game, state, player, force)
         occluded = hidden, hurt = clock < (state.hurtUntil or 0),
         nativeCursor = Options.MouseControl == true, sfxVolume = Options.SFXVolume,
         mastery = mastery and {at = mastery, position = {x, y}} or nil,
+        yone = not hidden and visualSnapshot(room, picture or Combat.visual(state.combat, clock), position - projected) or nil,
     })
 end
 
-local function drawRoomHud(game, state, player, clock)
+local function drawNativeEffects(room, player, picture, x, y, geometry)
+    local function point(world)
+        return Vector(mirrorPosition(room, Isaac.WorldToScreen(world)))
+    end
+    local function line(a, b, thickness, red, green, blue, alpha)
+        if not Isaac.DrawLine or not KColor then return end
+        local color = KColor(red, green, blue, alpha)
+        Isaac.DrawLine(a, b, color, color, thickness)
+    end
+    local spirit = picture.spirit
+    if geometry and picture.shield then
+        local center = Vector(x, y - 12)
+        local radius = Vector(18, 0)
+        for angle = 0, 315, 45 do
+            line(center + radius:Rotated(angle), center + radius:Rotated(angle + 45), 1, .56, .83, 1, .55)
+        end
+    end
+    if spirit then
+        local body = point(spirit.anchor)
+        local sprite = player:GetSprite()
+        if sprite.Render and sprite.Color then
+            local previous = sprite.Color
+            sprite.Color = Color(.92, .48, .57, .60)
+            sprite:Render(body, Vector.Zero, Vector.Zero)
+            sprite.Color = previous
+        else
+            Isaac.RenderText('BODY', body.X - 10, body.Y - 9, 1, .57, .64, .88)
+        end
+        Isaac.RenderText('SPIRIT', x - 14, y - 31, 1, .52, .67, .90)
+        if geometry then
+            line(body, Vector(x, y), 1, .98, .27, .45, .60)
+            for _, mark in ipairs(spirit.marks) do
+                local enemy = point(mark.position)
+                Isaac.RenderText('*', enemy.X - 3, enemy.Y - 27, 1, .38, .55, 1)
+            end
+        end
+    end
+    if not geometry then return end
+    for _, event in ipairs(picture.fx) do
+        if event.age < .23 and (event.kind == 'q3' or event.kind == 'w' or event.kind == 'r') then
+            local opacity = 1 - event.age / .23
+            local red = event.kind == 'q3' and .47 or 1
+            line(point(event.origin), point(event.target), event.kind == 'r' and 3 or 2, red, .60, .87, opacity)
+        end
+    end
+end
+
+local function drawRoomHud(game, state, player, clock, picture)
     local combat = state.combat
     local labels = {}
     for _, key in ipairs({'q', 'w', 'e', 'r'}) do
@@ -220,13 +296,13 @@ local function drawRoomHud(game, state, player, clock)
         labels[#labels + 1] = label .. (remaining > 0 and (' %ds'):format(math.ceil(remaining / fps)) or '')
     end
     if clock < (combat.shieldUntil or 0) then labels[#labels + 1] = 'SHIELD' end
-    local anchor = combat.spirit and combat.spirit.anchor
-    if anchor then
-        local x, y = mirrorPosition(game:GetRoom(), Isaac.WorldToScreen(anchor))
-        Isaac.RenderText('E', x - 3, y - 9, .58, .86, 1, .85)
-    end
     local pos = Isaac.WorldToScreen(player.Position)
     local x, y = mirrorPosition(game:GetRoom(), pos)
+    local now = Isaac.GetTime()
+    local vfx, model = leased(state, 'vfxReady', now), leased(state, 'modelReady', now)
+    if not vfx or not model then
+        drawNativeEffects(game:GetRoom(), player, picture, x, y, not vfx)
+    end
     local phase = Emotes.mastery(state.emotes, clock)
     if phase and not leased(state, 'masteryReady', Isaac.GetTime()) then
         if badge == nil then
@@ -251,31 +327,55 @@ local function drawRoomHud(game, state, player, clock)
     Isaac.RenderText(table.concat(labels, '  '), 20, Isaac.GetScreenHeight() - 32, .92, .92, 1, 1)
 end
 
-function Yone.init(mod, game)
+function Yone.init(mod, game, items, inventory)
     local state, serial = nil, 0
 
     local function driver()
-        if Isaac.IsInGame() and game:GetNumPlayers() == 1 then
-            local player = Isaac.GetPlayer(0)
-            if Yone.is(player) then return player end
-        end
+        return Yone.player(game)
+    end
+
+    function Yone.canUseItems(player)
+        return state ~= nil and canControl(game, state, player)
+    end
+
+    function Yone.exportCooldowns(clock)
+        if state then return Combat.exportCooldowns(state.combat, clock) end
+        return {}
+    end
+
+    function Yone.reset(keepCooldowns)
+        if not state then return end
+        if not keepCooldowns then state.combat = Combat.new(items) end
+        Combat.resetRoom(state.combat, game:GetFrameCount())
+        Emotes.cancel(state.emotes, true)
+    end
+
+    function Yone.restoreCooldowns(saved, clock)
+        if state then Combat.restoreCooldowns(state.combat, saved, clock) end
+    end
+
+    function Yone.reduceCooldowns(fraction, clock)
+        if state then Combat.reduceCooldowns(state.combat, fraction, clock) end
     end
 
     local function stop()
         if state then packet({version = 1, active = false}); state = nil end
     end
 
-    local function start()
+    local function start(player, continued)
         serial = serial + 1
         state = {id = tostring(Isaac.GetNanoTime()) .. ':yone:' .. serial, room = 1, seq = 0,
-            combat = Combat.new(), emotes = Emotes.new(), commands = {}, held = {}}
+            combat = Combat.new(items), emotes = Emotes.new(), commands = {}, held = {}}
+        if items and items.activate then items.activate(player) end
+        if continued and items and items.restoreCombatCooldowns then items.restoreCombatCooldowns() end
         sampleExpressions(state, game:GetFrameCount(), false, false)
         sampleCommands(state, game:GetRoom(), false)
     end
 
-    mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, function()
+    mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, function(_, continued)
         stop()
-        if driver() then start() end
+        local player = driver()
+        if player then start(player, continued) end
     end)
     mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, stop)
     mod:AddCallback(ModCallbacks.MC_PRE_MOD_UNLOAD, function(_, unloading)
@@ -289,8 +389,9 @@ function Yone.init(mod, game)
             stop()
             return
         end
-        if not state then start() end
+        if not state then start(player) end
         local room, clock = game:GetRoom(), game:GetFrameCount()
+        if items and items.applyCooldownCheckpoint then items.applyCooldownCheckpoint(clock) end
         local allowed = canControl(game, state, player)
         sampleCommands(state, room, allowed)
         if not allowed then
@@ -303,6 +404,8 @@ function Yone.init(mod, game)
         end
         state.floorRebindUntil = nil
 
+        if inventory then inventory.update(player, clock) end
+        if items and items.update then items.update(player, clock) end
         local enemies = Isaac.GetRoomEntities()
         Combat.update(state.combat, room, player, enemies, clock)
         for _, command in ipairs(state.commands) do
@@ -373,8 +476,9 @@ function Yone.init(mod, game)
         sampleCommands(state, game:GetRoom(), allowed)
         local action = Combat.presentation(state.combat, clock)
         sampleExpressions(state, clock, allowed, action ~= nil or player.Velocity:Length() > .6)
-        if allowed then drawRoomHud(game, state, player, clock) end
-        emit(game, state, player)
+        local picture = allowed and Combat.visual(state.combat, clock) or nil
+        if picture then drawRoomHud(game, state, player, clock, picture) end
+        emit(game, state, player, false, picture)
     end)
 
     mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function(_, target, _, flags, source)
@@ -383,16 +487,19 @@ function Yone.init(mod, game)
         if not player or target.Type ~= EntityType.ENTITY_PLAYER or target.Index ~= player.Index or not attacker then return end
         if flags & DamageFlag.DAMAGE_FAKE ~= 0 then return end
         if (attacker.Type == EntityType.ENTITY_PROJECTILE or Combat.hostile(attacker))
-            and Combat.absorb(state.combat, game:GetFrameCount()) then
+            and Combat.absorb(state.combat, game:GetFrameCount(), player.Position) then
             player:SetMinDamageCooldown(15)
             return false
         end
     end)
-    mod:AddCallback(ModCallbacks.MC_POST_ENTITY_TAKE_DMG, function(_, target)
+    mod:AddCallback(ModCallbacks.MC_POST_ENTITY_TAKE_DMG, function(_, target, amount, _, source)
         local player = state and driver()
-        if player and target.Type == EntityType.ENTITY_PLAYER and target.Index == player.Index then
+        if not player then return end
+        if target.Type == EntityType.ENTITY_PLAYER and target.Index == player.Index then
             state.hurtUntil = game:GetFrameCount() + 6
             Emotes.cancel(state.emotes, false)
+        else
+            Combat.confirmDamage(state.combat, target, amount, source)
         end
     end)
 

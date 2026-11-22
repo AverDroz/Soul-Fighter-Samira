@@ -107,11 +107,17 @@ local function placement(room, player, ignore, count, nearPlayer)
     return positions
 end
 
-local function shopInventory(seed)
-    if #entries < SHOP_BONUS_COUNT then return nil end
+local function shopInventory(seed, player)
+    local pool = {}
+    for _, entry in ipairs(entries) do
+        if not runtime.shopEligible or runtime.shopEligible(player, entry.item.riotId) then
+            pool[#pool + 1] = entry
+        end
+    end
+    if #pool < SHOP_BONUS_COUNT then return nil end
     local rng = RNG()
     rng:SetSeed(math.max(1, seed), 35)
-    local selected, pool = {}, {table.unpack(entries)}
+    local selected = {}
     for i = 1, SHOP_BONUS_COUNT do
         selected[i] = table.remove(pool, rng:RandomInt(#pool) + 1)
     end
@@ -188,7 +194,7 @@ local function updateShop()
         return
     end
     if not room:IsFirstVisit() then return end
-    state.stocked = placePedestals(player, shopInventory(room:GetSpawnSeed()), {}, {}, true)
+    state.stocked = placePedestals(player, shopInventory(room:GetSpawnSeed(), player), {}, {}, true)
     if not state.stocked then
         Isaac.DebugString('[Samira] Could not place the four bonus offers in this shop.')
     end
@@ -235,7 +241,7 @@ local function execute(_, command, args)
     else
         if arg ~= '' then log('Usage: samirashop') return end
         priced = true
-        selected = shopInventory(game:GetRoom():GetSpawnSeed())
+        selected = shopInventory(game:GetRoom():GetSpawnSeed(), player)
     end
     if debugPedestals(player, selected, priced) then
         log(('Spawned %d Samira %s. F4 cycles the descriptions.'):format(#selected, priced and 'offers' or 'pedestals'))

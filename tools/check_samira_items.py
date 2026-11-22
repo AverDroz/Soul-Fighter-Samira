@@ -111,7 +111,15 @@ local game = {
     GetFrameCount = function() return clock end,
 }
 local Items = assert(load(itemsSource))()
-Items.init(host, game, function() return p end)
+local yoneRoutes = {reductions = 0}
+local yone = {
+    is = function(player) return player and player.yone == true end,
+    exportCooldowns = function() return {q=17} end,
+    reset = function(keep) assert(keep); yoneRoutes.reset = true end,
+    restoreCooldowns = function(saved, frame) yoneRoutes.restored = {saved=saved, frame=frame} end,
+    reduceCooldowns = function(fraction) assert(fraction == .15); yoneRoutes.reductions = yoneRoutes.reductions + 1 end,
+}
+Items.init(host, game, function() return p end, nil, yone)
 local reductions = 0
 local accepted = {}
 Items.bindCombat({
@@ -605,6 +613,50 @@ fire('MC_PRE_GLOWING_HOURGLASS_LOAD',1); fire('MC_POST_GLOWING_HOURGLASS_LOAD',1
 enter(2); clock=1541; Items.applyCooldownCheckpoint(clock)
 assert(appliedAt==1541 and restored.w==525 and restored.q==21 and not Items.claimCombatRoomReset())
 appliedAt=nil; Items.applyCooldownCheckpoint(1542); assert(appliedAt==nil, 'checkpoint applied twice')
+
+
+-- Yone-specific profile applies only to Yone; Samira assertions above ran
+-- against the same registered callbacks and must remain untouched.
+start({2520, 3031, 6675, 3053, 6673, 2525}, 3, 12)
+p.yone = true
+step()
+assert(Items.shopEligible(p, 3031) and not Items.shopEligible(p, 3078))
+local shopCount = 0
+for _, row in ipairs(catalog) do if Items.shopEligible(p, row.riotId) then shopCount = shopCount + 1 end end
+assert(shopCount >= 16 and shopCount <= 24)
+p.yone = false
+for _, row in ipairs(catalog) do assert(Items.shopEligible(p, row.riotId)) end
+p.yone = true
+random = 0
+local bossTarget = enemy(101); bossTarget.boss = true
+local otherTarget = enemy(102)
+local q = Items.newAttack(p, 'q3', clock)
+assert(q.kind == 'q' and q.crit)
+local damage = p.Damage
+close(hit(bossTarget, nil, q), damage * 1.8 + 1.5 + 2 * damage, 'Yone boss cap')
+close(hit(otherTarget, nil, q), damage, 'Yone crit once per cast')
+local rollsBefore = rolls
+local ult = Items.newAttack(p, 'r', clock)
+assert(not ult.crit and rolls == rollsBefore, 'Yone R cannot roll critical')
+hit(otherTarget, 'attack')
+assert(yoneRoutes.reductions == 1, 'Navori must route to Yone')
+assert(#accepted == 0, 'Yone must not route accepted hits to Samira style')
+local attacker = enemy(103)
+p:TakeDamage(1, 0, EntityRef(attacker), 0)
+assert(p.hp == 5, 'Yone lifeline heals three half hearts')
+p.hp = 3
+p:TakeDamage(1, 0, EntityRef(attacker), 0)
+assert(p.hp == 2, 'Yone lifeline family must share the floor trigger')
+clock=100; fire('MC_POST_GLOWING_HOURGLASS_SAVE',0)
+fire('MC_PRE_GLOWING_HOURGLASS_LOAD',0); fire('MC_POST_GLOWING_HOURGLASS_LOAD',0)
+Items.applyCooldownCheckpoint(clock)
+assert(yoneRoutes.reset and yoneRoutes.restored.saved.q == 17 and yoneRoutes.restored.frame == 100)
+fire('MC_PRE_GAME_EXIT',true)
+assert(save.combatCooldowns.q == 17, 'Yone cooldowns must be saved')
+yoneRoutes.restored=nil
+fire('MC_POST_GAME_STARTED',true)
+Items.restoreCombatCooldowns()
+assert(yoneRoutes.restored.saved.q == 17, 'Yone cooldowns must restore')
 
 print('Passed 46 item stat checks, native weapon damage and Style, combat scenarios, and persistence.')
 ''')

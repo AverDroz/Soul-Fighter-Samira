@@ -2,7 +2,7 @@ local Items = {}
 local catalog = include('samira_items_data')
 local json = require('json')
 
-local mod, game, getPlayer, combat, weapons, kills, attachSettings
+local mod, game, getPlayer, combat, weapons, kills, attachSettings, yone
 local defeat
 local ids, rng
 local vampProbe
@@ -12,6 +12,26 @@ local resetPrefix = 'abilityReset:'
 local queues = {}
 local statFlags
 local activeStats = false
+
+local function isYone(p)
+    return p and yone and yone.is and yone.is(p) or false
+end
+
+local function itemCombat(p)
+    if isYone(p) then return yone end
+    return combat
+end
+
+-- Only offer items whose effects have a useful melee/Yone interpretation.
+-- This affects newly generated bonus stock, not native or persisted stock.
+local yoneShop = {}
+for _, id in ipairs({1001, 3006, 3009, 3031, 3032, 3036, 3053, 3071,
+    3072, 3084, 3153, 3158, 3161, 3171, 3172, 3814, 6610, 6672,
+    6675, 6676, 6692, 6696, 6697}) do yoneShop[id] = true end
+
+function Items.shopEligible(p, riotId)
+    return not isYone(p) or yoneShop[riotId] == true
+end
 local cooldownKeys = {
     vamp = true, spellblade = true, ruinedKing = true, umbral = true, yunTalCooldown = true,
     navori = true, voltaic = true, bastion = true, eclipse = true,
@@ -217,7 +237,8 @@ local function save(shouldSave)
     end
     local saved = clone(run)
     saved.cooldownCheckpoints = cooldownCheckpoints
-    if combat and combat.exportCooldowns then saved.combatCooldowns = combat.exportCooldowns(clock) end
+    local driver = itemCombat(getPlayer())
+    if driver and driver.exportCooldowns then saved.combatCooldowns = driver.exportCooldowns(clock) end
     for key, time in pairs(saved.timers) do saved.timers[key] = math.max(0, time - clock) end
     if attachSettings then attachSettings(saved) end
     mod:SaveData(json.encode(saved))
@@ -297,12 +318,14 @@ function Items.claimCombatRoomReset()
 end
 
 local function saveCooldownCheckpoint(_, slot)
-    if not run or not getPlayer() or not combat or not combat.exportCooldowns then return end
+    local p = getPlayer()
+    local driver = itemCombat(p)
+    if not run or not p or not driver or not driver.exportCooldowns then return end
     local claims = {}
     for key, record in pairs(run.floor.rooms) do
         if key:sub(1, #resetPrefix) == resetPrefix and record.used then claims[key] = true end
     end
-    cooldownCheckpoints['slot' .. slot] = {remaining = combat.exportCooldowns(game:GetFrameCount()),
+    cooldownCheckpoints['slot' .. slot] = {remaining = driver.exportCooldowns(game:GetFrameCount()),
         floorKey = run.floorKey, claims = claims}
 end
 
@@ -312,8 +335,10 @@ function Items.applyCooldownCheckpoint(frame)
     local snap = pendingCheckpoint
     pendingCheckpoint = nil
     if type(snap) ~= 'table' or type(snap.remaining) ~= 'table' then return end
-    combat.reset(true)
-    combat.restoreCooldowns(snap.remaining, frame)
+    local driver = itemCombat(getPlayer())
+    if not driver or not driver.reset or not driver.restoreCooldowns then return end
+    driver.reset(true)
+    driver.restoreCooldowns(snap.remaining, frame)
     if snap.floorKey == floorKey() and type(snap.claims) == 'table' then
         local rooms = ensureFloor().rooms
         for key in pairs(rooms) do
@@ -335,7 +360,8 @@ function Items.bindWeapons(module) weapons = module end
 function Items.bindKills(module) kills = module end
 
 function Items.restoreCombatCooldowns()
-    if run and combat and combat.restoreCooldowns then combat.restoreCooldowns(run.combatCooldowns, game:GetFrameCount()) end
+    local driver = itemCombat(getPlayer())
+    if run and driver and driver.restoreCooldowns then driver.restoreCooldowns(run.combatCooldowns, game:GetFrameCount()) end
 end
 
 function Items.cooldown(p, key, baseFrames)
@@ -379,8 +405,9 @@ function Items.newAttack(p, nativeKind, tick)
     local owned, stats = state(p)
     clock = tick
     room.actionSequence = room.actionSequence + 1
-    local kind = ({attack = 'aa', melee = 'aa', qmelee = 'q'})[nativeKind] or nativeKind
+    local kind = ({attack = 'aa', melee = 'aa', qmelee = 'q', q3 = 'q'})[nativeKind] or nativeKind
     local chance = (stats.crit_chance_pct or 0) / 100
+    if isYone(p) and kind ~= 'aa' and kind ~= 'q' then chance = 0 end
     if owned[3032] then chance = chance + math.min(25, math.floor(run.yunTalHits / 5)) / 100 end
     local barrage = kind == 'aa' and owned[2512] and live('barrage') and (room.barrageShots or 0) > 0
     if barrage then
@@ -580,8 +607,11 @@ local function prepareDamage(p, entity, amount, ctx, ranged)
     if owned[3161] and not isAA and live('shojin') then modified = modified * (1 + .03 * room.shojin) end
     if owned[3071] and clock < (enemy.cleaveEnd or 0) then modified = modified * (1 + .03 * enemy.cleave) end
     local bossId = (owned[6610] or owned[2520]) and boss(entity) and bossKey(entity)
-    plan.sky = isAA and owned[6610] and room.combatSeen and bossId and not room.skyBosses[bossId] and bossId
-    if ctx.crit or plan.sky then modified = modified * (1.5 + (stats.crit_multiplier_bonus or 0)) end
+    plan.sky = isAA and (not isYone(p) or first) and owned[6610] and room.combatSeen
+        and bossId and not room.skyBosses[bossId] and bossId
+    if (not isYone(p) or first) and (ctx.crit or plan.sky) then
+        modified = modified * (1.5 + (stats.crit_multiplier_bonus or 0))
+    end
     if isAA and owned[3084] and (enemy.steelNear or 0) >= 60 and clock >= (enemy.steelReady or 0) then
         plan.steel = true
         modified = modified * 1.5
@@ -604,7 +634,9 @@ local function prepareDamage(p, entity, amount, ctx, ranged)
     if owned[2520] then
         if ready('bastion') then plan.bastion, modified = true, modified + 1.5 end
         if bossId and not room.bastionBosses[bossId] then
-            plan.bastionBoss, modified = bossId, modified + .15 * enemy.maxHP
+            local bonus = .15 * enemy.maxHP
+            if isYone(p) then bonus = math.min(bonus, 2 * p.Damage) end
+            plan.bastionBoss, modified = bossId, modified + bonus
         end
     end
     room.pending[entityKey(entity)] = plan
@@ -699,9 +731,10 @@ local function autoProcs(p, entity, owned, plan, enemy)
             end
         end
     end
-    if owned[6675] and ready('navori') and combat then
+    local driver = itemCombat(p)
+    if owned[6675] and ready('navori') and driver and driver.reduceCooldowns then
         start('navori', 12)
-        combat.reduceCooldowns(.15, clock)
+        driver.reduceCooldowns(.15, clock)
     end
     if owned[3095] and not room.energized then
         room.stormHits = (room.stormHits or 0) + 1
@@ -749,8 +782,9 @@ local function finishDamage(p, entity, amount, source, extraSource)
 
     local owned, stats = state(p)
     ctx.accepted, ctx.hit[key] = true, true
-    if combat and combat.acceptHit then combat.acceptHit(ctx, clock) end
-    if kills and not plan.dummy then kills.acceptHit(entity, ctx, clock) end
+    local driver = itemCombat(p)
+    if driver and driver.acceptHit then driver.acceptHit(ctx, clock) end
+    if not isYone(p) and kills and not plan.dummy then kills.acceptHit(entity, ctx, clock) end
     if plan.dummy then
         tryVamp(p, owned, stats, plan)
         return
@@ -879,11 +913,13 @@ local function afterDamage(entity, amount, flags, source, _, extraSource)
     local capacity = p:GetEffectiveMaxHearts()
     if capacity <= 0 or p:GetHearts() > capacity * .30 or p:IsDead() or currentLife(p) <= 0 then return end
     local lifeline = ensureFloor().lifeline
+    if isYone(p) and lifeline.yone then return end
     for _, id in ipairs({6673, 3053, 2525}) do
         local key = tostring(id)
         if owned[id] and not lifeline[key] then
             lifeline[key] = true
-            heal(p, 6)
+            if isYone(p) then lifeline.yone = true end
+            heal(p, isYone(p) and 3 or 6)
             return
         end
     end
@@ -1164,8 +1200,8 @@ local function vampStatus()
     end
 end
 
-function Items.init(host, currentGame, playerProvider, saveSettings)
-    mod, game, getPlayer, attachSettings = host, currentGame, playerProvider, saveSettings
+function Items.init(host, currentGame, playerProvider, saveSettings, yoneModule)
+    mod, game, getPlayer, attachSettings, yone = host, currentGame, playerProvider, saveSettings, yoneModule
     ids = {}
     for _, row in ipairs(catalog) do
         local id = Isaac.GetItemIdByName(row.collectibleName)

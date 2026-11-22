@@ -121,6 +121,10 @@ local function player()
     end
 end
 
+local function itemPlayer()
+    return player() or Yone.player(game)
+end
+
 local function transition()
     return leaving == true or RoomTransition.GetTransitionMode() ~= 0
 end
@@ -274,12 +278,15 @@ end
 
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
     local p = player()
-    local actionable = p and canControl(p) or false
-    InventoryHUD.input(p, actionable)
+    local owner = p or Yone.player(game)
+    local actionable = p and canControl(p) or not p and owner and Yone.canUseItems(owner) or false
+    InventoryHUD.input(owner, actionable)
     if p then Combat.sampleInput(game:GetRoom(), game:GetFrameCount(), actionable) end
     if actionable then
-        InventoryHUD.render(p)
-        ItemRoom.render(p, InventoryHUD.bounds(p), StyleHUD.bounds())
+        InventoryHUD.render(owner)
+        ItemRoom.render(owner, InventoryHUD.bounds(owner), p and StyleHUD.bounds())
+    end
+    if p and actionable then
         StyleHUD.render(p, Combat.styleStatus(game:GetFrameCount()),
             ackStyleHud and ackAt and Isaac.GetTime() - ackAt < leaseMs)
     end
@@ -412,10 +419,10 @@ mod:AddCallback(ModCallbacks.MC_POST_NIGHTMARE_SCENE_RENDER, hideDuringCinematic
 -- Register item damage hooks after the dash guard so a protected dash never
 -- spends an item shield. Items stay native collectibles in the run inventory.
 ControlsSettings.init(mod, Combat, player, InventoryHUD.statsSummary)
-Items.init(mod, game, player, ControlsSettings.attachToSave)
-Inventory.init(mod, game, player, Items)
+Items.init(mod, game, itemPlayer, ControlsSettings.attachToSave, Yone)
+Inventory.init(mod, game, itemPlayer, Items)
 InventoryHUD.init(game, Inventory)
-ItemRoom.init(mod, game, player, Items)
+ItemRoom.init(mod, game, itemPlayer, Items)
 Encounters.init(mod, game, function()
     if Isaac.IsInGame() then return Character.player(game) end
 end, Items)
@@ -431,4 +438,4 @@ mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, function(_, continued)
     if Yone.is(Isaac.GetPlayer(0)) then return end
     if Character.player(game) or continued and Items.isEnabled and Items.isEnabled() then start(continued) end
 end)
-Yone.init(mod, game)
+Yone.init(mod, game, Items, Inventory)

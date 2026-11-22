@@ -7,9 +7,14 @@ import shutil
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-MODULES = "overlay model bridge layered_surface samira_vfx client_vfx canvas system_pointer samira_audio combat_effects hud status visibility native_cursor shop_ui localization mastery_renderer mastery_glb mastery_particles".split()
+MODULES = ("overlay model bridge layered_surface samira_vfx client_vfx canvas system_pointer samira_audio "
+           "combat_effects hud status visibility native_cursor shop_ui localization mastery_renderer mastery_glb "
+           "mastery_particles yone_combat_audio yone_vfx").split()
 YONE_FILES = ("yone.glb", "actions.json", "rig-events.json")
-YONE_AUDIO = ("joke.wav", "taunt.wav", "dance.wav", "dance_loop.wav", "laugh.wav", "manifest.json")
+YONE_AUDIO = (
+    "manifest.json", "joke.wav", "taunt.wav", "dance.wav", "dance_loop.wav", "laugh.wav",
+    "attack.wav", "attack2.wav", "q.wav", "q3.wav", "w.wav", "e.wav", "e_return.wav", "r.wav", "shield.wav",
+)
 
 
 def build(output, *, include_local_yone=False):
@@ -76,7 +81,7 @@ def build(output, *, include_local_yone=False):
         "Python and dependency notices/licenses accompany companion/python.\n"
         "Liberation font license: samira_testroom/resources/font/LIBERATION-LICENSE.txt.\n"
         "No blanket license is granted for third-party materials.\n"
-        + ("Classic Yone model, animations and artwork were imported locally from the user's League of Legends installation.\n"
+        + ("Classic Yone materials were imported locally from the user's League of Legends installation.\n"
            if include_local_yone else ""), encoding="utf-8")
     files = sorted(p for p in stage.rglob("*") if p.is_file())
     manifest = {p.relative_to(stage).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}

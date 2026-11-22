@@ -1,4 +1,4 @@
-"""Extract local Yone emote audio through the project's Wwise decoders."""
+"""Extract local Yone emote and combat audio through the project's Wwise decoders."""
 
 import argparse
 from pathlib import Path
@@ -25,6 +25,17 @@ SFX = {
     "dance": "Play_sfx_Yone_Dance3D_in",
     "dance_loop": "Play_sfx_Yone_Dance3D_loop",
     "laugh": "Play_sfx_Yone_Laugh3D_buffactivate",
+    "attack": "Play_sfx_Yone_YoneBasicAttack_OnCast",
+    # Both basic attack OnCast events share a bank container. The second-blade
+    # swipe is the original authored cue that distinguishes those attacks.
+    "attack2": "Play_sfx_Yone_YoneBasicAttack2_swipe",
+    "q": "Play_sfx_Yone_YoneQ_OnCast",
+    "q3": "Play_sfx_Yone_YoneQ3_OnCast",
+    "w": "Play_sfx_Yone_YoneW_OnCast",
+    "e": "Play_sfx_Yone_YoneE_cast",
+    "e_return": "Play_sfx_Yone_YoneE_return_cast",
+    "r": "Play_sfx_Yone_YoneR_cast_dash",
+    "shield": "Play_sfx_Yone_YonePShield_buffactivate",
 }
 VOICE = {
     "joke": "Play_vo_Yone_Joke3DGeneral_in",
@@ -149,7 +160,7 @@ def main():
         import_audio(args.wad, args.voice_wad, args.wwiser, args.vgmstream_archive, args.ffmpeg)
     except (OSError, ValueError, struct.error, subprocess.SubprocessError) as exc:
         parser.exit(1, f"Yone audio import failed: {exc}\n")
-    print(f"Imported {len(SFX)} Yone emote sounds to {DESTINATION / 'audio'}")
+    print(f"Imported {len(SFX)} Yone emote and combat sounds to {DESTINATION / 'audio'}")
 
 
 if __name__ == "__main__":

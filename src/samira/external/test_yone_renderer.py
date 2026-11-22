@@ -5,6 +5,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import moderngl
 import numpy as np
@@ -57,8 +58,9 @@ def write_rig(path):
                 skins=[{'joints': list(range(168)), 'inverseBindMatrices': bind}], meshes=[{'primitives': primitives}],
                 images=[{'bufferView': image, 'mimeType': 'image/png'}], textures=[{'source': 0}],
                 materials=[{'pbrMetallicRoughness': {'baseColorTexture': {'index': 0}}}],
-                animations=[dict(name='idle', samplers=[dict(input=times, output=values)],
-                                 channels=[dict(sampler=0, target={'node': 0, 'path': 'translation'})])])
+                animations=[dict(name=name, samplers=[dict(input=times, output=values)],
+                                 channels=[dict(sampler=0, target={'node': 0, 'path': 'translation'})])
+                            for name in ('idle', 'e_body')])
     payload = json.dumps(gltf).encode('utf-8')
     payload += b' ' * (-len(payload) % 4)
     path.write_bytes(struct.pack('<4sIIII', b'glTF', 2, 28 + len(payload) + len(blob), len(payload), 0x4e4f534a)
@@ -79,6 +81,151 @@ class YoneRendererTests(unittest.TestCase):
 
     def pixels(self):
         return np.frombuffer(self.fbo.read(components=4), dtype='u1').reshape(160, 160, 4)
+
+    def region(self, x1, y1, x2, y2):
+        return self.pixels()[::-1][y1:y2, x1:x2]
+
+    def test_spirit_draws_independent_body_tether_and_enemy_mark(self):
+        from run_testroom_renderer import YoneRenderer
+
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'yone.glb'
+            write_rig(path)
+            renderer = YoneRenderer(self.ctx, path)
+        self.addCleanup(renderer.close)
+        state = {'hero': 'yone', 'kind': 'idle', 'phase': .35, 'screen': [160, 160],
+                 'position': [100, 115], 'face': [0, 1], 'clock': 120}
+        renderer.draw(state, 0)
+        normal = self.region(87, 93, 112, 114).copy()
+        self.fbo.clear(0, 0, 0, 0)
+        state['yone'] = {'spirit': {'anchor': [35, 115], 'face': [0, 1], 'remaining': .75,
+                                   'marks': [{'position': [130, 72], 'amount': 4.5}]}}
+        with patch.object(renderer.actor, 'draw', wraps=renderer.actor.draw) as draw_actor:
+            drawn, capabilities = renderer.draw(state, 0)
+        self.assertTrue(drawn)
+        self.assertEqual(capabilities, {'yoneModel': True, 'mastery': True, 'yoneVfx': True})
+        call = next(call for call in draw_actor.call_args_list if call.kwargs.get('clip') == 'e_body')
+        self.assertEqual(call.args[2], (35, 115))
+        self.assertTrue(call.kwargs.get('detached'))
+        self.assertEqual(renderer.actor.rig_sample, ('idle', .35))
+        self.assertGreater(np.count_nonzero(self.region(19, 91, 50, 105)[:, :, 3]), 20)
+        self.assertGreater(np.count_nonzero(self.region(47, 106, 85, 119)[:, :, 3]), 10)
+        self.assertGreater(np.count_nonzero(self.region(116, 37, 144, 57)[:, :, 3]), 25)
+        spirit = self.region(87, 93, 112, 114)
+        self.assertGreater(np.count_nonzero(normal != spirit), 100)
+        self.assertGreater(float(spirit[:, :, 2].mean()), float(normal[:, :, 2].mean()) + 5)
+        self.assertEqual(self.ctx.error, 'GL_NO_ERROR')
+
+    def test_visible_impacts_follow_packet_endpoints_and_fade(self):
+        from run_testroom_renderer import YoneRenderer
+
+        renderer = YoneRenderer(self.ctx, Path('unavailable-yone.glb'))
+        self.addCleanup(renderer.close)
+        state = {'hero': 'yone', 'kind': 'idle', 'screen': [160, 160], 'position': [44, 96],
+                 'face': [1, 0], 'clock': 120}
+        footprints = {}
+        for kind in ('q3', 'w', 'r', 'e_return', 'shield'):
+            with self.subTest(kind=kind):
+                event = {'id': 1, 'kind': kind, 'age': .04, 'origin': [35, 95], 'target': [105, 95]}
+                state['yone'] = {'fx': [event]}
+                self.fbo.clear(0, 0, 0, 0)
+                drawn, capabilities = renderer.draw(state, 0)
+                self.assertFalse(drawn)  # Effects alone never acquire the actor lease.
+                self.assertTrue(capabilities['yoneVfx'])
+                footprints[kind] = self.pixels().copy()
+                alpha = self.pixels()[:, :, 3]
+                self.assertGreater(np.count_nonzero(alpha), 40)
+                if kind in ('q3', 'w', 'r', 'e_return'):
+                    self.assertGreater(np.count_nonzero(self.region(98, 68, 119, 110)[:, :, 3]), 10)
+                event['age'] = 2
+                self.fbo.clear(0, 0, 0, 0)
+                _, capabilities = renderer.draw(state, 0)
+                self.assertNotIn('yoneVfx', capabilities)
+                self.assertFalse(self.pixels().any())
+        self.assertFalse(np.array_equal(footprints['q3'], footprints['r']))
+        self.assertEqual(self.ctx.error, 'GL_NO_ERROR')
+
+    def test_floor_transition_keeps_effects_and_ack_out_of_the_next_scene(self):
+        from run_testroom_renderer import YoneRenderer, acknowledge
+
+        with tempfile.TemporaryDirectory() as folder:
+            folder = Path(folder)
+            path = folder / 'yone.glb'
+            write_rig(path)
+            renderer = YoneRenderer(self.ctx, path)
+            self.addCleanup(renderer.close)
+            state = {'hero': 'yone', 'kind': 'idle', 'phase': .35, 'screen': [160, 160],
+                     'position': [100, 115], 'face': [1, 0], 'clock': 120,
+                     'session': 'run', 'room': 1, 'time': 4000, 'seq': 7,
+                     'mastery': {'at': .32, 'position': [80, 100]}, 'transition': True,
+                     'yone': {'spirit': {'anchor': [35, 115], 'face': [1, 0], 'remaining': .75}}}
+            drawn, capabilities = renderer.draw(state, 0)
+            self.assertEqual((drawn, capabilities), (False, {}))
+            self.assertFalse(self.pixels().any())
+            acknowledge(folder, state, drawn, capabilities)
+            ack = json.loads((folder / 'save1.dat').read_text(encoding='utf8'))
+            self.assertEqual((ack['ready'], ack['time'], ack['room']), (False, 4000, 1))
+            renderer.reset()
+            next_state = dict(state, room=2, seq=8, time=5000, transition=False, yone={}, mastery=None)
+            drawn, capabilities = renderer.draw(next_state, 0)
+            self.assertTrue(drawn)
+            self.assertEqual(capabilities, {'yoneModel': True, 'mastery': True})
+            self.assertFalse(self.region(19, 91, 50, 119).any())
+            acknowledge(folder, next_state, drawn, capabilities)
+            ack = json.loads((folder / 'save1.dat').read_text(encoding='utf8'))
+            self.assertEqual((ack['ready'], ack['time'], ack['room']), (True, 5000, 2))
+
+    def test_failed_effect_pass_keeps_model_and_mastery_capabilities(self):
+        from run_testroom_renderer import YoneRenderer
+
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'yone.glb'
+            write_rig(path)
+            renderer = YoneRenderer(self.ctx, path)
+        self.addCleanup(renderer.close)
+        state = {'hero': 'yone', 'kind': 'idle', 'phase': .35, 'screen': [160, 160],
+                 'position': [100, 115], 'face': [0, 1], 'clock': 120, 'yone': {'shield': True}}
+        with patch.object(renderer.vfx, 'finish', side_effect=RuntimeError('test rendering error')):
+            self.assertEqual(renderer.draw(state, 0), (True, {'yoneModel': True, 'mastery': True}))
+        self.assertIsNotNone(renderer.actor)
+        self.assertIsNone(renderer.vfx)
+
+    def test_effects_start_at_the_interpolated_impact_tick(self):
+        from run_testroom_renderer import YoneRenderer
+
+        renderer = YoneRenderer(self.ctx, Path('unavailable-yone.glb'))
+        self.addCleanup(renderer.close)
+        event = {'id': 19, 'kind': 'q3', 'age': 0, 'origin': [30, 95], 'target': [106, 95]}
+        state = {'hero': 'yone', 'kind': 'idle', 'screen': [160, 160], 'position': [44, 96],
+                 'face': [1, 0], 'clock': 119.5, 'packetClock': 120, 'yone': {'fx': [event]}}
+        self.assertNotIn('yoneVfx', renderer.draw(state, 0)[1])
+        self.assertFalse(self.pixels().any())
+        state['clock'] = 120
+        self.assertTrue(renderer.draw(state, 0)[1]['yoneVfx'])
+        self.assertTrue(self.pixels().any())
+
+    def test_samira_actor_is_pixel_identical_after_yone_materials_render(self):
+        from run_testroom_renderer import YoneRenderer
+
+        samira_model = Path(__file__).resolve().parents[1] / 'reference/source/model.glb'
+        samira = GPURenderer(self.ctx, Model(samira_model))
+        self.addCleanup(samira.close)
+        def render_samira():
+            samira.draw('Idle', .35, (80, 110), (160, 160), 0, 0)
+        render_samira()
+        expected = self.pixels().copy()
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'yone.glb'
+            write_rig(path)
+            renderer = YoneRenderer(self.ctx, path)
+        self.addCleanup(renderer.close)
+        renderer.draw({'hero': 'yone', 'kind': 'idle', 'phase': .35, 'screen': [160, 160],
+                       'position': [100, 115], 'face': [1, 0], 'clock': 120,
+                       'yone': {'spirit': {'anchor': [35, 115], 'face': [1, 0], 'remaining': .75}}}, 0)
+        self.fbo.clear(0, 0, 0, 0)
+        samira.reset()
+        render_samira()
+        np.testing.assert_array_equal(expected, self.pixels())
 
     def test_independent_yone_primitive_vertices_and_no_samira_sockets(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -144,7 +291,8 @@ class YoneAnimationTests(unittest.TestCase):
 
 
 class RecordingMixer:
-    def __init__(self, _root, _samples):
+    def __init__(self, _root, samples):
+        self.samples = samples
         self.events = []
 
     def set_volume(self, _volume):
@@ -153,11 +301,34 @@ class RecordingMixer:
     def play(self, clip, group, _gain, *, loops=0):
         self.events.append(('play', clip, group, loops))
 
-    def stop_all(self):
+    def stop(self, group):
+        assert group == 'voice'
         self.events.append(('stop',))
+
+    def stop_all(self):
+        self.events.append(('stop_all',))
 
 
 class YoneAudioTests(unittest.TestCase):
+    def test_resolved_combat_effect_survives_emote_interruption(self):
+        from run_testroom_renderer import YoneAudio
+
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            for clip in ('laugh', 'q3'):
+                (root / f'{clip}.wav').touch()
+            audio = YoneAudio(root, backend=RecordingMixer)
+            self.assertIs(audio.combat.backend, audio.backend)
+            self.assertEqual(set(audio.backend.samples), {'laugh', 'q3'})
+            state = dict(active=True, hero='yone', session='run', room=1, kind='laugh',
+                         actionId=100, actionFrame=0, time=1000, heartbeatTime=1000)
+            audio.update(state, True, 1)
+            strike = dict(state, kind='q3', actionId=None, yone={'fx': [{'kind': 'q3', 'id': 1, 'age': .04}]})
+            audio.update(strike, True, 1.04)
+            audio.update(strike, True, 1.05)
+            self.assertEqual(audio.backend.events, [('stop_all',), ('play', 'laugh', 'voice', 0),
+                                                    ('play', 'q3', 'effect', 0), ('stop',)])
+
     def test_emote_audio_plays_once_and_stops_without_resuming(self):
         from run_testroom_renderer import YoneAudio
 

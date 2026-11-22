@@ -5,6 +5,8 @@ import numpy as np
 from PIL import Image
 
 MAX_BONES=192
+FORMS={None:0,'body':1,'spirit':2}
+OUTLINE_COLORS={None:(.018,.012,.022),'body':(.34,.21,.31),'spirit':(.94,.24,.46)}
 CLIPS={'Idle':'idle_gun','Walk':'run_gun_base','Attack':'attack1_gun_hit',
  'AttackStart':'attack1_gun_start','AttackRecovery':'attack1_gun_into_idle',
  'MeleeAttack':'attack1_sword_ht','MeleeIdle':'idle_sword','MeleeWalk':'run_sword_base',
@@ -205,7 +207,7 @@ void main(){
 }''' % MAX_BONES
 FRAGMENT='''#version 330
 uniform sampler2D material; uniform sampler2D bannerMask;
-uniform float hurt; uniform bool stasis; uniform bool isBanner; uniform float effectTime;uniform float opacity;uniform bool ghost;
+uniform float hurt; uniform bool stasis; uniform bool isBanner; uniform float effectTime;uniform float opacity;uniform bool ghost;uniform int form;
 uniform vec2 redScroll; uniform vec2 blueScroll; uniform float alphaBias;
 in vec2 texcoord; out vec4 color;
 void main(){
@@ -218,6 +220,11 @@ void main(){
  if(alpha<.01)discard;
  float light=dot(tex.rgb,vec3(.3,.6,.1));
  vec3 c=mix(tex.rgb,vec3(1,.055,.025)*(.5+.5*light),hurt*.82);
+ if(form==1)c=mix(c,vec3(.53,.44,.46)*(.42+light*1.1),.78);
+ if(form==2){
+   float shimmer=.90+.10*sin(texcoord.y*45.0-effectTime*9.0);
+   c=mix(c,mix(vec3(.31,.075,.27),vec3(1.0,.80,.92),light)*shimmer,.87);
+ }
  if(stasis)c=vec3(1,.67,.09)*(.25+dot(tex.rgb,vec3(.3,.6,.1))*.9);
  if(ghost)c=mix(c,vec3(.8,.035,.015),.8);
  color=vec4(c,alpha*opacity);
@@ -230,7 +237,7 @@ void main(){
  uv=p;gl_Position=vec4(p*2-1,0,1);
 }'''
 OUTLINE_FRAGMENT='''#version 330
-uniform sampler2D actor;uniform vec2 radius;
+uniform sampler2D actor;uniform vec2 radius;uniform vec3 edgeColor;uniform float actorOpacity;
 in vec2 uv;out vec4 color;
 void main(){
  vec4 body=texture(actor,uv);float edge=0;
@@ -240,7 +247,7 @@ void main(){
  }
  // Actor colors are already premultiplied by the offscreen blend pass.
  float alpha=edge*.9*(1-body.a);
- color=vec4(body.rgb+vec3(.018,.012,.022)*alpha,body.a+alpha);
+ color=vec4(body.rgb+edgeColor*alpha,body.a+alpha)*actorOpacity;
 }'''
 
 class GPURenderer:
@@ -285,13 +292,18 @@ class GPURenderer:
                          self.vbo,self.bones,self.program,self.actor_surface,self.actor_texture,self.actor_depth):
             if resource is not None:resource.release()
 
-    def draw(self,kind,phase,origin,viewport,yaw,dt,ultimate=False,clip=None,banner=None,hurt=False,ghost=None,stasis=False,locomotion=None,body_scale=(1,1),flying=False,outline=True,anchor_root=False,snap_facing=False):
+    def draw(self,kind,phase,origin,viewport,yaw,dt,ultimate=False,clip=None,banner=None,hurt=False,ghost=None,stasis=False,locomotion=None,body_scale=(1,1),flying=False,outline=True,anchor_root=False,snap_facing=False,*,form=None,opacity=1,detached=False):
         import moderngl
         action=clip if clip in self.model.tracks else kind
-        frozen=stasis and ghost is None and self.pose is not None
-        if not stasis or self.pose is None:self.stasis_snapshot=None
+        frozen=stasis and ghost is None and not detached and self.pose is not None
+        if not detached and (not stasis or self.pose is None):self.stasis_snapshot=None
         if frozen and self.stasis_snapshot is None:self.stasis_snapshot=self.last_actor
-        if ghost is None and not frozen:
+        if detached:
+            # A second actor may share this GPU rig without taking the main
+            # actor's transition, facing, stasis or effect clock with it.
+            pose=self.model.moving_pose(action,phase,locomotion)
+            if anchor_root:pose=self.model.anchor_motion(pose,action)
+        elif ghost is None and not frozen:
             if self.kind!=action:self.previous=self.pose;self.transition=0;self.kind=action
             self.transition=min(1,self.transition+dt/.10);pose=self.model.moving_pose(action,phase,locomotion)
             if anchor_root:pose=self.model.anchor_motion(pose,action)
@@ -300,10 +312,11 @@ class GPURenderer:
             self.rig_sample=(action,phase)
         elif frozen:pose=self.pose
         else:pose=ghost[0]
-        if ghost is None and not frozen:self.effect_time+=dt
+        if ghost is None and not frozen and not detached:self.effect_time+=dt
         rig_action,rig_phase=self.rig_sample if frozen else (action,phase)
         visibility=self.model.visibility(rig_action,rig_phase)
-        if ghost is None:
+        if detached:draw_yaw=yaw
+        elif ghost is None:
             if self.yaw is None or snap_facing:self.yaw=yaw
             delta=(yaw-self.yaw+np.pi)%(2*np.pi)-np.pi
             if not frozen:self.yaw+=delta*(1-np.exp(-dt/.075))
@@ -314,11 +327,12 @@ class GPURenderer:
         self.bones.write(self.matrix_upload.transpose(0,2,1).tobytes())
         scale=self.model.pixel_scale
         if frozen and self.stasis_snapshot is not None:visibility,body_scale,scale=self.stasis_snapshot
-        if ghost is None:self.last_actor=(dict(visibility),tuple(body_scale),scale)
+        if ghost is None and not detached:self.last_actor=(dict(visibility),tuple(body_scale),scale)
         self.program['bodyScale'].value=tuple(body_scale)
         p=self.program;p['viewport'].value=viewport;p['origin'].value=origin;p['scale'].value=scale;p['yaw'].value=draw_yaw;p['material'].value=0;p['hurt'].value=float(hurt)
         p['stasis'].value=stasis
-        p['opacity'].value=ghost[2] if ghost else 1;p['ghost'].value=ghost is not None
+        p['opacity'].value=ghost[2] if ghost else 1 if outline else opacity
+        p['ghost'].value=ghost is not None;p['form'].value=FORMS[form]
         p['effectTime'].value=self.effect_time;self.textures[self.model.banner_mask].use(1)
         target=None
         if outline and ghost is None:
@@ -334,20 +348,25 @@ class GPURenderer:
             self.actor_surface.use();self.ctx.viewport=(0,0,*size);self.ctx.clear(0,0,0,0)
         self.ctx.enable(moderngl.DEPTH_TEST);self.ctx.enable(moderngl.BLEND)
         self.ctx.blend_func=(moderngl.SRC_ALPHA,moderngl.ONE_MINUS_SRC_ALPHA,moderngl.ONE,moderngl.ONE_MINUS_SRC_ALPHA)
-        # Opaque body first so back-mounted translucent ribbons cannot cover it.
-        for name,vao,tid in self.parts:
-            if not visibility.get(name,True):continue
-            is_banner=self.model.hero=='samira' and name=='Banner'
-            p['isBanner'].value=is_banner;self.ctx.depth_mask=ghost is None and not is_banner
-            self.textures[tid].use(0);vao.render()
-        self.ctx.depth_mask=True
+        try:
+            # Opaque body first so back-mounted translucent ribbons cannot cover it.
+            for name,vao,tid in self.parts:
+                if not visibility.get(name,True):continue
+                is_banner=self.model.hero=='samira' and name=='Banner'
+                p['isBanner'].value=is_banner;self.ctx.depth_mask=ghost is None and not is_banner
+                self.textures[tid].use(0);vao.render()
+        finally:
+            self.ctx.depth_mask=True
+            if target is not None:
+                target.use();self.ctx.viewport=target_viewport
         if target is not None:
-            target.use();self.ctx.viewport=target_viewport
             self.ctx.disable(moderngl.DEPTH_TEST)
             self.ctx.blend_func=(moderngl.ONE,moderngl.ONE_MINUS_SRC_ALPHA)
             self.actor_texture.use(0);self.outline_program['actor'].value=0
             pixels=min(2.2,max(1.,size[1]/viewport[1]*.65))
             self.outline_program['radius'].value=(pixels/size[0],pixels/size[1])
+            self.outline_program['edgeColor'].value=OUTLINE_COLORS[form]
+            self.outline_program['actorOpacity'].value=opacity
             self.outline_quad.render(vertices=3)
             self.ctx.blend_func=(moderngl.SRC_ALPHA,moderngl.ONE_MINUS_SRC_ALPHA,moderngl.ONE,moderngl.ONE_MINUS_SRC_ALPHA)
             self.ctx.enable(moderngl.DEPTH_TEST)

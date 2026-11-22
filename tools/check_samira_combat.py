@@ -18,6 +18,7 @@ local function names()
 end
 Keyboard, ButtonAction, ModCallbacks, InputHook = names(), names(), names(), names()
 EntityFlag, EntityType, ProjectileFlags = names(), names(), names()
+CollectibleType = names()
 AutocompleteType, RoomType, RoomTransitionAnim = names(), names(), names()
 GridCollisionClass = {COLLISION_NONE = 0, COLLISION_WALL = 4}
 GridEntityType = names()
@@ -118,6 +119,7 @@ function player:FireTear(pos,vel,eye,beam,deadeye,source,multiplier)
     return tear
 end
 function player:GetSprite() return {GetAnimation=function() return 'Walk' end} end
+function player:HasCollectible() return false end
 function player:GetWeapon(slot) assert(slot==1); return installedWeapon end
 function GetPtrHash(entity) return entity.InitSeed end
 function Color(...) return {...} end
@@ -167,8 +169,9 @@ package.preload.json=function()
 end
 -- This suite isolates locomotion and skills; item behavior has its own suite.
 -- The adapter still exercises the real combat module's optional item boundary.
+local itemDriver
 local noItems = {
-    init=function() end, bindCombat=function() end, bindWeapons=function() end,
+    init=function(_, _, provider) itemDriver = provider end, bindCombat=function() end, bindWeapons=function() end,
     bindKills=function(module) kills=module end, update=function() end,
     claimCombatRoomReset=function() return false end,
     applyCooldownCheckpoint=function() end,
