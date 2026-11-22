@@ -292,7 +292,7 @@ class GPURenderer:
                          self.vbo,self.bones,self.program,self.actor_surface,self.actor_texture,self.actor_depth):
             if resource is not None:resource.release()
 
-    def draw(self,kind,phase,origin,viewport,yaw,dt,ultimate=False,clip=None,banner=None,hurt=False,ghost=None,stasis=False,locomotion=None,body_scale=(1,1),flying=False,outline=True,anchor_root=False,snap_facing=False,*,form=None,opacity=1,detached=False):
+    def draw(self,kind,phase,origin,viewport,yaw,dt,ultimate=False,clip=None,banner=None,hurt=False,ghost=None,stasis=False,locomotion=None,body_scale=(1,1),flying=False,outline=True,anchor_root=False,snap_facing=False,*,form=None,opacity=1,detached=False,blend_seconds=.10):
         import moderngl
         action=clip if clip in self.model.tracks else kind
         frozen=stasis and ghost is None and not detached and self.pose is not None
@@ -305,7 +305,7 @@ class GPURenderer:
             if anchor_root:pose=self.model.anchor_motion(pose,action)
         elif ghost is None and not frozen:
             if self.kind!=action:self.previous=self.pose;self.transition=0;self.kind=action
-            self.transition=min(1,self.transition+dt/.10);pose=self.model.moving_pose(action,phase,locomotion)
+            self.transition=min(1,self.transition+dt/blend_seconds);pose=self.model.moving_pose(action,phase,locomotion)
             if anchor_root:pose=self.model.anchor_motion(pose,action)
             if self.previous is not None and self.transition<1:pose=self.model.blend(self.previous,pose,self.transition)
             self.pose=pose

@@ -68,6 +68,13 @@ class YoneVFX:
                 self.tether(spirit)
         if state.get('kind') == 'r' and number(state.get('phase')) and 0 <= state['phase'] < 23 / 40:
             self.anticipation(state['phase'] / (23 / 40))
+        if self.payload.get('qReady') is True:
+            x, y = self.position
+            turn = self.clock * 2.7
+            for side in (0, math.pi):
+                arc = ellipse((x, y - 9), (17, 9), turn + side, turn + side + 1.85, 12)
+                self.ribbon(arc, 2.6, WIND, .55)
+                self.ribbon(arc, .8, IVORY, .8)
         if self.payload.get('shield') is True:
             x, y = self.position
             self.shield((x, y - 12), 0, .51 + .09 * math.sin(self.clock * 6))
@@ -152,8 +159,8 @@ class YoneVFX:
         radii = (17 + progress * 11, 19 + progress * 13)
         for start, end in ((-.96, .97), (2.17, 4.10)):
             arc = ellipse(center, radii, start, end, 12)
-            self.ribbon(arc, 3.3, WIND, opacity)
-            self.ribbon(arc, .85, IVORY, opacity)
+            self.ribbon(arc, 5.2, RUBY, opacity * .65)
+            self.ribbon(arc, 1.2, ROSE, opacity * .9)
         x, y = center
         h = radii[1]
         self.canvas.lines([(x - 4, y - h + 2), (x, y - h - 1), (x + 4, y - h + 2)], 1.2, (*IVORY, opacity))
@@ -208,35 +215,59 @@ class YoneVFX:
         radius = length * (.82 + .18 * min(1., progress * 4))
         origin = start[0], start[1] - 8
         valid_arc = isinstance(arc, (list, tuple)) and 3 <= len(arc) <= 33 and all(point(p) for p in arc)
-        for inset, width, hue, fade in ((.82, 9.5, RUBY, .72), (1., 5.2, ROSE, .96), (.96, 1.6, IVORY, .90)):
-            if valid_arc:
-                points = [(start[0] + (p[0] - start[0]) * inset,
-                           start[1] + (p[1] - start[1]) * inset - 8) for p in arc]
-            else:
-                points = [offset(origin, face, math.cos(a) * radius * inset, math.sin(a) * radius * inset)
-                          for a in (-1.213 + 2.426 * i / 18 for i in range(19))]
-            self.ribbon(points, width, hue, alpha * fade)
+        if valid_arc:
+            boundary = [(p[0], p[1] - 8) for p in arc]
+        else:
+            boundary = [offset(origin, face, math.cos(a) * radius, math.sin(a) * radius)
+                        for a in (-1.213 + 2.426 * i / 18 for i in range(19))]
+        # Broad tapered crescent inside the actual cone, with a bright sector
+        # that travels from one edge to the other during the fast swing.
+        center = min(1., progress * 3.3) * (len(boundary) - 1)
+        for i, (p, q) in enumerate(zip(boundary, boundary[1:])):
+            inner_p = (origin[0] + .53 * (p[0] - origin[0]), origin[1] + .53 * (p[1] - origin[1]))
+            inner_q = (origin[0] + .53 * (q[0] - origin[0]), origin[1] + .53 * (q[1] - origin[1]))
+            glow = max(0., 1 - abs(i + .5 - center) / 3.5)
+            self.canvas.polygon((inner_p, inner_q, q, p),
+                ((*RUBY, alpha * (.09 + .25 * glow)), (*RUBY, alpha * (.09 + .25 * glow)),
+                 (*ROSE, alpha * (.25 + .55 * glow)), (*ROSE, alpha * (.25 + .55 * glow))))
+        self.canvas.flush()
+        self.ribbon(boundary, 3.5, ROSE, alpha * .85)
+        leading = max(0, min(len(boundary) - 2, int(center)))
+        self.canvas.line(origin, boundary[leading], 2.2, (*IVORY, alpha * .65))
 
     def wind_cut(self, start, face, length, progress, alpha):
         origin = start[0], start[1] - 7
+        head = min(1., .14 + progress * 2.7)
+        tail = max(0., head - .72)
+        for side, hue in ((-1, WIND), (1, IVORY)):
+            points = []
+            for i in range(17):
+                t = tail + (head - tail) * i / 16
+                twist = math.sin(t * math.tau * 1.35 - progress * 8)
+                taper = math.sin(math.pi * i / 16)
+                points.append(offset(origin, face, length * t, side * (2 + 11 * taper) * twist))
+            self.ribbon(points, 4.0, hue, alpha * .85)
+            self.ribbon(points, 1.2, IVORY, alpha * .9)
+        tip = offset(origin, face, length * head, 0)
+        blade = [offset(tip, face, -8 + 10 * math.cos(a), 13 * math.sin(a))
+                 for a in (-1.45 + i * 2.9 / 14 for i in range(15))]
+        self.ribbon(blade, 7, WIND, alpha * .8)
+        self.ribbon(blade, 3.2, IVORY, alpha)
         for side in (-1, 1):
-            width = 9 + progress * 8
-            points = [offset(origin, face, length * t, side * math.sin(math.pi * t) * width)
-                      for t in (i / 10 for i in range(11))]
-            self.ribbon(points, 4.7, WIND, alpha * .76)
-            self.ribbon(points, 1.2, IVORY, alpha * .83)
-        tip = offset(origin, face, length * min(1, .18 + progress * 2.7), 0)
-        gust = [offset(tip, face, -7 + 8 * math.cos(a), 12 * math.sin(a))
-                for a in (-1.45 + i * 2.9 / 14 for i in range(15))]
-        self.ribbon(gust, 5, RUBY, alpha * .75)
-        self.ribbon(gust, 2.5, IVORY, alpha * .95)
-        curl = [offset(tip, face, -9 + 10 * math.cos(a), 7 * math.sin(a))
-                for a in (-2.1 + i * .28 for i in range(16))]
-        self.ribbon(curl, 3.7, WIND, alpha)
+            streak = [offset(tip, face, -length * .25 * t, side * (4 + 9 * t)) for t in (0, .3, .7, 1)]
+            self.ribbon(streak, 2.2, WIND, alpha * .7)
 
     def ultimate(self, start, face, length, progress, alpha):
         origin = start[0], start[1] - 7
         core = [offset(origin, face, length * t, 0) for t in (0, .5, 1)]
+        flash = max(0., 1 - progress * 5)
+        if flash:
+            hit = offset(origin, face, length * .82, 0)
+            self.canvas.polygon([offset(hit, face, a, b) for a, b in ((-13, 0), (0, -17), (13, 0), (0, 17))],
+                                (*IVORY, flash * .8))
+        for side, hue in ((-1, WIND), (1, RUBY)):
+            converge = [offset(origin, face, length * t, side * (17 * (1 - t))) for t in (0, .25, .5, .75, 1)]
+            self.ribbon(converge, 4.2, hue, alpha * .85)
         for side, hue in ((-1, WIND), (1, RUBY)):
             edge = [offset(origin, face, length * t, side * 14) for t in (0, .25, .5, .75, 1)]
             self.ribbon(edge, 3.3, hue, alpha * .9)
@@ -244,8 +275,8 @@ class YoneVFX:
             center = offset(origin, face, length * t, 0)
             self.ribbon(ellipse(center, (8 + 8 * progress, 5 + 5 * progress)),
                         2.4, ROSE, alpha, tapered=False)
-        self.ribbon(core, 10 + 9 * progress, RUBY, alpha * .62)
-        self.ribbon(core, 4.2, IVORY, alpha * .94)
+        self.ribbon(core, 10 + 9 * progress, WIND, alpha * .65)
+        self.ribbon(core, 4.2, IVORY, alpha * .98)
         for side in (-1, 1):
             span = 10 + 11 * progress
             blade = [offset(origin, face, length * t, side * span * (2 * t - 1))
@@ -260,6 +291,11 @@ class YoneVFX:
                              side * math.sin(math.pi * t) * (5 + 8 * progress))
                       for t in (offset_start + (1 - offset_start) * i / 10 for i in range(11))]
             self.ribbon(points, 4.3, RUBY, alpha * .81)
+        head = min(1., progress * 3 + .12)
+        tip = offset(origin, face, length * head, 0)
+        for side in (-1, 1):
+            streak = [offset(tip, face, -length * .25 * t, side * (2 + 6 * t)) for t in (0, .3, .7, 1)]
+            self.ribbon(streak, 3, ROSE if returning else RUBY, alpha * .8)
         x, y = end
         self.ribbon(ellipse((x, y), (6 + 11 * progress, 3 + 6 * progress)), 2, ROSE, alpha, tapered=False)
 

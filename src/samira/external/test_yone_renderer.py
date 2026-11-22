@@ -116,6 +116,26 @@ class YoneRendererTests(unittest.TestCase):
         self.assertGreater(float(spirit[:, :, 2].mean()), float(normal[:, :, 2].mean()) + 5)
         self.assertEqual(self.ctx.error, 'GL_NO_ERROR')
 
+    def test_skill_effects_change_shape_during_their_motion(self):
+        from run_testroom_renderer import YoneRenderer
+        renderer = YoneRenderer(self.ctx, Path('unavailable-yone.glb'))
+        self.addCleanup(renderer.close)
+        state = {'kind': 'idle', 'screen': [160, 160], 'position': [40, 100],
+                 'face': [1, 0], 'clock': 120}
+        for kind in ('q3', 'w', 'r', 'e_return'):
+            event = {'kind': kind, 'age': .04, 'origin': [40, 100], 'target': [110, 100]}
+            state['yone'] = {'fx': [event]}
+            self.fbo.clear(0, 0, 0, 0)
+            renderer.draw(state, 0)
+            early = self.pixels().copy()
+            event['age'] = .14
+            self.fbo.clear(0, 0, 0, 0)
+            renderer.draw(state, 0)
+            late = self.pixels().copy()
+            self.assertTrue(early.any() and late.any(), kind)
+            self.assertFalse(np.array_equal(early, late), kind)
+            self.assertEqual(self.ctx.error, 'GL_NO_ERROR')
+
     def test_expired_spirit_stays_visible_until_authoritative_recall(self):
         from run_testroom_renderer import YoneRenderer
         with tempfile.TemporaryDirectory() as folder:
@@ -330,6 +350,22 @@ class YoneRendererTests(unittest.TestCase):
 
 
 class YoneAnimationTests(unittest.TestCase):
+    def test_compound_clips_follow_lua_impact_and_landing(self):
+        from run_testroom_renderer import yone_animation, yone_dash_position
+
+        clips = {"q3_in": .4, "q3": .467, "q3_out": .067,
+                 "e_return": .167, "e_return_out": 1.167}
+        state = {"kind": "q3", "phase": 6 / 22, "yoneTiming": {"hit": 9, "length": 22}}
+        self.assertEqual(yone_animation(state, clips)[0], "q3_in")
+        self.assertEqual(yone_animation(dict(state, phase=9 / 22), clips), ("q3", 0))
+        self.assertEqual(yone_animation(dict(state, phase=20 / 22), clips), ("q3_out", 0))
+        self.assertEqual(yone_animation({"kind": "e_return", "phase": .65}, clips)[0], "e_return_out")
+        dash = {"kind": "q3", "origin": [10, 50], "target": [140, 50], "landing": [70, 50]}
+        self.assertEqual(yone_dash_position(state, dict(dash, age=0)), (10, 50))
+        self.assertEqual(yone_dash_position(state, dict(dash, age=1 / 12)), (40, 50))
+        self.assertIsNone(yone_dash_position(state, dict(dash, age=.24)))
+        self.assertIsNone(yone_dash_position(dict(state, kind="r"), dict(dash, age=0)))
+
     def test_ultimate_in_and_out_cover_windup_and_recovery(self):
         from run_testroom_renderer import yone_animation
 

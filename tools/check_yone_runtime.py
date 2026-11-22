@@ -116,6 +116,7 @@ assert(rangeLines >= 4, 'holding Q did not draw its world-space range')
 Isaac.DrawLine = oldDrawLine
 tick(nil, false, player.Position + Vector(100, 0))
 assert(packet.clip == 'q' and packet.hero == 'yone')
+assert(packet.yoneTiming.hit == 6 and packet.yoneTiming.length == 16, 'Q timing was not exported to Companion')
 assert(lastCast == 'q', 'Yone ability did not reach item cast hooks')
 for _ = 1, 7 do tick() end
 local stackedHud = captureHud()
@@ -129,6 +130,7 @@ for _ = 1, 7 do tick() end
 local doubleStackHud = captureHud()
 sameSlots(readyHud, doubleStackHud)
 assert(doubleStackHud['++'] and doubleStackHud['+'] == nil, 'Q lost its second charge')
+assert(packet.yone.qReady == true, 'charged Q state was omitted from the visual packet')
 entities = {}
 for _ = 1, 18 do tick() end
 

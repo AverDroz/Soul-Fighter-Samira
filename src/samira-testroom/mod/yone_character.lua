@@ -17,7 +17,7 @@ local abilityRecast = {.56, .83, 1, 1}
 local abilityHudPalette
 local abilityFont
 local aimColors = {
-    q = {.60, .93, 1}, w = {.99, .49, .60}, e = {.99, .39, .65}, r = {1, .73, .59},
+    q = {.60, .93, 1}, w = {.99, .49, .60}, e = {.99, .39, .65}, r = {1, .53, .73},
 }
 local numberKeys = {Keyboard.KEY_1, Keyboard.KEY_2, Keyboard.KEY_3, Keyboard.KEY_4, Keyboard.KEY_5, Keyboard.KEY_6}
 local controls = {
@@ -202,10 +202,10 @@ local function drawAim(room, combat, player, clock, key)
     local ready = casting or (clock >= (combat.ready[key] or 0))
         or key == 'e' and combat.spirit and clock >= combat.spirit.recastAt
     local edge = KColor(r, g, b, ready and .93 or .35)
-    local fill = KColor(r, g, b, ready and .15 or .06)
+    local fill = KColor(r, g, b, casting and .25 or (ready and .15 or .06))
     local function project(point) return screenPoint(room, point) end
     local function line(a, b, color)
-        Isaac.DrawLine(a, b, color, color, 1)
+        Isaac.DrawLine(a, b, color, color, casting and color == edge and 2 or 1)
     end
     local start = project(area.origin)
     if area.shape == 'sector' then
@@ -236,10 +236,11 @@ local function visualSnapshot(room, picture)
     local function point(world)
         return {mirrorPosition(room, Isaac.WorldToScreen(world))}
     end
-    local snapshot = {shield = picture.shield, fx = {}}
+    local snapshot = {shield = picture.shield, qReady = picture.qReady, fx = {}}
     for i, event in ipairs(picture.fx) do
         snapshot.fx[i] = {id = event.id, kind = event.kind, age = event.age,
             origin = point(event.origin), target = point(event.target)}
+        if event.landing then snapshot.fx[i].landing = point(event.landing) end
         if event.footprint and event.footprint.shape == 'sector' then
             snapshot.fx[i].arc = sectorArc(event.footprint, point)
         end
@@ -295,7 +296,7 @@ local function emit(game, state, player, force, picture)
     local x, y = mirrorPosition(room, Isaac.WorldToScreen(player.Position))
     local face = state.combat.face
     local fx = room:IsMirrorWorld() and -face.X or face.X
-    local action, phase = Combat.presentation(state.combat, clock)
+    local action, phase, hit, length = Combat.presentation(state.combat, clock)
     local expression, actionFrame = Emotes.action(state.emotes, clock)
     if expression then action, phase = expression, 0 end
     local looping = not action
@@ -310,6 +311,7 @@ local function emit(game, state, player, force, picture)
         session = state.id, room = state.room, seq = state.seq, time = now, clock = clock,
         screen = {width, height}, display = display, position = {x, y}, face = {fx, face.Y},
         kind = action, clip = action, phase = phase, looping = looping,
+        yoneTiming = not expression and hit and {hit = hit, length = length} or nil,
         actionFrame = actionFrame, actionId = expression and (clock - actionFrame) or nil,
         bodyScale = player.SpriteScale and {player.SpriteScale.X, player.SpriteScale.Y} or {1, 1},
         paused = game:IsPaused(), transition = state.leaving or RoomTransition.GetTransitionMode() ~= 0,

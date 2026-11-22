@@ -17,6 +17,8 @@ YONE_DANCE_INTRO_SECONDS=3.1
 YONE_SPIRIT_SECONDS=5
 YONE_ANCHORED_CASTS={'attack','attack2','q','q_follow','q3','q3_in','q3_out','w','e','e_dash',
                      'e_return','e_return_out','r','r_out'}
+YONE_CAST_TICKS={'q':(6,16),'q3':(7,22),'w':(8,22),'e':(3,14),'e_return':(0,13),'r':(23,40)}
+YONE_DASH_TICKS={'q3':5,'e':2,'e_return':5}
 
 def actor_yaw(state):
     x, y = state["face"]
@@ -62,14 +64,43 @@ def actor_phase(state):
 
 def yone_animation(state,durations):
     clip=state.get('clip') or state['kind']
-    # Combat's normalized action spans windup and recovery; R has two authored clips.
-    # The impact is the boundary between the in and out animations.
-    if clip == 'r' and durations.get('r') and durations.get('r_out'):
-        phase = min(1., max(0., state['phase']))
-        impact = 23 / 40
-        if phase < impact:
-            return 'r', phase / impact
-        return 'r_out', (phase - impact) / (1 - impact)
+    if clip in YONE_CAST_TICKS:
+        hit, length = YONE_CAST_TICKS[clip]
+        timing = state.get('yoneTiming')
+        if isinstance(timing, dict):
+            impact, total = timing.get('hit'), timing.get('length')
+            if type(impact) is int and type(total) is int and 0 <= impact < total <= 120:
+                hit, length = impact, total
+        tick = min(1., max(0., state['phase'])) * length
+        if clip == 'q3' and durations.get('q3_in') and durations.get('q3_out'):
+            end = max(hit + 1, length - 2)
+            if tick < hit:
+                return 'q3_in', tick / hit
+            if tick < end:
+                return 'q3', (tick - hit) / (end - hit)
+            return 'q3_out', min(1., (tick - end) / 2)
+        if clip == 'r' and durations.get('r_out'):
+            if tick < hit:
+                return 'r', tick / hit
+            return 'r_out', min(1., (tick - hit) / (30 * durations['r_out']))
+        if clip == 'e' and durations.get('e_dash'):
+            if tick < hit:
+                return 'e', tick / hit
+            if tick < hit + YONE_DASH_TICKS['e']:
+                return 'e_dash', (tick - hit) / YONE_DASH_TICKS['e']
+            return 'idle', state.get('clock', 0) / 60 % 1
+        if clip == 'e_return' and durations.get('e_return_out'):
+            travel = YONE_DASH_TICKS['e_return']
+            if tick < travel:
+                return 'e_return', tick / travel
+            return 'e_return_out', min(1., (tick - travel) / (30 * durations['e_return_out']))
+        if clip in ('q', 'w') and hit:
+            # Place the extended steel thrust and the middle of the cleave on
+            # the damage tick while preserving their different silhouettes.
+            contact = .75 if clip == 'q' else .58
+            if tick < hit:
+                return clip, tick / hit * contact
+            return clip, contact + (1 - contact) * ((tick - hit) / (length - hit))
     ticks=state.get('actionFrame')
     duration=durations.get(clip)
     if ticks is None or clip not in YONE_EMOTES or not duration:
@@ -82,6 +113,28 @@ def yone_animation(state,durations):
     if clip=='taunt' and seconds>=duration and durations.get('taunt_loop'):
         return 'taunt_loop',((seconds-duration)/durations['taunt_loop'])%1
     return clip,min(1,seconds/duration)
+
+
+def yone_dash_position(state, event):
+    kind = state['kind']
+    ticks = YONE_DASH_TICKS.get(kind)
+    if not ticks or event.get('kind') != kind:
+        return None
+    age = event.get('age')
+    start = event.get('origin')
+    end = event.get('landing') if kind == 'q3' else event.get('target')
+    if (not isinstance(age, (int, float)) or not math.isfinite(age)
+            or not all(isinstance(p, (list, tuple)) and len(p) == 2
+                       and all(isinstance(x, (int, float)) and math.isfinite(x) for x in p)
+                       for p in (start, end))):
+        return None
+    clock = state.get('clock', 0)
+    elapsed = max(0., age * 30 - max(0., state.get('packetClock', clock) - clock))
+    if elapsed >= ticks or start == end:
+        return None
+    progress = elapsed / ticks
+    progress = progress * progress * (3 - 2 * progress)
+    return tuple(a + (b - a) * progress for a, b in zip(start, end))
 
 
 class YoneRenderer:
@@ -118,6 +171,17 @@ class YoneRenderer:
             return False,{}
         capabilities={};model_drawn=badge_drawn=False
         spirit=None
+        dash=None
+        if state['kind'] in YONE_DASH_TICKS:
+            picture=state.get('yone')
+            events=picture.get('fx') if isinstance(picture,dict) else None
+            for event in reversed(events[-24:] if isinstance(events,(list,tuple)) else ()):
+                if isinstance(event,dict) and event.get('kind') == state['kind']:
+                    dash=yone_dash_position(state,event)
+                    break
+            if dash is not None:
+                state=dict(state,position=dash)
+        recalling = dash is not None and state['kind'] == 'e_return'
         if self.vfx:
             try:
                 spirit=self.vfx.begin(state)
@@ -129,6 +193,10 @@ class YoneRenderer:
                     self.actor.draw('e_body',phase,tuple(spirit['anchor']),tuple(state['screen']),yaw,dt,
                                     clip='e_body',detached=True,form='body',opacity=.46+.43*remaining,
                                     body_scale=state.get('bodyScale',(1,1)),anchor_root=True)
+                elif recalling and self.actor and 'e_body' in self.actor.model.tracks:
+                    self.actor.draw('e_body',0,tuple(event['target']),tuple(state['screen']),actor_yaw(state),dt,
+                                    clip='e_body',detached=True,form='body',opacity=.85,
+                                    body_scale=state.get('bodyScale',(1,1)),anchor_root=True)
             except Exception as error:
                 self.disable_vfx(error);spirit=None
         if self.actor:
@@ -137,7 +205,9 @@ class YoneRenderer:
                 self.actor.draw(state['kind'],phase,tuple(state['position']),tuple(state['screen']),actor_yaw(state),dt,
                                 clip=clip,hurt=state.get('hurt',False),body_scale=state.get('bodyScale',(1,1)),
                                 anchor_root=clip in YONE_ANCHORED_CASTS,
-                                form='spirit' if spirit else None,opacity=.90 if spirit else 1)
+                                blend_seconds=.025 if clip in YONE_ANCHORED_CASTS else .10,
+                                snap_facing=clip in YONE_ANCHORED_CASTS,
+                                form='spirit' if spirit or recalling else None,opacity=.90 if spirit or recalling else 1)
                 model_drawn=True
                 capabilities['yoneModel']=True
             except Exception as error:

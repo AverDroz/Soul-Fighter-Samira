@@ -103,7 +103,7 @@ function Combat.cast(state, input, player, aim, clock)
     end
 
     local skill = skills[key]
-    local delta = aim - player.Position
+    local delta = (key == 'e_return' and state.spirit.anchor or aim) - player.Position
     if delta:Length() > .01 then state.face = delta:Normalized() end
     local clip = key == 'attack' and state.secondBlade and 'attack2' or key
     state.action = {key = clip, at = clock, finish = clock + skill.duration}
@@ -276,11 +276,12 @@ local function landing(room, entity, start, goal)
     return start
 end
 
-local function effect(state, clock, kind, origin, target, footprint)
+local function effect(state, clock, kind, origin, target, footprint, landingPoint)
     state.effectSerial = state.effectSerial + 1
     local effects = state.effects
     if #effects == effectLimit then table.remove(effects, 1) end
-    effects[#effects + 1] = {id = state.effectSerial, at = clock, kind = kind, origin = origin, target = target, footprint = footprint}
+    effects[#effects + 1] = {id = state.effectSerial, at = clock, kind = kind,
+        origin = origin, target = target, footprint = footprint, landing = landingPoint}
 end
 
 local function lineEnd(room, start, facing, reach)
@@ -296,6 +297,8 @@ local function returnSpirit(state, room, player, clock)
     if not spirit then return end
     state.spirit = nil
     local start = player.Position
+    local toAnchor = spirit.anchor - start
+    if toAnchor:Length() > .01 then state.face = toAnchor:Normalized() end
     if Combat.clearPoint(room, player, spirit.anchor) then teleport(player, spirit.anchor) end
     effect(state, clock, 'e_return', start, player.Position)
     state.action = {key = 'e_return', at = clock, finish = clock + skills.e_return.duration}
@@ -344,7 +347,7 @@ local function resolve(state, room, player, enemies, strike, clock)
         blade(state, room, player, enemies, strike, footprint.width, reach, 1.6)
         breakProps(room, start, facing, footprint.width, reach)
         teleport(player, safeDestination(room, player, start, start + facing * 90))
-        effect(state, clock, key, start, lineEnd(room, start, facing, reach))
+        effect(state, clock, key, start, lineEnd(room, start, facing, reach), nil, player.Position)
     elseif key == 'w' then
         if blade(state, room, player, enemies, strike, 0, footprint.reach, 1.15, true) then
             state.shieldUntil = clock + 60
@@ -393,7 +396,9 @@ end
 function Combat.presentation(state, clock)
     local action = state.action
     if action and clock < action.finish then
-        return action.key, math.max(0, (clock - action.at) / (action.finish - action.at))
+        local length = action.finish - action.at
+        local skill = skills[action.key]
+        return action.key, math.max(0, (clock - action.at) / length), skill and skill.windup, length
     end
 end
 
@@ -403,12 +408,12 @@ function Combat.inMeleeRange(room, player, target, items)
 end
 
 function Combat.visual(state, clock)
-    local picture = {fx = {}, shield = clock < (state.shieldUntil or 0)}
+    local picture = {fx = {}, shield = clock < (state.shieldUntil or 0), qReady = state.qStacks == 2}
     for _, event in ipairs(state.effects) do
         local age = clock - event.at
         if age >= 0 and age < effectFrames then
             picture.fx[#picture.fx + 1] = {id = event.id, kind = event.kind, age = age / 30,
-                origin = event.origin, target = event.target, footprint = event.footprint}
+                origin = event.origin, target = event.target, footprint = event.footprint, landing = event.landing}
         end
     end
     local spirit = state.spirit
