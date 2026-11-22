@@ -2,7 +2,7 @@
 
 Включи **Soul Fighter Samira** в Repentance+ с REPENTOGON, затем выбери **Yone** в новом одиночном забеге. Ёнэ начинает с трёх красных сердец. В личной Windows-сборке с моделью перед запуском игры открой `launch.cmd`, чтобы запустить Companion.
 
-Для автоматической установки и запуска на Windows скачай готовый `Install-Yone.cmd` из выпуска. Установщик обновит `samira_testroom` в каталоге модов, который использует REPENTOGON, и проверит обе анимации выбора. Для загрузки нового меню полностью перезапусти Isaac. [Установщик Ёнэ](https://github.com/N1kromant/Soul-Fighter-Samira/releases/download/yone-immersion-v6/Install-Yone.cmd)
+Для автоматической установки и запуска на Windows скачай готовый `Install-Yone.cmd` из выпуска. Установщик обновит `samira_testroom` в каталоге модов, который использует REPENTOGON, и проверит обе анимации выбора. Для загрузки нового меню полностью перезапусти Isaac. [Установщик Ёнэ](https://github.com/N1kromant/Soul-Fighter-Samira/releases/download/yone-immersion-v7/Install-Yone.cmd)
 
 Полноэкранный режим у Ёнэ работает через окно без рамки. После смены режима или размера окна Companion проверяет новую область отрисовки, а штатный спрайт остаётся видимым до подтверждения свежего кадра. Q/W/E/R занимают фиксированные слоты и учитывают положение рюкзака.
 
@@ -40,7 +40,7 @@ Trinity Force исключён из бонусной витрины Ёнэ. На
 Из репозитория можно запустить боевые механики и значок мастерства. Для модели и оригинальных анимаций установи зависимости и импортируй классические материалы из своего клиента League of Legends. Архив Hero Studio бери из закреплённого источника. Скрипт проверяет контрольную сумму архива. [Hero Studio v1.0.0](https://github.com/TFOS4/Isaac-LoL-HeroStudio/releases/tag/v1.0.0)
 
 ```powershell
-python -m pip install 'cdtb==1.3.0' numpy
+python -m pip install 'cdtb==1.3.0' numpy Pillow
 python tools/import_yone_assets.py --wad '<League of Legends>/Game/DATA/FINAL/Champions/Yone.wad.client' --herostudio-archive '<путь к архиву Hero Studio>'
 ```
 

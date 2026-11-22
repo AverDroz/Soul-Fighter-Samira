@@ -93,6 +93,13 @@ function Test-YoneRoster([string]$Path) {
             if ($menu.SelectNodes('/AnimatedActor/Animations/Animation[@Name="Yone"]').Count -ne 1) {
                 return $false
             }
+            $layers = $menu.SelectNodes('/AnimatedActor/Content/Layers/Layer')
+            $expected = if ($file -eq 'charactermenu.anm2') { '0,1,2,3,4' } else { '0' }
+            if ((($layers | ForEach-Object { $_.GetAttribute('Id') }) -join ',') -cne $expected) { return $false }
+            foreach ($animation in $menu.SelectNodes('/AnimatedActor/Animations/Animation')) {
+                $tracks = $animation.SelectNodes('LayerAnimations/LayerAnimation')
+                if ((($tracks | ForEach-Object { $_.GetAttribute('LayerId') }) -join ',') -cne $expected) { return $false }
+            }
         }
         return $true
     } catch { return $false }
@@ -135,7 +142,7 @@ function Install-OwnedMod([string]$Source, [string]$Mods) {
         throw 'В архиве отсутствует рабочая копия Soul Fighter Samira.'
     }
     if (-not (Test-YoneRoster $Source)) {
-        throw 'В архиве отсутствует Ёнэ или одна из его анимаций меню выбора.'
+        throw 'Архив не прошёл проверку записи Ёнэ и слоёв меню выбора.'
     }
     $source = [IO.Path]::GetFullPath($Source).TrimEnd('\', '/')
     $modsFull = [IO.Path]::GetFullPath($Mods)
@@ -370,7 +377,7 @@ function Get-LauncherArguments([string]$Isaac) {
 if ($LibraryOnly) { return }
 
 $releaseHash = '__YONE_RELEASE_SHA256__'
-$releaseUrl = 'https://github.com/N1kromant/Soul-Fighter-Samira/releases/download/yone-immersion-v6/Soul-Fighter-Samira-Yone-Roster-Windows.zip'
+$releaseUrl = 'https://github.com/N1kromant/Soul-Fighter-Samira/releases/download/yone-immersion-v7/Soul-Fighter-Samira-Yone-MenuHotfix-Windows.zip'
 $launcherHash = '7e4a45d8b9f099ea79e42f86bc24c2a05b35e239d7bc4d597c11b5bceaccfd6a'
 $launcherUrl = 'https://github.com/TeamREPENTOGON/Launcher/releases/download/v0.4.9-beta/REPENTOGONLauncher.zip'
 $cache = Join-Path $env:LOCALAPPDATA 'YoneInstaller'
@@ -419,7 +426,7 @@ try {
     Write-Host "Папка обмена Companion: $($paths.Status)"
     Assert-ModDestination (Join-Path $paths.Mods $modDirectory)
 
-    $releaseZip = Join-Path $cache 'Yone-Roster.zip'
+    $releaseZip = Join-Path $cache 'Yone-MenuHotfix.zip'
     $launcherZip = Join-Path $cache 'REPENTOGONLauncher-0.4.9-beta.zip'
     Get-VerifiedFile $releaseUrl $releaseZip $releaseHash
     Get-VerifiedFile $launcherUrl $launcherZip $launcherHash

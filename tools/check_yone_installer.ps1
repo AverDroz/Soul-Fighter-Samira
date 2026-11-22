@@ -20,6 +20,14 @@ function Write-Fixture([string]$Path, [string]$Content, [Text.Encoding]$Encoding
     [IO.File]::WriteAllText($Path, $Content, $Encoding)
 }
 
+function New-MenuFixture([int[]]$Ids) {
+    $layers = ($Ids | ForEach-Object { "<Layer Id=`"$_`" />" }) -join ''
+    $tracks = ($Ids | ForEach-Object { "<LayerAnimation LayerId=`"$_`" />" }) -join ''
+    return ('<AnimatedActor><Content><Layers>' + $layers + '</Layers></Content>' +
+        '<Animations><Animation Name="Yone"><LayerAnimations>' + $tracks +
+        '</LayerAnimations></Animation></Animations></AnimatedActor>')
+}
+
 $temp = [IO.Path]::GetTempPath()
 $fixture = Join-Path $temp ('Yone-test-' + [guid]::NewGuid().ToString('N'))
 $ourMetadata = '<metadata><name>Soul Fighter Samira</name><directory>samira_testroom</directory></metadata>'
@@ -60,12 +68,16 @@ try {
     try { Install-OwnedMod $source $mods } catch { $missingRoster = $true }
     Assert ($missingRoster -and -not [IO.Directory]::Exists($destination)) 'A Samira-only package was installed as Yone'
     Write-Fixture (Join-Path $source 'content\players.xml') '<players><player name="Samira" /><player name="Yone" /></players>'
-    $menu = '<AnimatedActor><Animations><Animation Name="Yone" /></Animations></AnimatedActor>'
-    Write-Fixture (Join-Path $source 'content\gfx\charactermenu.anm2') $menu
+    Write-Fixture (Join-Path $source 'content\gfx\charactermenu.anm2') (New-MenuFixture @(0, 1, 2, 3, 4))
     $missingPortrait = $false
     try { Install-OwnedMod $source $mods } catch { $missingPortrait = $true }
     Assert ($missingPortrait -and -not [IO.Directory]::Exists($destination)) 'A package without Yone portrait animation was installed'
-    Write-Fixture (Join-Path $source 'content\gfx\characterportraits.anm2') $menu
+    $portrait = Join-Path $source 'content\gfx\characterportraits.anm2'
+    Write-Fixture $portrait ((New-MenuFixture @(0, 1)).Replace('<LayerAnimation LayerId="0" />', ''))
+    $sparse = $false
+    try { Install-OwnedMod $source $mods } catch { $sparse = $true }
+    Assert ($sparse -and -not [IO.Directory]::Exists($destination)) 'Sparse v6 portrait tracks were accepted'
+    Write-Fixture $portrait (New-MenuFixture @(0))
     Write-Fixture (Join-Path $mods 'unrelated\personal.txt') 'retain'
     Install-OwnedMod $source $mods
     Assert ([IO.File]::ReadAllText((Join-Path $destination 'main.lua')) -eq 'fresh') 'Fresh install did not write the mod'

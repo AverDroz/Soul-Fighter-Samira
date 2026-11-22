@@ -1,4 +1,4 @@
-"""Validate the two character-selection ANM2 files and all texture crops."""
+"""Validate the shared layer layout and texture crops in both character menus."""
 from pathlib import Path
 import xml.etree.ElementTree as ET
 from PIL import Image
@@ -13,6 +13,11 @@ for filename in ('characterportraits.anm2', 'charactermenu.anm2'):
     layers = {l.get('Id'): l.get('SpritesheetId') for l in actor.findall('./Content/Layers/Layer')}
     animations = actor.findall('./Animations/Animation')
     assert {'Samira', 'Yone'} <= {a.get('Name') for a in animations}
+    expected_layers = ['0'] if filename == 'characterportraits.anm2' else ['0', '1', '2', '3', '4']
+    for animation in animations:
+        tracks = [layer.get('LayerId') for layer in animation.findall('./LayerAnimations/LayerAnimation')]
+        assert tracks == expected_layers, (filename, animation.get('Name'), tracks, expected_layers)
+    assert list(layers) == expected_layers, (filename, list(layers), expected_layers)
     for animation in animations:
         for layer in animation.findall('./LayerAnimations/LayerAnimation'):
             path = GFX / sheets[layers[layer.get('LayerId')]]
@@ -22,11 +27,12 @@ for filename in ('characterportraits.anm2', 'charactermenu.anm2'):
                     x, y = int(frame.get('XCrop')), int(frame.get('YCrop'))
                     w, h = int(frame.get('Width')), int(frame.get('Height'))
                     assert w > 0 and h > 0 and x + w <= image.width and y + h <= image.height, (filename, path, frame.attrib)
-    yone = next(a for a in animations if a.get('Name') == 'Yone')
-    used = {sheets[layers[l.get('LayerId')]] for l in yone.findall('./LayerAnimations/LayerAnimation')}
-    assert 'yone_menu_model.png' in used
-    if filename == 'charactermenu.anm2':
-        assert {'yone_menu_name.png', 'samira_menu_paper.png'} <= used
+    by_name = {a.get('Name'): a for a in animations}
+    art_layers = ['0'] if filename == 'characterportraits.anm2' else ['3', '4']
+    for layer_id in art_layers:
+        query = f'./LayerAnimations/LayerAnimation[@LayerId="{layer_id}"]/Frame'
+        samira, yone = (by_name[name].find(query) for name in ('Samira', 'Yone'))
+        assert int(yone.get('YCrop')) >= int(samira.get('YCrop')) + int(samira.get('Height')), (filename, layer_id)
 for path in (ROOT / 'resources/gfx/samira/yone-portrait.png', Path(__file__).resolve().parents[1] / 'assets/yone-local/yone-portrait.png'):
     if path.exists():
         with Image.open(path) as image:
