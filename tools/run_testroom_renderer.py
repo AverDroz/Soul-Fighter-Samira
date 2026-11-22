@@ -4,7 +4,7 @@ import argparse,json,math,os,sys,time
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'work/render-deps'))
 sys.path.insert(0,str(ROOT/'src/samira/external'))
-from model import Model,GPURenderer
+from model import Model,GPURenderer,YONE_VIEW
 from bridge import BufferedTail
 from display_geometry import DisplayGate
 from layered_surface import LayeredFrame
@@ -20,8 +20,12 @@ YONE_ANCHORED_CASTS={'attack','attack2','q','q_follow','q3','q3_in','q3_out','w'
 YONE_CAST_TICKS={'q':(6,16),'q3':(7,22),'w':(8,22),'e':(3,14),'e_return':(0,13),'r':(23,40)}
 YONE_DASH_TICKS={'q3':5,'e':2,'e_return':5}
 
-def actor_yaw(state):
+def actor_yaw(state, view=None):
     x, y = state["face"]
+    if view is not None:
+        x, y = state.get("viewFace") or (x, y)
+        sx, sy = state.get("bodyScale", (1, 1))
+        return math.pi / 2 - math.atan2(y / (view[1] * (sy or 1)), x / (sx or 1))
     if state["kind"] == "QMelee":
         visual = state.get("visual") or {}
         skill = visual.get("skill") or {}
@@ -72,13 +76,19 @@ def yone_animation(state,durations):
             if type(impact) is int and type(total) is int and 0 <= impact < total <= 120:
                 hit, length = impact, total
         tick = min(1., max(0., state['phase'])) * length
+        if clip == 'q' and hit and durations.get('q_follow'):
+            if tick < hit:
+                return 'q', tick / hit
+            return 'q_follow', (tick - hit) / (length - hit)
         if clip == 'q3' and durations.get('q3_in') and durations.get('q3_out'):
-            end = max(hit + 1, length - 2)
+            end = hit + YONE_DASH_TICKS['q3']
             if tick < hit:
                 return 'q3_in', tick / hit
             if tick < end:
                 return 'q3', (tick - hit) / (end - hit)
-            return 'q3_out', min(1., (tick - end) / 2)
+            if tick < end + 2:
+                return 'q3_out', (tick - end) / 2
+            return yone_movement_animation(state)
         if clip == 'r' and durations.get('r_out'):
             if tick < hit:
                 return 'r', tick / hit
@@ -88,7 +98,7 @@ def yone_animation(state,durations):
                 return 'e', tick / hit
             if tick < hit + YONE_DASH_TICKS['e']:
                 return 'e_dash', (tick - hit) / YONE_DASH_TICKS['e']
-            return 'idle', state.get('clock', 0) / 60 % 1
+            return yone_movement_animation(state)
         if clip == 'e_return' and durations.get('e_return_out'):
             travel = YONE_DASH_TICKS['e_return']
             if tick < travel:
@@ -113,6 +123,11 @@ def yone_animation(state,durations):
     if clip=='taunt' and seconds>=duration and durations.get('taunt_loop'):
         return 'taunt_loop',((seconds-duration)/durations['taunt_loop'])%1
     return clip,min(1,seconds/duration)
+
+
+def yone_movement_animation(state):
+    clock = state.get('clock', 0)
+    return ('run', clock / 24 % 1) if state.get('yoneMoving') else ('idle', clock / 60 % 1)
 
 
 def yone_dash_position(state, event):
@@ -185,26 +200,27 @@ class YoneRenderer:
         if self.vfx:
             try:
                 spirit=self.vfx.begin(state)
-                if spirit and self.actor and 'e_body' in self.actor.model.tracks:
-                    remaining=spirit['remaining']
+                body=spirit
+                if recalling:
+                    body={'anchor':event['target'],'face':state['face'],
+                          'viewFace':event.get('bodyFace'),'remaining':event.get('bodyRemaining',1)}
+                if body and self.actor and 'e_body' in self.actor.model.tracks:
+                    remaining=body['remaining']
                     duration=self.actor.model.durations['e_body']
                     phase=((1-remaining)*YONE_SPIRIT_SECONDS/duration)%1
-                    yaw=actor_yaw({'kind':'e_body','face':spirit['face']})
-                    self.actor.draw('e_body',phase,tuple(spirit['anchor']),tuple(state['screen']),yaw,dt,
+                    scale=state.get('bodyScale',(1,1))
+                    yaw=actor_yaw({'face':body['face'],'viewFace':body.get('viewFace'),'bodyScale':scale},YONE_VIEW)
+                    self.actor.draw('e_body',phase,tuple(body['anchor']),tuple(state['screen']),yaw,dt,
                                     clip='e_body',detached=True,form='body',opacity=.46+.43*remaining,
-                                    body_scale=state.get('bodyScale',(1,1)),anchor_root=True)
-                elif recalling and self.actor and 'e_body' in self.actor.model.tracks:
-                    self.actor.draw('e_body',0,tuple(event['target']),tuple(state['screen']),actor_yaw(state),dt,
-                                    clip='e_body',detached=True,form='body',opacity=.85,
-                                    body_scale=state.get('bodyScale',(1,1)),anchor_root=True)
+                                    body_scale=scale,anchor_root=True)
             except Exception as error:
                 self.disable_vfx(error);spirit=None
         if self.actor:
             try:
                 clip,phase=yone_animation(state,self.actor.model.durations)
-                self.actor.draw(state['kind'],phase,tuple(state['position']),tuple(state['screen']),actor_yaw(state),dt,
+                self.actor.draw(state['kind'],phase,tuple(state['position']),tuple(state['screen']),actor_yaw(state,YONE_VIEW),dt,
                                 clip=clip,hurt=state.get('hurt',False),body_scale=state.get('bodyScale',(1,1)),
-                                anchor_root=clip in YONE_ANCHORED_CASTS,
+                                anchor_root=clip in YONE_ANCHORED_CASTS or clip in ('idle','run'),
                                 blend_seconds=.025 if clip in YONE_ANCHORED_CASTS else .10,
                                 snap_facing=clip in YONE_ANCHORED_CASTS,
                                 form='spirit' if spirit or recalling else None,opacity=.90 if spirit or recalling else 1)

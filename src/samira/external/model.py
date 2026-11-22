@@ -5,6 +5,8 @@ import numpy as np
 from PIL import Image
 
 MAX_BONES=192
+SAMIRA_VIEW=(.819152,.573576)
+YONE_VIEW=(.642788,.766044)  # 50-degree elevation for the Isaac view of this rig.
 FORMS={None:0,'body':1,'spirit':2}
 OUTLINE_COLORS={None:(.018,.012,.022),'body':(.34,.21,.31),'spirit':(.94,.24,.46)}
 CLIPS={'Idle':'idle_gun','Walk':'run_gun_base','Attack':'attack1_gun_hit',
@@ -142,8 +144,11 @@ class Model:
         # but do not add the clip's horizontal travel on top of that collision.
         root=self.node_names.get(self.rig_events.get('motion_root','Root'))
         if root is None:return pose
-        if kind not in self.motion_anchors:self.motion_anchors[kind]=self.sample(kind,0)[0][root].copy()
-        t=pose[0].copy();delta=self.motion_anchors[kind][[0,2]]-t[root,[0,2]]
+        # Yone's sequenced source clips carry different start offsets. Use one
+        # neutral translation so switching clips cannot move the floor anchor.
+        reference=self.idle_clip if self.hero=='yone' else kind
+        if reference not in self.motion_anchors:self.motion_anchors[reference]=self.sample(reference,0)[0][root].copy()
+        t=pose[0].copy();delta=self.motion_anchors[reference][[0,2]]-t[root,[0,2]]
         t[root,[0,2]]+=delta
         # Yone's sheath is a parallel root and must follow the same correction.
         sheath=self.node_names.get('Sheath') if self.hero=='yone' else None
@@ -195,12 +200,13 @@ VERTEX='''#version 330
 in vec3 position; in vec2 uv; in vec4 joints; in vec4 weights;
 layout(std140) uniform Bones { mat4 bones[%d]; };
 uniform vec2 viewport; uniform vec2 origin; uniform vec2 bodyScale; uniform float scale; uniform float yaw;
+uniform vec2 view;
 out vec2 texcoord;
 void main(){
  mat4 skin=bones[int(joints.x)]*weights.x+bones[int(joints.y)]*weights.y+bones[int(joints.z)]*weights.z+bones[int(joints.w)]*weights.w;
  vec3 p=(skin*vec4(position,1)).xyz;
  float x=p.x*cos(yaw)+p.z*sin(yaw), z=-p.x*sin(yaw)+p.z*cos(yaw);
- float up=p.y*0.819152-z*0.573576, depth=p.y*0.573576+z*0.819152;
+ float up=p.y*view.x-z*view.y, depth=p.y*view.y+z*view.x;
  vec2 pixel=origin+vec2(x,-up)*scale*bodyScale;
  gl_Position=vec4(pixel.x/viewport.x*2-1,1-pixel.y/viewport.y*2,-depth*scale*.001,1);
  texcoord=uv;
@@ -254,6 +260,7 @@ class GPURenderer:
     def __init__(self,ctx,model):
         import moderngl
         self.ctx=ctx;self.model=model;self.program=ctx.program(vertex_shader=VERTEX,fragment_shader=FRAGMENT)
+        self.view=YONE_VIEW if model.hero=='yone' else SAMIRA_VIEW
         self.outline_program=ctx.program(vertex_shader=OUTLINE_VERTEX,fragment_shader=OUTLINE_FRAGMENT)
         self.outline_quad=ctx.vertex_array(self.outline_program,[])
         self.actor_surface=None;self.actor_texture=None;self.actor_depth=None
@@ -330,6 +337,7 @@ class GPURenderer:
         if ghost is None and not detached:self.last_actor=(dict(visibility),tuple(body_scale),scale)
         self.program['bodyScale'].value=tuple(body_scale)
         p=self.program;p['viewport'].value=viewport;p['origin'].value=origin;p['scale'].value=scale;p['yaw'].value=draw_yaw;p['material'].value=0;p['hurt'].value=float(hurt)
+        p['view'].value=self.view
         p['stasis'].value=stasis
         p['opacity'].value=ghost[2] if ghost else 1 if outline else opacity
         p['ghost'].value=ghost is not None;p['form'].value=FORMS[form]
@@ -373,5 +381,5 @@ class GPURenderer:
         points={}
         for name,(joint,rest) in self.sockets.items():
             v=actual[joint]@rest;x=v[0]*np.cos(draw_yaw)+v[2]*np.sin(draw_yaw);z=-v[0]*np.sin(draw_yaw)+v[2]*np.cos(draw_yaw)
-            points[name]=(origin[0]+float(x)*scale*body_scale[0],origin[1]-float(v[1]*.819152-z*.573576)*scale*body_scale[1])
+            points[name]=(origin[0]+float(x)*scale*body_scale[0],origin[1]-float(v[1]*self.view[0]-z*self.view[1])*scale*body_scale[1])
         return points

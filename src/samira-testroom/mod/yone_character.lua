@@ -178,6 +178,11 @@ local function screenPoint(room, world)
     return Vector(mirrorPosition(room, Isaac.WorldToScreen(world)))
 end
 
+local function screenHeading(room, world, facing)
+    local direction = screenPoint(room, world + facing * 40) - screenPoint(room, world)
+    return {direction.X, direction.Y}
+end
+
 local function sectorArc(area, project)
     local halfAngle = math.deg(math.acos(area.cosine))
     local edge = area.facing * area.reach
@@ -241,6 +246,15 @@ local function visualSnapshot(room, picture)
         snapshot.fx[i] = {id = event.id, kind = event.kind, age = event.age,
             origin = point(event.origin), target = point(event.target)}
         if event.landing then snapshot.fx[i].landing = point(event.landing) end
+        if event.contacts then
+            local contacts = {}
+            for index, position in ipairs(event.contacts) do contacts[index] = point(position) end
+            snapshot.fx[i].contacts = contacts
+        end
+        if event.bodyFace then
+            snapshot.fx[i].bodyFace = screenHeading(room, event.target, event.bodyFace)
+            snapshot.fx[i].bodyRemaining = event.bodyRemaining
+        end
         if event.footprint and event.footprint.shape == 'sector' then
             snapshot.fx[i].arc = sectorArc(event.footprint, point)
         end
@@ -251,6 +265,7 @@ local function visualSnapshot(room, picture)
         for i, mark in ipairs(spirit.marks) do marks[i] = {position = point(mark.position), amount = mark.amount} end
         local x = room:IsMirrorWorld() and -spirit.face.X or spirit.face.X
         snapshot.spirit = {anchor = point(spirit.anchor), face = {x, spirit.face.Y},
+            viewFace = screenHeading(room, spirit.anchor, spirit.face),
             remaining = spirit.remaining, marks = marks}
     end
     return snapshot
@@ -310,8 +325,10 @@ local function emit(game, state, player, force, picture)
         presentation = 2, hudVisible = false, renderCaptured = not hidden,
         session = state.id, room = state.room, seq = state.seq, time = now, clock = clock,
         screen = {width, height}, display = display, position = {x, y}, face = {fx, face.Y},
+        viewFace = screenHeading(room, player.Position, face),
         kind = action, clip = action, phase = phase, looping = looping,
         yoneTiming = not expression and hit and {hit = hit, length = length} or nil,
+        yoneMoving = player.Velocity:Length() > .6,
         actionFrame = actionFrame, actionId = expression and (clock - actionFrame) or nil,
         bodyScale = player.SpriteScale and {player.SpriteScale.X, player.SpriteScale.Y} or {1, 1},
         paused = game:IsPaused(), transition = state.leaving or RoomTransition.GetTransitionMode() ~= 0,

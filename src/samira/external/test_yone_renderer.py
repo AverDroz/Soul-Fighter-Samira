@@ -116,6 +116,41 @@ class YoneRendererTests(unittest.TestCase):
         self.assertGreater(float(spirit[:, :, 2].mean()), float(normal[:, :, 2].mean()) + 5)
         self.assertEqual(self.ctx.error, 'GL_NO_ERROR')
 
+    def test_contact_bursts_require_authoritative_targets(self):
+        from run_testroom_renderer import YoneRenderer
+        renderer = YoneRenderer(self.ctx, Path('unavailable-yone.glb'))
+        self.addCleanup(renderer.close)
+        state = {'kind': 'idle', 'screen': [160, 160], 'position': [30, 120],
+                 'face': [1, 0], 'clock': 120}
+        for kind in ('r', 'e_return'):
+            event = {'kind': kind, 'age': .04, 'origin': [30, 120], 'target': [100, 120]}
+            state['yone'] = {'fx': [event]}
+            self.fbo.clear(0, 0, 0, 0)
+            renderer.draw(state, 0)
+            without = self.region(119, 32, 150, 63).copy()
+            event['contacts'] = [[135, 56], ['bad', 3]]
+            self.fbo.clear(0, 0, 0, 0)
+            renderer.draw(state, 0)
+            with_contact = self.region(119, 32, 150, 63).copy()
+            self.assertFalse(without.any(), kind)
+            self.assertGreater(np.count_nonzero(with_contact[:, :, 3]), 5, kind)
+            self.assertEqual(self.ctx.error, 'GL_NO_ERROR')
+
+    def test_q3_has_no_endpoint_hit_before_wind_front_arrives(self):
+        from run_testroom_renderer import YoneRenderer
+        renderer = YoneRenderer(self.ctx, Path('unavailable-yone.glb'))
+        self.addCleanup(renderer.close)
+        event = {'kind': 'q3', 'age': 0, 'origin': [20, 110], 'target': [130, 110],
+                 'contacts': [[130, 110]]}
+        state = {'kind': 'idle', 'screen': [160, 160], 'position': [20, 110],
+                 'face': [1, 0], 'clock': 120, 'yone': {'fx': [event]}}
+        renderer.draw(state, 0)
+        self.assertFalse(self.region(119, 86, 150, 120).any())
+        self.fbo.clear(0, 0, 0, 0)
+        event['age'] = .16
+        renderer.draw(state, 0)
+        self.assertTrue(self.region(119, 86, 150, 120).any())
+
     def test_skill_effects_change_shape_during_their_motion(self):
         from run_testroom_renderer import YoneRenderer
         renderer = YoneRenderer(self.ctx, Path('unavailable-yone.glb'))
@@ -212,7 +247,7 @@ class YoneRendererTests(unittest.TestCase):
                 footprints[kind] = self.pixels().copy()
                 alpha = self.pixels()[:, :, 3]
                 self.assertGreater(np.count_nonzero(alpha), 40)
-                if kind in ('q3', 'w', 'r', 'e_return'):
+                if kind in ('w', 'r', 'e_return'):
                     self.assertGreater(np.count_nonzero(self.region(98, 68, 119, 110)[:, :, 3]), 10)
                 event['age'] = 2
                 self.fbo.clear(0, 0, 0, 0)
@@ -350,6 +385,27 @@ class YoneRendererTests(unittest.TestCase):
 
 
 class YoneAnimationTests(unittest.TestCase):
+    def test_ordinary_q_runs_both_source_segments(self):
+        from run_testroom_renderer import yone_animation
+
+        clips = {"q": 7 / 30, "q_follow": 21 / 30}
+        state = {"kind": "q", "phase": 3 / 16}
+        self.assertEqual(yone_animation(state, clips), ("q", .5))
+        self.assertEqual(yone_animation(dict(state, phase=6 / 16), clips), ("q_follow", 0))
+        self.assertEqual(yone_animation(dict(state, phase=11 / 16), clips), ("q_follow", .5))
+
+    def test_yone_diagonal_face_survives_camera_and_sprite_scale(self):
+        import math
+        from model import YONE_VIEW
+        from run_testroom_renderer import actor_yaw
+
+        state = {"kind": "q", "face": [1, 0], "viewFace": [-3, 4], "bodyScale": [1.25, .75]}
+        yaw = actor_yaw(state, YONE_VIEW)
+        projected = math.sin(yaw) * 1.25, math.cos(yaw) * YONE_VIEW[1] * .75
+        self.assertLess(projected[0], 0)
+        self.assertGreater(projected[1], 0)
+        self.assertAlmostEqual(projected[0] / projected[1], -.75)
+
     def test_compound_clips_follow_lua_impact_and_landing(self):
         from run_testroom_renderer import yone_animation, yone_dash_position
 
@@ -358,7 +414,7 @@ class YoneAnimationTests(unittest.TestCase):
         state = {"kind": "q3", "phase": 6 / 22, "yoneTiming": {"hit": 9, "length": 22}}
         self.assertEqual(yone_animation(state, clips)[0], "q3_in")
         self.assertEqual(yone_animation(dict(state, phase=9 / 22), clips), ("q3", 0))
-        self.assertEqual(yone_animation(dict(state, phase=20 / 22), clips), ("q3_out", 0))
+        self.assertEqual(yone_animation(dict(state, phase=14 / 22), clips), ("q3_out", 0))
         self.assertEqual(yone_animation({"kind": "e_return", "phase": .65}, clips)[0], "e_return_out")
         dash = {"kind": "q3", "origin": [10, 50], "target": [140, 50], "landing": [70, 50]}
         self.assertEqual(yone_dash_position(state, dict(dash, age=0)), (10, 50))

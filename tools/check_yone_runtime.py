@@ -230,9 +230,15 @@ mirror = true
 tick()
 assert(packet.yone.spirit.marks[1].position[1] == Isaac.GetScreenWidth() - mark.position[1])
 assert(packet.yone.spirit.face[1] == -1)
+assert(packet.yone.spirit.viewFace[1] < 0 and packet.yone.spirit.viewFace[2] == 0,
+    'the renderer lost the mirrored heading of the detached body')
 mirror = false
 castKey('KEY_E')
 assert(not packet.yone.spirit and packet.yone.fx[#packet.yone.fx].kind == 'e_return')
+local recall = packet.yone.fx[#packet.yone.fx]
+assert(recall.bodyFace[1] > 0 and recall.bodyRemaining > 0, 'the recall packet lost the original body pose')
+assert(#recall.contacts == 1 and recall.contacts[1][1] == attacker.Position.X * projection,
+    'E lost the projected mark detonation point')
 assert(#itemKinds == 2 and itemKinds[1] == 'attack' and itemKinds[2] == 'echo',
     'E replay repeated a shared on-hit effect')
 

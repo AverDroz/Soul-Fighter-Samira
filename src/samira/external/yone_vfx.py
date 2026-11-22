@@ -180,6 +180,7 @@ class YoneVFX:
         seed = seed % 97 if number(seed) else 0
         face = direction((end[0] - start[0], end[1] - start[1]), self.facing)
         length = math.dist(start, end)
+        contacts = [p for p in entries(event.get('contacts'))[:24] if point(p)]
         if kind == 'shield':
             center = end[0], end[1] - 12
             self.shield(center, progress, alpha)
@@ -187,18 +188,40 @@ class YoneVFX:
         elif kind == 'w':
             arc = event.get('arc')
             self.sweep(start, face, length, progress, alpha, arc)
-            self.sparks((end[0], end[1] - 8), ROSE, progress, alpha * .68, seed)
         elif kind == 'q3':
             self.wind_cut(start, face, length, progress, alpha)
-            self.sparks((end[0], end[1] - 9), IVORY, progress, alpha, seed, count=9)
+            for contact in contacts:
+                along = max(0., min(1., ((contact[0]-start[0])*face[0] + (contact[1]-start[1])*face[1]) / max(length, .001)))
+                if min(1., .14 + progress * 2.7) >= along:
+                    self.sparks((contact[0], contact[1] - 9), IVORY, progress, alpha, seed, count=9)
+                    self.canvas.flush()
         elif kind == 'r':
-            self.ultimate(start, face, length, progress, alpha)
-            self.sparks((end[0], end[1] - 7), ROSE, progress, alpha, seed, count=12, reach=18)
+            landing = event.get('landing')
+            if point(landing):
+                end = landing
+                face = direction((end[0]-start[0], end[1]-start[1]), self.facing)
+                length = math.dist(start, end)
+            self.ultimate(start, face, length, progress, alpha * (1 if contacts else .55))
+            for contact in contacts:
+                self.contact_burst(contact, progress, alpha, seed, ultimate=True)
         elif kind in ('e', 'e_return'):
             self.spirit_dash(start, end, face, length, progress, alpha, kind == 'e_return')
-            self.sparks((end[0], end[1] - 6), ROSE, progress, alpha, seed, reach=15)
+            if kind == 'e_return':
+                for contact in contacts:
+                    self.contact_burst(contact, progress, alpha, seed)
         else:
             self.strike(start, face, length, kind, progress, alpha)
+
+    def contact_burst(self, position, progress, alpha, seed, ultimate=False):
+        center = position[0], position[1] - 9
+        flash = max(0., 1 - progress * 4)
+        if flash:
+            x, y = center
+            self.canvas.polygon(((x - 7, y), (x, y - 12), (x + 7, y), (x, y + 12)),
+                                (*(IVORY if ultimate else ROSE), alpha * flash))
+        self.sparks(center, WIND if ultimate else RUBY, progress, alpha, seed, count=9, reach=13)
+        self.sparks(center, RUBY, progress, alpha * .8, seed + 5, count=6, reach=9)
+        self.canvas.flush()
 
     def anticipation(self, progress):
         x, y = self.position
@@ -227,11 +250,15 @@ class YoneVFX:
             inner_p = (origin[0] + .53 * (p[0] - origin[0]), origin[1] + .53 * (p[1] - origin[1]))
             inner_q = (origin[0] + .53 * (q[0] - origin[0]), origin[1] + .53 * (q[1] - origin[1]))
             glow = max(0., 1 - abs(i + .5 - center) / 3.5)
+            revealed = max(0., min(1., center - i + .5))
             self.canvas.polygon((inner_p, inner_q, q, p),
-                ((*RUBY, alpha * (.09 + .25 * glow)), (*RUBY, alpha * (.09 + .25 * glow)),
-                 (*ROSE, alpha * (.25 + .55 * glow)), (*ROSE, alpha * (.25 + .55 * glow))))
+                ((*RUBY, alpha * revealed * (.04 + .25 * glow)), (*RUBY, alpha * revealed * (.04 + .25 * glow)),
+                 (*ROSE, alpha * revealed * (.10 + .55 * glow)), (*ROSE, alpha * revealed * (.10 + .55 * glow))))
         self.canvas.flush()
-        self.ribbon(boundary, 3.5, ROSE, alpha * .85)
+        for i, (p, q) in enumerate(zip(boundary, boundary[1:])):
+            glow = max(0., 1 - abs(i + .5 - center) / 3.5)
+            if glow:
+                self.canvas.line(p, q, 2.4, (*ROSE, alpha * glow))
         leading = max(0, min(len(boundary) - 2, int(center)))
         self.canvas.line(origin, boundary[leading], 2.2, (*IVORY, alpha * .65))
 
@@ -260,21 +287,12 @@ class YoneVFX:
     def ultimate(self, start, face, length, progress, alpha):
         origin = start[0], start[1] - 7
         core = [offset(origin, face, length * t, 0) for t in (0, .5, 1)]
-        flash = max(0., 1 - progress * 5)
-        if flash:
-            hit = offset(origin, face, length * .82, 0)
-            self.canvas.polygon([offset(hit, face, a, b) for a, b in ((-13, 0), (0, -17), (13, 0), (0, 17))],
-                                (*IVORY, flash * .8))
         for side, hue in ((-1, WIND), (1, RUBY)):
             converge = [offset(origin, face, length * t, side * (17 * (1 - t))) for t in (0, .25, .5, .75, 1)]
             self.ribbon(converge, 4.2, hue, alpha * .85)
         for side, hue in ((-1, WIND), (1, RUBY)):
             edge = [offset(origin, face, length * t, side * 14) for t in (0, .25, .5, .75, 1)]
             self.ribbon(edge, 3.3, hue, alpha * .9)
-        for t in (.25, .78):
-            center = offset(origin, face, length * t, 0)
-            self.ribbon(ellipse(center, (8 + 8 * progress, 5 + 5 * progress)),
-                        2.4, ROSE, alpha, tapered=False)
         self.ribbon(core, 10 + 9 * progress, WIND, alpha * .65)
         self.ribbon(core, 4.2, IVORY, alpha * .98)
         for side in (-1, 1):

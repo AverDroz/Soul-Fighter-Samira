@@ -76,6 +76,8 @@ assert(#front.damage == 2 and front.damage[1] == 4 and front.damage[2] > 4)
 assert(#behind.damage == 0, 'the attack hit behind Yone')
 cast('q', 40); resolve(50)
 assert(state.qStacks == 1, 'Q did not stack on hit')
+local qfx = combat.visual(state, 50).fx
+assert(#qfx[#qfx].contacts == 1 and qfx[#qfx].contacts[1].X == 96, 'Q contact incorrect')
 cast('q', 80); resolve(90)
 assert(state.qStacks == 2, 'second Q did not stack')
 wall[2 * room:GetGridWidth() + 3] = GridCollisionClass.COLLISION_WALL
@@ -90,7 +92,8 @@ local wide = enemy(135, 155, 55)
 entities = {front, wide}
 cast('w', 155); resolve(167)
 assert(#wide.damage == 1, 'W failed to reach a target within its wider sector')
-assert(combat.visual(state, 167).fx[#combat.visual(state, 167).fx].footprint.reach == 100)
+local wfx = combat.visual(state, 167).fx[#combat.visual(state, 167).fx]
+assert(wfx.footprint.reach == 100 and #wfx.contacts == 2, 'W grouped contacts incorrect')
 assert(combat.absorb(state, 168) and not combat.absorb(state, 169), 'W shield must stop one hit')
 state = combat.new()
 entities = {}
@@ -98,6 +101,19 @@ cast('w', 1); resolve(20)
 assert(not combat.absorb(state, 21), 'W miss granted a shield')
 cast('q', 21); resolve(31)
 assert(state.qStacks == 0, 'Q miss granted a stack')
+local miss = combat.visual(state, 31).fx
+assert(#miss[#miss].contacts == 0, 'Q miss emitted phantom contacts')
+
+state = combat.new(); player.Position = Vector(60,100)
+local rejected = enemy(90,100,100)
+function rejected:TakeDamage() return false end
+entities = {rejected}; cast('q', 1); resolve(7)
+assert(#combat.visual(state, 7).fx[1].contacts == 0, 'rejected damage produced a contact')
+state = combat.new(); entities = {}
+for i = 1, 30 do entities[i] = enemy(80 + i * .1,100,100 + i) end
+cast('w', 1); resolve(9)
+assert(#combat.visual(state, 9).fx[1].contacts == 24 and #entities[30].damage == 1,
+    'contact bound changed gameplay or failed to cap packet')
 
 state = combat.new()
 player.Position = Vector(60,100)
@@ -122,6 +138,8 @@ visual = combat.visual(state, 21)
 local recall = visual.fx[#visual.fx]
 assert(not visual.spirit and recall.kind == 'e_return' and recall.target.X == 60)
 assert(recall.origin.X > recall.target.X and recall.id > visual.fx[1].id)
+assert(#recall.contacts == 1 and recall.contacts[1].X == 145 and recall.contacts[1].Y == 105
+    and recall.bodyFace.X == 1 and recall.bodyRemaining > 0, 'return contact/body snapshot incorrect')
 assert(not combat.cast(state, 'e', player, aim, 22), 'E recast bypassed cooldown')
 
 state = combat.new()
@@ -153,6 +171,9 @@ assert(#far.damage == 1 and #boss.damage == 1 and #aside.damage == 0)
 assert(player.Position.X > 200 and far.Position.X > 200 and boss.Position.X == 165)
 visual = combat.visual(state, 24)
 assert(visual.fx[1].kind == 'r' and visual.fx[1].origin.X == 60 and visual.fx[1].target.X > 200)
+assert(#visual.fx[1].contacts == 2 and visual.fx[1].contacts[1].X == boss.Position.X
+    and visual.fx[1].contacts[2].X == far.Position.X and visual.fx[1].landing.X == player.Position.X,
+    'R contacts or landing did not reflect pull')
 assert(#combat.visual(state, 90).fx == 0, 'expired combat sound/visual event was retained')
 
 state = combat.new()

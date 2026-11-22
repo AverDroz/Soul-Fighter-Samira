@@ -211,7 +211,7 @@ local function teleport(player, destination)
     player.Velocity = Vector.Zero
 end
 
-local function blade(state, room, player, enemies, strike, width, reach, multiplier, sweep, hitTargets, throughWalls)
+local function blade(state, room, player, enemies, strike, width, reach, multiplier, sweep, hitTargets, throughWalls, contacts)
     local hit, furthest = false, 0
     local facing = strike.facing
     local side = Vector(-facing.Y, facing.X)
@@ -238,10 +238,12 @@ local function blade(state, room, player, enemies, strike, width, reach, multipl
     end)
     for _, candidate in ipairs(candidates) do
         local enemy = candidate.entity
+        local position = Vector(enemy.Position.X, enemy.Position.Y)
         if Combat.hostile(enemy) and damage(state, player, enemy, player.Damage * multiplier, strike) then
             hit = true
             furthest = math.max(furthest, candidate.along)
             if hitTargets then hitTargets[#hitTargets + 1] = enemy end
+            if contacts and #contacts < markerLimit then contacts[#contacts + 1] = position end
         end
     end
     return hit, furthest
@@ -276,12 +278,13 @@ local function landing(room, entity, start, goal)
     return start
 end
 
-local function effect(state, clock, kind, origin, target, footprint, landingPoint)
+local function effect(state, clock, kind, origin, target, footprint, landingPoint, contacts, bodyFace, bodyRemaining)
     state.effectSerial = state.effectSerial + 1
     local effects = state.effects
     if #effects == effectLimit then table.remove(effects, 1) end
     effects[#effects + 1] = {id = state.effectSerial, at = clock, kind = kind,
-        origin = origin, target = target, footprint = footprint, landing = landingPoint}
+        origin = origin, target = target, footprint = footprint, landing = landingPoint,
+        contacts = contacts, bodyFace = bodyFace, bodyRemaining = bodyRemaining}
 end
 
 local function lineEnd(room, start, facing, reach)
@@ -300,10 +303,17 @@ local function returnSpirit(state, room, player, clock)
     local toAnchor = spirit.anchor - start
     if toAnchor:Length() > .01 then state.face = toAnchor:Normalized() end
     if Combat.clearPoint(room, player, spirit.anchor) then teleport(player, spirit.anchor) end
-    effect(state, clock, 'e_return', start, player.Position)
+    local contacts = {}
+    effect(state, clock, 'e_return', start, player.Position, nil, nil, contacts, spirit.face,
+        math.max(0, math.min(1, (spirit.untilFrame - clock) / spiritDuration)))
     state.action = {key = 'e_return', at = clock, finish = clock + skills.e_return.duration}
     for _, mark in pairs(spirit.marks) do
-        if Combat.hostile(mark.entity) then damage(state, player, mark.entity, mark.amount) end
+        if Combat.hostile(mark.entity) then
+            local point = Vector(mark.entity.Position.X, mark.entity.Position.Y)
+            if damage(state, player, mark.entity, mark.amount) and #contacts < markerLimit then
+                contacts[#contacts + 1] = point
+            end
+        end
     end
 end
 
@@ -335,24 +345,25 @@ local function resolve(state, room, player, enemies, strike, clock)
         blade(state, room, player, enemies, strike, 14, reach, state.secondBlade and 1 or 1.25)
         effect(state, clock, strike.clip, start, start + facing * reach)
     elseif key == 'q' then
-        local reach = footprint.reach
-        if blade(state, room, player, enemies, strike, footprint.width, reach, 1.4) then
+        local reach, contacts = footprint.reach, {}
+        if blade(state, room, player, enemies, strike, footprint.width, reach, 1.4, false, nil, false, contacts) then
             state.qStacks, state.qExpires = math.min(2, state.qStacks + 1), clock + 180
         end
         breakProps(room, start, facing, footprint.width, reach)
-        effect(state, clock, key, start, lineEnd(room, start, facing, reach))
+        effect(state, clock, key, start, lineEnd(room, start, facing, reach), nil, nil, contacts)
     elseif key == 'q3' then
         state.qStacks, state.qExpires = 0, nil
-        local reach = footprint.reach
-        blade(state, room, player, enemies, strike, footprint.width, reach, 1.6)
+        local reach, contacts = footprint.reach, {}
+        blade(state, room, player, enemies, strike, footprint.width, reach, 1.6, false, nil, false, contacts)
         breakProps(room, start, facing, footprint.width, reach)
         teleport(player, safeDestination(room, player, start, start + facing * 90))
-        effect(state, clock, key, start, lineEnd(room, start, facing, reach), nil, player.Position)
+        effect(state, clock, key, start, lineEnd(room, start, facing, reach), nil, player.Position, contacts)
     elseif key == 'w' then
-        if blade(state, room, player, enemies, strike, 0, footprint.reach, 1.15, true) then
+        local contacts = {}
+        if blade(state, room, player, enemies, strike, 0, footprint.reach, 1.15, true, nil, false, contacts) then
             state.shieldUntil = clock + 60
         end
-        effect(state, clock, key, start, start + facing * wRange, footprint)
+        effect(state, clock, key, start, start + facing * wRange, footprint, nil, contacts)
     elseif key == 'e' then
         state.spirit = {anchor = start, face = facing, untilFrame = clock + spiritDuration, recastAt = clock + 8, marks = {}}
         teleport(player, safeDestination(room, player, start, start + facing * 54))
@@ -360,12 +371,16 @@ local function resolve(state, room, player, enemies, strike, clock)
     elseif key == 'e_return' then
         returnSpirit(state, room, player, clock)
     elseif key == 'r' then
-        local targets = {}
-        local hit, far = blade(state, room, player, enemies, strike, footprint.width, footprint.reach, 2.5, false, targets, true)
+        local targets, contacts = {}, {}
+        local hit, far = blade(state, room, player, enemies, strike, footprint.width, footprint.reach, 2.5, false, targets, true, contacts)
         local destination = landing(room, player, start, start + facing * math.min(footprint.reach, hit and far + 23 or footprint.reach))
         teleport(player, destination)
         pullFoes(room, targets, destination - facing * 10)
-        effect(state, clock, key, start, start + facing * footprint.reach)
+        for index = 1, #contacts do
+            local enemy = targets[index]
+            if enemy:Exists() then contacts[index] = Vector(enemy.Position.X, enemy.Position.Y) end
+        end
+        effect(state, clock, key, start, start + facing * footprint.reach, nil, destination, contacts)
     end
 end
 
@@ -413,7 +428,8 @@ function Combat.visual(state, clock)
         local age = clock - event.at
         if age >= 0 and age < effectFrames then
             picture.fx[#picture.fx + 1] = {id = event.id, kind = event.kind, age = age / 30,
-                origin = event.origin, target = event.target, footprint = event.footprint, landing = event.landing}
+                origin = event.origin, target = event.target, footprint = event.footprint, landing = event.landing,
+                contacts = event.contacts, bodyFace = event.bodyFace, bodyRemaining = event.bodyRemaining}
         end
     end
     local spirit = state.spirit
