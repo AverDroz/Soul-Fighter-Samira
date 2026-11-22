@@ -39,6 +39,7 @@ local kind = 130
 Options.Fullscreen, Options.UseBorderlessFullscreen = false, false
 Isaac.GetPlayerTypeByName = function(name) assert(name == 'Yone'); return 130 end
 function player:GetPlayerType() return kind end
+function player:IsFlying() return self.CanFly == true end
 function player:GetTrinket(slot) return slot == 0 and 1 or 0 end
 local itemUpdates, lastCast = 0, nil
 noItems.update = function(owner) assert(owner == player); itemUpdates = itemUpdates + 1 end
@@ -269,16 +270,16 @@ assert(callAction('ACTION_PILLCARD', 'IS_ACTION_TRIGGERED') == true, 'clean 4 wa
 input.ctrl = 'KEY_RIGHT_CONTROL'
 tick('KEY_6')
 assert(packet.mastery and packet.mastery.at == 0 and packet.clip == 'laugh')
-assert(packet.mastery.position[1] == packet.position[1] and packet.mastery.position[2] == packet.position[2] - 86
-    and packet.mastery.rise == 86, 'the external crest was placed at the actor instead of over its head')
-assert(nativeBadge and nativeBadge.X == packet.position[1] and nativeBadge.Y == packet.position[2] - 67,
+assert(packet.mastery.position[1] == packet.position[1] and packet.mastery.position[2] == packet.position[2] - 72
+    and packet.mastery.rise == 72, 'the external crest lost its position just above the head')
+assert(nativeBadge and nativeBadge.X == packet.position[1] and nativeBadge.Y == packet.position[2] - 53,
     'the native crest did not appear above the visible actor')
 player.SpriteScale, player.SpriteOffset, mirror = Vector(1.5, 1.5), Vector(6, -8), true
 tick()
 assert(packet.mastery.position[1] == Isaac.GetScreenWidth() - player.Position.X * projection
-    and packet.mastery.position[2] == packet.position[2] - 109,
+    and packet.mastery.position[2] == packet.position[2] - 95,
     'the external crest lost its anchor under reflection or a larger body')
-assert(nativeBadge.X == packet.position[1] - 6 and nativeBadge.Y == packet.position[2] - 90.5,
+assert(nativeBadge.X == packet.position[1] - 6 and nativeBadge.Y == packet.position[2] - 76.5,
     'the native crest used the wrong sprite offset under reflection or a larger body')
 player.SpriteScale, player.SpriteOffset, mirror = Vector(1, 1), nil, false
 assert(event('PRE_PLAYER_RENDER', player, Vector.Zero) == nil)
@@ -303,7 +304,7 @@ assert(event('PRE_PLAYER_RENDER', player, Vector(0, -80)) == nil,
 tick()
 assert(packet.display.id ~= oldDisplay and packet.display.mode == 'borderless')
 assert(packet.position[2] == player.Position.Y * projection, 'room-pass offset moved the external actor')
-assert(packet.mastery.position[2] == packet.position[2] - 86, 'room-pass offset moved the external crest')
+assert(packet.mastery.position[2] == packet.position[2] - 72, 'room-pass offset moved the external crest')
 ack.display, ack.time = packet.display.id, now
 tick(); tick()
 assert(event('PRE_PLAYER_RENDER', player, Vector.Zero) == false, 'borderless display never reacquired the model')
@@ -731,6 +732,63 @@ event('EXECUTE_CMD', 'yonetest', '')
 tick()
 assert(packet.session == nativeSession and captureHud()['6s'],
     'yonetest reset the selected hero or discarded cooldowns')
+event('PRE_GAME_EXIT')
+
+-- Door art extends outside the floor. The native doorway requires a centered
+-- approach, and a receiving room can briefly place the player outside its grid.
+for _, slot in ipairs({0, 2, 4, 6}) do
+    event('POST_GAME_STARTED', false)
+    mirror, entities, wall, doors = slot >= 4, {}, {}, {}
+    local left = slot % 4 == 0
+    local normal = Vector(left and -1 or 1, 0)
+    local door = Vector(left and 0 or 400, slot >= 4 and 140 or 100)
+    doors[slot] = {Position = door, IsOpen = function() return true end}
+    player.Position, player.Velocity = door - normal * 36 + Vector(0, 17), Vector.Zero
+    local click = door + normal * 48
+    if mirror then click.X = Isaac.GetScreenWidth() / projection - click.X end
+    tick(nil, true, click)
+    local function horizontal()
+        return callAction('ACTION_RIGHT') - callAction('ACTION_LEFT')
+    end
+    assert(horizontal() * normal.X > .8 and callAction('ACTION_UP') > 0,
+        'side door did not use the native approach and center its movement')
+    for _ = 1, 40 do
+        tick(nil, false, nil, function()
+            local along = (player.Position - door):Dot(normal)
+            if along > -8 and math.abs(player.Position.Y - door.Y) > 10 then
+                player.Position = Vector(door.X - normal.X * 8, player.Position.Y)
+            end
+        end)
+        if (player.Position - door):Dot(normal) > 0 then break end
+    end
+    assert((player.Position - door):Dot(normal) > 0 and math.abs(player.Position.Y - door.Y) <= 10,
+        'Yone got stuck on the side of the doorway')
+
+    event('POST_NEW_ROOM')
+    player.Position, player.Velocity = door + normal * 8, Vector.Zero
+    doors[slot].IsOpen = function() return false end
+    local inside = Vector(200, 104)
+    if mirror then inside.X = Isaac.GetScreenWidth() / projection - inside.X end
+    tick(nil, true, inside)
+    assert(horizontal() * normal.X < -.95, 'incoming side door trapped Yone outside the navigation grid')
+    for _ = 1, 15 do tick() end
+    assert((player.Position - door):Dot(normal) < -24)
+    event('PRE_GAME_EXIT')
+end
+event('POST_GAME_STARTED', false)
+mirror, entities, wall, doors = false, {}, {}, {}
+doors[2] = {Position = Vector(400, 100), IsOpen = function() return true end}
+wall[room:GetGridIndex(Vector(220, 100))] = GridCollisionClass.COLLISION_WALL
+player.Position, player.Velocity = Vector(76, 100), Vector.Zero
+tick(nil, true, Vector(448, 100))
+for _ = 1, 170 do
+    tick()
+    if player.Position.X > 400 then break end
+    assert(room:GetGridCollision(room:GetGridIndex(player.Position)) == GridCollisionClass.COLLISION_NONE,
+        'door order walked into the interior obstacle')
+end
+assert(player.Position.X > 400 and math.abs(player.Position.Y - 100) < 10,
+    'Yone did not detour around the obstacle before reaching the door')
 event('PRE_GAME_EXIT')
 """)
     print("PASS Yone registration, input, emotes, leases, HUD, floor lifecycle and console commands")

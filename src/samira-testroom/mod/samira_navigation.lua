@@ -17,6 +17,58 @@ function Navigation.worldCursor(room)
     return Vector(delta.X / axis.X, delta.Y / axis.Y)
 end
 
+local function doorNormal(slot)
+    return Vector(-1, 0):Rotated((slot % 4) * 90)
+end
+
+function Navigation.doorAt(room, destination)
+    local chosen, best
+    for slot = 0, 7 do
+        local door = room:GetDoor(slot)
+        if door then
+            local normal = doorNormal(slot)
+            local delta = destination - door.Position
+            local along = math.abs(delta:Dot(normal))
+            local across = math.abs(delta:Dot(normal:Rotated(90)))
+            if along <= 56 and across <= 28 then
+                local score = along + across * 2
+                if not best or score < best then
+                    chosen, best = {door = door, slot = slot, normal = normal}, score
+                end
+            end
+        end
+    end
+    return chosen
+end
+
+function Navigation.doorHeading(room, position, doorway)
+    -- A receiving doorway can be outside the pathfinding grid, including
+    -- when the destination room closes the door before the player walks in.
+    for slot = 0, 7 do
+        local door = room:GetDoor(slot)
+        if door and (not doorway or doorway.slot ~= slot) then
+            local normal = doorNormal(slot)
+            local tangent = normal:Rotated(90)
+            local delta = position - door.Position
+            local along, across = delta:Dot(normal), delta:Dot(tangent)
+            if along >= -24 and along <= 60 and math.abs(across) <= 26 then
+                return (normal * -1 - tangent * (across / 32)):Normalized()
+            end
+        end
+    end
+    if doorway then
+        local door, normal = doorway.door, doorway.normal
+        local tangent = normal:Rotated(90)
+        local delta = position - door.Position
+        local along, across = delta:Dot(normal), delta:Dot(tangent)
+        if along >= -46 and along <= 60 and math.abs(across) <= 18 then
+            -- Isaac handles unlocking, damage and crossing the threshold.
+            return (normal - tangent * (across / 24)):Normalized()
+        end
+        return nil, door.Position - normal * 40
+    end
+end
+
 local function build(room, p, goal, destination, clearPoint, clearSegment, canAttack)
     local width, size = room:GetGridWidth(), room:GetGridSize()
     local start = room:GetGridIndex(p.Position)

@@ -410,7 +410,7 @@ class YoneRendererTests(unittest.TestCase):
         self.addCleanup(renderer.close)
         renderer.draw({'hero': 'yone', 'kind': 'idle', 'phase': .35, 'screen': [160, 160],
                        'position': [100, 115], 'face': [1, 0], 'clock': 120,
-                       'mastery': {'at': .32, 'position': [100, 29], 'rise': 86},
+                       'mastery': {'at': .32, 'position': [100, 43], 'rise': 72},
                        'yone': {'spirit': {'anchor': [35, 115], 'face': [1, 0], 'remaining': .75}}}, 0)
         self.fbo.clear(0, 0, 0, 0)
         samira.reset()
@@ -453,14 +453,18 @@ class YoneRendererTests(unittest.TestCase):
         body = self.region(45, 110, 115, 159).copy()
         self.assertGreater(np.count_nonzero(body[:, :, 3]), 30)
         crest_packets = ({'at': .32, 'position': [80, 138]},
-                         {'at': .32, 'position': [80, 52], 'rise': 86})
+                         {'at': .32, 'position': [80, 66], 'rise': 72})
         for badge in crest_packets:
             with self.subTest(badge=badge):
                 self.fbo.clear(0, 0, 0, 0)
                 rendered, capabilities = renderer.draw(dict(state, mastery=badge), 0)
                 self.assertTrue(rendered)
                 self.assertEqual(capabilities, {'yoneModel': True, 'mastery': True})
-                self.assertGreater(np.count_nonzero(self.region(35, 16, 125, 90)[:, :, 3]), 100)
+                crest = self.region(35, 0, 125, 110)[:, :, 3] > 8
+                self.assertGreater(np.count_nonzero(crest), 100)
+                lowest_crest_row = np.flatnonzero(crest.any(axis=1))[-1]
+                self.assertGreaterEqual(lowest_crest_row, 95)
+                self.assertLessEqual(lowest_crest_row, 103)
                 np.testing.assert_array_equal(self.region(45, 110, 115, 159), body)
 
     def test_mastery_anchor_follows_the_model_during_a_dash(self):
@@ -473,7 +477,7 @@ class YoneRendererTests(unittest.TestCase):
         self.addCleanup(renderer.close)
         state = {'kind': 'q3', 'phase': .48, 'clock': 120, 'screen': [160, 160],
                  'position': [124, 112], 'face': [-1, 0], 'bodyScale': [1.5, 1.5],
-                 'mastery': {'at': .32, 'position': [124, 3], 'rise': 109},
+                 'mastery': {'at': .32, 'position': [124, 17], 'rise': 95},
                  'yone': {'fx': [{'kind': 'q3', 'id': 4, 'age': 2/30, 'origin': [124, 112],
                                   'target': [44, 127], 'landing': [44, 127]}]}}
         with (patch.object(renderer.actor, 'draw', wraps=renderer.actor.draw) as actor,
@@ -481,7 +485,7 @@ class YoneRendererTests(unittest.TestCase):
             renderer.draw(state, 0)
         x, y = actor.call_args.args[2]
         self.assertLess(x, state['position'][0])
-        self.assertEqual(crest.call_args.kwargs['position'], (x, y - 109))
+        self.assertEqual(crest.call_args.kwargs['position'], (x, y - 95))
 
     def test_missing_rig_leaves_native_actor_and_draws_mastery(self):
         from run_testroom_renderer import YoneRenderer, acknowledge
@@ -500,7 +504,7 @@ class YoneRendererTests(unittest.TestCase):
             self.assertFalse(ack['visible'])
             self.assertEqual(ack['hero'], 'yone')
             self.assertEqual(ack['capabilities'], {'mastery': True})
-            state['mastery'] = {'at': .32, 'position': [80, 52], 'rise': 86}
+            state['mastery'] = {'at': .32, 'position': [80, 66], 'rise': 72}
             visible, capabilities = renderer.draw(state, 0)
             self.assertFalse(visible)
             self.assertEqual(capabilities, {'mastery': True})

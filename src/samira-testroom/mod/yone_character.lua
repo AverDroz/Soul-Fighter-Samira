@@ -10,8 +10,8 @@ local badge
 local Display
 local fps, leaseMs = 30, 500
 -- Crest clearance and the on-screen body height for each renderer.
-local masteryCrestRise, masteryModelHeight = 40, 46
-local masteryAtlasRise, masteryNativeHeight = 36, 31
+local masteryCrestRise, masteryModelHeight = 26, 46
+local masteryAtlasRise, masteryNativeHeight = 22, 31
 local spiritWarningTicks = 2 * fps
 local abilities = {'q', 'w', 'e', 'r'}
 local abilityHudHeight, abilityHudGap = 38, 2
@@ -162,18 +162,8 @@ local function targetAt(enemies, point)
 end
 
 local function setGoal(state, room, aim)
-    local bestDistance = 36
-    for slot = 0, 7 do
-        local door = room:GetDoor(slot)
-        if door and door:IsOpen() then
-            local distance = door.Position:Distance(aim)
-            if distance < bestDistance then
-                bestDistance = distance
-                state.door = {position = door.Position, outward = Vector(-1, 0):Rotated((slot % 4) * 90)}
-            end
-        end
-    end
-    state.goal = room:GetClampedPosition(state.door and state.door.position or aim, 12)
+    state.door = Navigation.doorAt(room, aim)
+    state.goal = room:GetClampedPosition(aim, 12)
 end
 
 local function updateMovement(state, room, player, clock)
@@ -193,12 +183,11 @@ local function updateMovement(state, room, player, clock)
         Combat.cast(state.combat, 'attack', player, target.Position, clock, room)
         return
     end
-    if state.door and player.Position:Distance(state.door.position) < 29 then
-        state.intent = state.door.outward
-        return
-    end
     local goal = target and target.Position or state.goal
     if not goal then state.intent = nil; return end
+    local doorHeading, approach = Navigation.doorHeading(room, player.Position, state.door)
+    if doorHeading then state.intent = doorHeading; return end
+    goal = approach or goal
     if not target and not state.door and player.Position:Distance(goal) <= 6 then
         stopMoving(state)
         return

@@ -207,26 +207,6 @@ local function clearSegment(room, p, from, to)
     return true
 end
 
-local function doorAt(room, destination)
-    local chosen, best
-    for slot = 0, 7 do
-        local door = room:GetDoor(slot)
-        if door then
-            local normal = Vector(-1, 0):Rotated((slot % 4) * 90)
-            local delta = destination - door.Position
-            local along = math.abs(delta:Dot(normal))
-            local across = math.abs(delta:Dot(normal:Rotated(90)))
-            if along <= 56 and across <= 28 then
-                local score = along + across * 2
-                if not best or score < best then
-                    chosen, best = {door = door, slot = slot, normal = normal}, score
-                end
-            end
-        end
-    end
-    return chosen
-end
-
 local function canShoot(room, p, target, ranged, from)
     from = from or p.Position
     if ranged and ((Items and Items.spectral and Items.spectral(p))
@@ -274,39 +254,12 @@ function Combat.setAttackMove(enabled)
 end
 
 local function move(p, room, destination, amount, clock, game)
-    local doorway = state.doorway
-    -- A native room entrance lies outside the rectangular pathfinding grid.
-    -- Allow input back into that doorway's corridor; applying the usual
-    -- clearance test here would trap a player arriving on the threshold.
-    for slot = 0, 7 do
-        local door = room:GetDoor(slot)
-        if door and (not doorway or doorway.slot ~= slot) then
-            local normal = Vector(-1, 0):Rotated((slot % 4) * 90)
-            local delta = p.Position - door.Position
-            local along = delta:Dot(normal)
-            local tangent = normal:Rotated(90)
-            local across = delta:Dot(tangent)
-            if along >= -24 and along <= 60 and math.abs(across) <= 26 then
-                local heading = (normal * -1 - tangent * (across / 32)):Normalized()
-                state.movement = heading * amount
-                return heading
-            end
-        end
+    local doorHeading, approach = Navigation.doorHeading(room, p.Position, state.doorway)
+    if doorHeading then
+        state.movement = doorHeading * amount
+        return doorHeading
     end
-    if doorway then
-        local door, normal = doorway.door, doorway.normal
-        destination = door.Position - normal * 40
-        local delta = p.Position - door.Position
-        local tangent = normal:Rotated(90)
-        local along, across = delta:Dot(normal), delta:Dot(tangent)
-        if along >= -46 and along <= 60 and math.abs(across) <= 18 then
-            -- Only supply native walking input. Isaac owns unlocking, curse
-            -- damage and the transition, including its walk-in animation.
-            local heading = (normal - tangent * (across / 24)):Normalized()
-            state.movement = heading * amount
-            return heading
-        end
-    end
+    destination = approach or destination
     local distance = p.Position:Distance(destination)
     if distance <= 4 then
         if not state.target then state.goal, state.path = nil, nil end
@@ -734,7 +687,7 @@ local function commandMove(kind, room, p, entities, aim, clock)
             windingTarget = previous and previous.windingTarget, releaseAt = previous and previous.releaseAt}
     elseif kind == 'right' then
         state.target = nearCursor(entities, aim, p)
-        state.doorway = not state.target and doorAt(room, aim) or nil
+        state.doorway = not state.target and Navigation.doorAt(room, aim) or nil
         state.goal = not state.target and room:GetClampedPosition(aim, 10) or nil
         state.dragGround = not state.target and not state.doorway
         state.dragAim = aim
@@ -816,7 +769,7 @@ function Combat.update(game, p, face, clock)
         local cursor = worldCursor(room)
         if cursor:Distance(state.dragAim) >= 8 then
             state.dragAim = cursor
-            state.doorway = doorAt(room, cursor)
+            state.doorway = Navigation.doorAt(room, cursor)
             state.goal = room:GetClampedPosition(cursor, 10)
         end
     end

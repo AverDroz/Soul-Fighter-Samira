@@ -235,7 +235,7 @@ class YoneRenderer:
                     # Packets from older mods put the crest at the actor's feet.
                     rise = badge.get('rise')
                     if rise is None:
-                        rise = 40 + 46 * abs(state.get('bodyScale', (1, 1))[1])
+                        rise = 26 + 46 * abs(state.get('bodyScale', (1, 1))[1])
                     anchor = (x, y - rise)
                 self.mastery.draw(state, normalized=True, position=anchor)
                 capabilities['mastery']=True
