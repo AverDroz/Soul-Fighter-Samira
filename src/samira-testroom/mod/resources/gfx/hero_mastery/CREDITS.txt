@@ -1,0 +1,4 @@
+Champion mastery badge: Riot Games, League of Legends. Original client texture, decoded without image changes.
+Source: Global.wad.client / assets/ux/mastery/legendarychampionmastery/masterycrest_level7.tex
+WAD hash: a609a931d3f0b02e
+Cosmetic display only; does not access or represent a player account mastery level.

@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-MAX_BONES=160
+MAX_BONES=192
 CLIPS={'Idle':'idle_gun','Walk':'run_gun_base','Attack':'attack1_gun_hit',
  'AttackStart':'attack1_gun_start','AttackRecovery':'attack1_gun_into_idle',
  'MeleeAttack':'attack1_sword_ht','MeleeIdle':'idle_sword','MeleeWalk':'run_sword_base',
@@ -26,7 +26,10 @@ def visible_parts(action,phase,duration,ultimate,banner):
              'Pistol_Blur','Revolver_Blur','Viego_Crown')}
 
 class Model:
-    def __init__(self,path):
+    def __init__(self,path,*,hero='samira'):
+        self.hero=hero
+        self.clips=CLIPS if hero=='samira' else {}
+        self.idle_clip='idle_gun' if hero=='samira' else 'idle'
         blob=Path(path).read_bytes()
         if blob[:4]!=b'glTF':raise ValueError('Expected GLB')
         n=struct.unpack_from('<I',blob,12)[0];self.g=json.loads(blob[20:20+n]);self.buf=blob[28+n:];self.cache={}
@@ -40,9 +43,8 @@ class Model:
             for event in state['events']:
                 if event not in events:events.append(event)
         self.parents={c:i for i,n in enumerate(self.nodes) for c in n.get('children',[])}
-        pelvis=next(i for i,n in enumerate(self.nodes) if n.get('name')=='Pelvis')
         self.walk_nodes={i for i,n in enumerate(self.nodes) if n.get('name') in ('Root','BodyRoot')}
-        pending=[pelvis]
+        pending=[self.node_names['Pelvis']] if 'Pelvis' in self.node_names else []
         while pending:
             i=pending.pop();self.walk_nodes.add(i);pending.extend(self.nodes[i].get('children',[]))
         self.walk_nodes=sorted(self.walk_nodes)
@@ -53,7 +55,8 @@ class Model:
         assert not any('matrix' in n for n in self.nodes),'This asset uses TRS nodes'
         def depth(i):return 0 if i not in self.parents else depth(self.parents[i])+1
         self.order=sorted(range(count),key=depth)
-        skin=g['skins'][0];self.joints=np.array(skin['joints']);assert len(self.joints)<=MAX_BONES
+        skin=g['skins'][0];self.joints=np.array(skin['joints'])
+        if len(self.joints)>MAX_BONES:raise ValueError(f'Rig has {len(self.joints)} joints; GPU limit is {MAX_BONES}')
         self.ibm=self.acc(skin['inverseBindMatrices']).reshape(-1,4,4).transpose(0,2,1)
         self.tracks={};self.durations={};self.track_groups={}
         self.motion_anchors={}
@@ -76,12 +79,12 @@ class Model:
                 group[3].append(node);group[4].append(values)
             self.track_groups[anim['name']]=[(p,t,mode,np.asarray(nodes),np.stack(values,axis=1))
                 for p,t,mode,nodes,values in groups.values()]
+        if self.durations.get(self.idle_clip,0)<=0:raise ValueError('Missing idle animation: '+self.idle_clip)
         self.textures=[]
         for image in g['images']:
             v=g['bufferViews'][image['bufferView']];start=v.get('byteOffset',0)
             self.textures.append(Image.open(io.BytesIO(self.buf[start:start+v['byteLength']])).convert('RGBA'))
-        attrs=g['meshes'][0]['primitives'][0]['attributes']
-        self.vertices=np.concatenate([self.acc(attrs[k]).astype('f4') for k in ('POSITION','TEXCOORD_0','JOINTS_0','WEIGHTS_0')],axis=1)
+        vertex_groups={};vertices=[];vertex_count=0
         self.parts=[]
         self.banner_mask=0
         self.banner_params={'Scroll_Speed':[0,0],'Scroll_Speed_BLUE':[0,0],'Alpha_Bias':[0]}
@@ -89,9 +92,14 @@ class Model:
         # first live room test; collision geometry remains authoritative in Lua.
         self.pixel_scale=.17
         for p in g['meshes'][0]['primitives']:
-            mat=g['materials'][p['material']];name=mat['name']
+            attrs=p['attributes'];key=tuple(attrs[k] for k in ('POSITION','TEXCOORD_0','JOINTS_0','WEIGHTS_0'))
+            if key not in vertex_groups:
+                data=np.concatenate([self.acc(i).astype('f4') for i in key],axis=1)
+                vertices.append(data);vertex_groups[key]=vertex_count;vertex_count+=len(data)
+            mat=g['materials'][p['material']];name=mat.get('name','')
             tid=g['textures'][mat['pbrMetallicRoughness']['baseColorTexture']['index']]['source']
-            self.parts.append((name,self.acc(p['indices']).reshape(-1).astype('u4'),tid))
+            self.parts.append((name,self.acc(p['indices']).reshape(-1).astype('u4')+vertex_groups[key],tid))
+        self.vertices=np.concatenate(vertices,axis=0)
 
     def acc(self,index):
         if index in self.cache:return self.cache[index]
@@ -103,7 +111,7 @@ class Model:
         self.cache[index]=result;return result
 
     def sample(self,kind,phase):
-        name=CLIPS.get(kind,kind if kind in self.tracks else CLIPS['Idle']);time=max(0,min(1,phase))*self.durations[name]
+        name=self.clips.get(kind,kind if kind in self.tracks else self.idle_clip);time=max(0,min(1,phase))*self.durations[name]
         t,r,s=self.t.copy(),self.r.copy(),self.s.copy();targets={'translation':t,'rotation':r,'scale':s}
         for path,times,interpolation,nodes,values in self.track_groups[name]:
             k=max(0,min(len(times)-1,int(np.searchsorted(times,time,side='right'))-1));k2=min(k+1,len(times)-1)
@@ -130,20 +138,25 @@ class Model:
     def anchor_motion(self,pose,kind):
         # The game already moves the player during E. Keep the authored jump,
         # but do not add the clip's horizontal travel on top of that collision.
-        root=self.node_names.get('Root')
+        root=self.node_names.get(self.rig_events.get('motion_root','Root'))
         if root is None:return pose
         if kind not in self.motion_anchors:self.motion_anchors[kind]=self.sample(kind,0)[0][root].copy()
-        t=pose[0].copy();t[root,[0,2]]=self.motion_anchors[kind][[0,2]]
+        t=pose[0].copy();delta=self.motion_anchors[kind][[0,2]]-t[root,[0,2]]
+        t[root,[0,2]]+=delta
+        # Yone's sheath is a parallel root and must follow the same correction.
+        sheath=self.node_names.get('Sheath') if self.hero=='yone' else None
+        if sheath is not None and sheath not in self.parents:t[sheath,[0,2]]+=delta
         return t,pose[1],pose[2]
 
     def active_events(self,kind,phase):
-        clip=CLIPS.get(kind,kind)
+        clip=self.clips.get(kind,kind)
         frame=max(0,min(1,phase))*self.durations.get(clip,0)*self.rig_events.get('frames_per_second',30)
         return [e for e in self.clip_events.get(clip,[])
                 if e.get('mStartFrame',0)<=frame<e.get('mEndFrame',float('inf'))]
 
     def visibility(self,kind,phase):
-        result=visible_parts(kind,phase,0,False,False)
+        result=visible_parts(kind,phase,0,False,False) if self.hero=='samira' else {
+            name:False for name in self.rig_events.get('hidden_materials',[])}
         for event in self.active_events(kind,phase):
             if event.get('__type')=='SubmeshVisibilityEventData':
                 result.update({name:True for name in event.get('mShowSubmeshList',[])})
@@ -158,9 +171,9 @@ class Model:
         local[:,:3,:3]*=s[:,None,:];local[:,:3,3]=t;local[:,3,3]=1
         world=np.empty_like(local)
         for i in self.order:world[i]=world[self.parents[i]]@local[i] if i in self.parents else local[i]
-        if kind is not None:
-            snaps={self.node_names[e['mJointNameToOverride']]:self.node_names[e['mJointNameToSnapTo']]
-                   for e in self.active_events(kind,phase) if e.get('__type')=='JointSnapEventData'}
+        snaps={self.node_names[e['mJointNameToOverride']]:self.node_names[e['mJointNameToSnapTo']]
+               for e in self.active_events(kind,phase) if e.get('__type')=='JointSnapEventData'} if kind is not None else {}
+        if snaps:
             # Snap targets can occur later in the skeleton array. Resolve both
             # target and parent dependencies rather than relying on index order.
             resolved=set();visiting=set()
@@ -178,7 +191,7 @@ class Model:
 
 VERTEX='''#version 330
 in vec3 position; in vec2 uv; in vec4 joints; in vec4 weights;
-layout(std140) uniform Bones { mat4 bones[160]; };
+layout(std140) uniform Bones { mat4 bones[%d]; };
 uniform vec2 viewport; uniform vec2 origin; uniform vec2 bodyScale; uniform float scale; uniform float yaw;
 out vec2 texcoord;
 void main(){
@@ -189,7 +202,7 @@ void main(){
  vec2 pixel=origin+vec2(x,-up)*scale*bodyScale;
  gl_Position=vec4(pixel.x/viewport.x*2-1,1-pixel.y/viewport.y*2,-depth*scale*.001,1);
  texcoord=uv;
-}'''
+}''' % MAX_BONES
 FRAGMENT='''#version 330
 uniform sampler2D material; uniform sampler2D bannerMask;
 uniform float hurt; uniform bool stasis; uniform bool isBanner; uniform float effectTime;uniform float opacity;uniform bool ghost;
@@ -238,7 +251,7 @@ class GPURenderer:
         self.outline_quad=ctx.vertex_array(self.outline_program,[])
         self.actor_surface=None;self.actor_texture=None;self.actor_depth=None
         self.bones=ctx.buffer(reserve=MAX_BONES*64);self.bones.bind_to_uniform_block(0);self.program['Bones'].binding=0
-        self.vbo=ctx.buffer(model.vertices.tobytes());self.textures=[];self.parts=[]
+        self.vbo=ctx.buffer(model.vertices.tobytes());self.textures=[];self.parts=[];self.indices=[]
         for im in model.textures:
             tex=ctx.texture(im.size,4,im.tobytes());tex.filter=(moderngl.LINEAR,moderngl.LINEAR);self.textures.append(tex)
         # Diffuse colour clamps; the separate source mask repeats as it scrolls.
@@ -248,17 +261,29 @@ class GPURenderer:
         p['blueScroll'].value=tuple(params['Scroll_Speed_BLUE'][:2]);p['alphaBias'].value=params['Alpha_Bias'][0]
         for name,indices,tid in model.parts:
             ibo=ctx.buffer(indices.tobytes())
+            self.indices.append(ibo)
             vao=ctx.vertex_array(self.program,[(self.vbo,'3f 2f 4f 4f','position','uv','joints','weights')],ibo,index_element_size=4)
             self.parts.append((name,vao,tid))
         self.parts.sort(key=lambda part:part[0]!='Body')
         self.matrix_upload=np.repeat(np.eye(4,dtype='f4')[None,:,:],MAX_BONES,axis=0)
-        self.kind=None;self.pose=None;self.previous=None;self.transition=0;self.yaw=None;self.effect_time=0
-        self.rig_sample=('Idle',0)
-        self.stasis_snapshot=None;self.last_actor=None
         self.sockets={}
-        for label,name in [('base','Sword'),('tip','Sword_Tip2'),('pistol','Pistol_Muzzle'),('revolver','Revolver_Muzzle')]:
-            joint=next(i for i,node in enumerate(model.joints) if model.nodes[node].get('name')==name)
-            self.sockets[label]=(joint,np.linalg.inv(model.ibm[joint])[:,3])
+        if model.hero=='samira':
+            for label,name in [('base','Sword'),('tip','Sword_Tip2'),('pistol','Pistol_Muzzle'),('revolver','Revolver_Muzzle')]:
+                joint=next(i for i,node in enumerate(model.joints) if model.nodes[node].get('name')==name)
+                self.sockets[label]=(joint,np.linalg.inv(model.ibm[joint])[:,3])
+        self.reset()
+
+    def reset(self):
+        self.kind=self.pose=self.previous=self.yaw=None
+        self.transition=self.effect_time=0
+        self.rig_sample=('Idle',0)
+        self.stasis_snapshot=self.last_actor=None
+
+    def close(self):
+        for _,vao,_ in self.parts:vao.release()
+        for resource in (*self.indices,*self.textures,self.outline_quad,self.outline_program,
+                         self.vbo,self.bones,self.program,self.actor_surface,self.actor_texture,self.actor_depth):
+            if resource is not None:resource.release()
 
     def draw(self,kind,phase,origin,viewport,yaw,dt,ultimate=False,clip=None,banner=None,hurt=False,ghost=None,stasis=False,locomotion=None,body_scale=(1,1),flying=False,outline=True,anchor_root=False,snap_facing=False):
         import moderngl
@@ -276,7 +301,6 @@ class GPURenderer:
         elif frozen:pose=self.pose
         else:pose=ghost[0]
         if ghost is None and not frozen:self.effect_time+=dt
-        clip_name=CLIPS.get(action,action)
         rig_action,rig_phase=self.rig_sample if frozen else (action,phase)
         visibility=self.model.visibility(rig_action,rig_phase)
         if ghost is None:
@@ -286,6 +310,7 @@ class GPURenderer:
             draw_yaw=self.yaw
         else:draw_yaw=ghost[1]
         actual=self.model.matrices(pose,rig_action,rig_phase);self.matrix_upload[:len(actual)]=actual
+        self.bones.bind_to_uniform_block(0)
         self.bones.write(self.matrix_upload.transpose(0,2,1).tobytes())
         scale=self.model.pixel_scale
         if frozen and self.stasis_snapshot is not None:visibility,body_scale,scale=self.stasis_snapshot
@@ -312,7 +337,8 @@ class GPURenderer:
         # Opaque body first so back-mounted translucent ribbons cannot cover it.
         for name,vao,tid in self.parts:
             if not visibility.get(name,True):continue
-            p['isBanner'].value=name=='Banner';self.ctx.depth_mask=ghost is None and name!='Banner'
+            is_banner=self.model.hero=='samira' and name=='Banner'
+            p['isBanner'].value=is_banner;self.ctx.depth_mask=ghost is None and not is_banner
             self.textures[tid].use(0);vao.render()
         self.ctx.depth_mask=True
         if target is not None:

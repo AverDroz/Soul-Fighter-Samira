@@ -7,14 +7,22 @@ import shutil
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-MODULES = "overlay model bridge layered_surface samira_vfx client_vfx canvas system_pointer samira_audio combat_effects hud status visibility native_cursor shop_ui localization".split()
+MODULES = "overlay model bridge layered_surface samira_vfx client_vfx canvas system_pointer samira_audio combat_effects hud status visibility native_cursor shop_ui localization mastery_renderer mastery_glb mastery_particles".split()
+YONE_FILES = ("yone.glb", "actions.json", "rig-events.json")
+YONE_AUDIO = ("joke.wav", "taunt.wav", "dance.wav", "dance_loop.wav", "laugh.wav", "manifest.json")
 
 
-def build(output):
+def build(output, *, include_local_yone=False):
+    if include_local_yone:
+        missing = [name for name in YONE_FILES if not (ROOT / "assets/yone-local" / name).is_file()]
+        if missing:
+            raise FileNotFoundError("Run tools/import_yone_assets.py first. Missing from assets/yone-local: "
+                                    + ", ".join(missing))
     output.mkdir(parents=True, exist_ok=True)
-    stage = ROOT / "work" / "friend-export" / "Soul-Fighter-Samira"
+    staging_area = ROOT / "work" / ("friend-export-yone-local" if include_local_yone else "friend-export")
+    stage = staging_area / "Soul-Fighter-Samira"
     if stage.exists():
-        assert stage.resolve().parent == (ROOT / "work" / "friend-export").resolve()
+        assert stage.resolve().parent == staging_area.resolve()
         shutil.rmtree(stage)
     stage.mkdir(parents=True)
 
@@ -37,12 +45,21 @@ def build(output):
             shutil.rmtree(tooling)
     for name in MODULES:
         copy(f"src/samira/external/{name}.py", f"companion/src/samira/external/{name}.py")
+    copy("src/samira/external/assets/mastery", "companion/src/samira/external/assets/mastery")
     for name in ("model.glb", "rig-events.json"):
         copy(f"src/samira/reference/source/{name}", f"companion/src/samira/reference/source/{name}")
     copy("tools/run_testroom_renderer.py", "companion/tools/run_testroom_renderer.py")
     copy("src/samira-testroom/visual-settings.json", "companion/src/samira-testroom/visual-settings.json")
     for name in ("audio", "vfx", "manifest.json"):
         copy(f"assets/samira-soul-fighter/{name}", f"companion/assets/samira-soul-fighter/{name}")
+    if include_local_yone:
+        for name in YONE_FILES:
+            copy(f"assets/yone-local/{name}", f"companion/assets/yone-local/{name}")
+        for name in YONE_AUDIO:
+            if (ROOT / "assets/yone-local/audio" / name).is_file():
+                copy(f"assets/yone-local/audio/{name}", f"companion/assets/yone-local/audio/{name}")
+        if (ROOT / "assets/yone-local/yone-portrait.png").is_file():
+            copy("assets/yone-local/yone-portrait.png", "samira_testroom/resources/gfx/samira/yone-portrait.png")
     for source, target in (("export-launcher.cmd", "launch.cmd"), ("export-launcher.ps1", "launcher.ps1"), ("export-INSTALL.txt", "INSTALL.txt")):
         copy(f"tools/{source}", target)
     for source, target in (("export-stop.cmd", "stop.cmd"), ("export-stop.ps1", "stop.ps1")):
@@ -58,11 +75,15 @@ def build(output):
         "Asset provenance is retained in companion/assets/samira-soul-fighter manifests.\n"
         "Python and dependency notices/licenses accompany companion/python.\n"
         "Liberation font license: samira_testroom/resources/font/LIBERATION-LICENSE.txt.\n"
-        "No blanket license is granted for third-party materials.\n", encoding="utf-8")
+        "No blanket license is granted for third-party materials.\n"
+        + ("Classic Yone model, animations and artwork were imported locally from the user's League of Legends installation.\n"
+           if include_local_yone else ""), encoding="utf-8")
     files = sorted(p for p in stage.rglob("*") if p.is_file())
     manifest = {p.relative_to(stage).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
     (stage / "SHA256SUMS.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
-    archive = output / "Soul-Fighter-Samira-0.3.2-Windows.zip"
+    archive_name = ("Soul-Fighter-Samira-Yone-Local-Windows.zip" if include_local_yone
+                    else "Soul-Fighter-Samira-0.3.2-Windows.zip")
+    archive = output / archive_name
     with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as z:
         for path in sorted(stage.rglob("*")):
             if path.is_file():
@@ -80,4 +101,7 @@ def build(output):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
-    build(parser.parse_args().output)
+    parser.add_argument("--include-local-yone", action="store_true",
+                        help="Include the locally imported classic Yone model in a personal ZIP.")
+    arguments = parser.parse_args()
+    build(arguments.output, include_local_yone=arguments.include_local_yone)

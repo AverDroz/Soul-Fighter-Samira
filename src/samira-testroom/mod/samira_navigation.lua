@@ -2,6 +2,21 @@
 local Navigation = {}
 local offsets = {{1,0},{0,1},{-1,0},{0,-1}}
 
+function Navigation.screenAxes()
+    return (Isaac.WorldToScreen(Vector(1000, 1000)) - Isaac.WorldToScreen(Vector.Zero)) * .001
+end
+
+function Navigation.worldCursor(room)
+    -- Native mouse samples are viewport pixels; aiming uses the room projection.
+    local raw = Input.GetMousePosition(false)
+    local span = Isaac.ScreenToWorld(Vector(10000, 10000)) - Isaac.ScreenToWorld(Vector.Zero)
+    local scale = Isaac.WorldToScreenDistance(span) * .0001
+    local screen = Vector(raw.X * scale.X, raw.Y * scale.Y)
+    if room:IsMirrorWorld() then screen.X = Isaac.GetScreenWidth() - screen.X end
+    local delta, axis = screen - Isaac.WorldToScreen(Vector.Zero), Navigation.screenAxes()
+    return Vector(delta.X / axis.X, delta.Y / axis.Y)
+end
+
 local function build(room, p, goal, destination, clearPoint, clearSegment, canAttack)
     local width, size = room:GetGridWidth(), room:GetGridSize()
     local start = room:GetGridIndex(p.Position)

@@ -2,4 +2,7 @@
     <player name="Samira" skin="character_001_isaac.png" skinColor="-1"
             hp="6" bombs="0" keys="0" coins="0"
             nameimage="name.png" portrait="portrait.png" />
+    <player name="Yone" skin="character_001_isaac.png" skinColor="-1"
+            hp="6" bombs="0" keys="0" coins="0"
+            nameimage="yone-name.png" portrait="yone-portrait.png" />
 </players>

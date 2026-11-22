@@ -4,7 +4,14 @@ from pathlib import Path
 PREFIX='[SAMIRA_EXTERNAL] '
 
 def continuous(a,b):
-    return all(a.get(k)==b.get(k) for k in ('session','room','screen','transition','paused','occluded','stasis')) and (not b.get('transition') or b.get('presentation',0)>=2 and a.get('renderCaptured') and b.get('renderCaptured')) and not b.get('occluded') and math.dist(a['position'],b['position'])<100
+    keys=('session','room','screen','transition','paused','occluded','stasis')
+    eligible=not b.get('transition') or b.get('presentation',0)>=2 and a.get('renderCaptured') and b.get('renderCaptured')
+    return (a.get('hero','samira')==b.get('hero','samira') and all(a.get(k)==b.get(k) for k in keys)
+            and eligible and not b.get('occluded')
+            and math.dist(a['position'],b['position'])<100)
+
+def coordinates(value):
+    return len(value)==2 and all(isinstance(n,(int,float)) and math.isfinite(n) for n in value)
 
 def parse(line):
     if PREFIX not in line:return None
@@ -13,9 +20,13 @@ def parse(line):
         if value.get('version')!=1:return None
         if not value.get('active'):return {'active':False}
         for key in ('screen','position','face'):
-            if len(value[key])!=2 or not all(isinstance(n,(int,float)) and math.isfinite(n) for n in value[key]):return None
+            if not coordinates(value[key]):return None
         if min(value['screen'])<=0 or not isinstance(value['kind'],str):return None
         if not math.isfinite(value['phase']) or not math.isfinite(value['time']):return None
+        if value.get('hero')=='yone':
+            frame=value.get('actionFrame',0);badge=value.get('mastery')
+            if not math.isfinite(frame) or frame<0:return None
+            if badge is not None and (not 0<=badge['at']<=1 or not coordinates(badge['position'])):return None
         return value
     except (ValueError,KeyError,TypeError,AttributeError):return None
 
@@ -47,10 +58,14 @@ class Tail:
             self.latest=value;self.received=now;self.count+=1
     def sample(self,now=None):
         now=time.perf_counter() if now is None else now
+        if not self.latest or not self.latest.get('active'):return None
         # During the engine's blocking room load, hold only the acknowledged HUD.
         # No extrapolation of the actor, particles or new gameplay state.
-        timeout=3 if self.latest and self.latest.get('presentation',0)>=2 else 2 if self.latest and self.latest.get('transition') and self.latest.get('hudVisible') else .5
-        if not self.latest or not self.latest.get('active') or now-self.received>timeout:return None
+        timeout=.5
+        if self.latest.get('hero')!='yone':
+            if self.latest.get('presentation',0)>=2:timeout=3
+            elif self.latest.get('transition') and self.latest.get('hudVisible'):timeout=2
+        if now-self.received>timeout:return None
         result=dict(self.latest);a=self.previous;b=self.latest
         result['positionReset']=now<self.settle_until
         result['packetClock']=b.get('clock',0)
@@ -63,6 +78,9 @@ class Tail:
                 looping=b.get('looping',not b.get('cast'))
                 if delta<-.5 and looping:delta+=1
                 result['phase']=(a['phase']+delta*weight)%1 if looping else a['phase']+delta*weight
+                if (a.get('actionId')==b.get('actionId') and 'actionFrame' in a and 'actionFrame' in b
+                        and a['actionFrame']<=b['actionFrame']):
+                    result['actionFrame']=a['actionFrame']+(b['actionFrame']-a['actionFrame'])*weight
             result['clock']=a['clock']+(b['clock']-a['clock'])*weight
             old_walk=a.get('locomotion');new_walk=b.get('locomotion')
             if old_walk and new_walk and old_walk['kind']==new_walk['kind']:
@@ -74,8 +92,11 @@ class Tail:
             delay=b['clock']-result['clock']
             result['heartsteelHits']=[dict(f,age=f['age']-delay) for f in b.get('heartsteelHits',[]) if f['age']>=delay]
             old_badge=a.get('mastery');new_badge=b.get('mastery')
-            if old_badge and new_badge and old_badge['at']==new_badge['at']:
-                result['mastery']=dict(new_badge,position=[x+(y-x)*weight for x,y in zip(old_badge['position'],new_badge['position'])])
+            if old_badge and new_badge:
+                old_at,new_at=old_badge['at'],new_badge['at']
+                if old_at==new_at or b.get('hero')=='yone' and old_at<new_at:
+                    result['mastery']=dict(new_badge,at=old_at+(new_at-old_at)*weight,
+                        position=[x+(y-x)*weight for x,y in zip(old_badge['position'],new_badge['position'])])
             previous_marks={f['key']:f for f in a.get('heartsteel',[]) if 'key' in f}
             result['heartsteel']=[]
             for mark in b.get('heartsteel',[]):

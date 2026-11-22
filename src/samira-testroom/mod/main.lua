@@ -18,6 +18,7 @@ local Character = include('samira_character')
 local Weapons = include('samira_weapons')
 local Kills = include('samira_kills')
 local Encounters = include('samira_encounters')
+local Yone = include('yone_character')
 Combat.bindItems(Items)
 Combat.bindWeapons(Weapons)
 Items.bindCombat(Combat)
@@ -234,6 +235,8 @@ mod:AddCallback(ModCallbacks.MC_EXECUTE_CMD, function(_, command, args)
             Isaac.ConsoleOutput('Usage: samiratest [off]\n')
         elseif not Isaac.IsInGame() or game:GetNumPlayers() ~= 1 then
             Isaac.ConsoleOutput('Start a single-player run first.\n')
+        elseif Yone.is(Isaac.GetPlayer(0)) then
+            Isaac.ConsoleOutput('Samira preview is unavailable in a Yone run.\n')
         else
             start()
             Isaac.ConsoleOutput('Samira test skin enabled. Close the console to continue.\n')
@@ -326,6 +329,7 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, function()
     Encounters.update()
     if active and selectedCharacter and not Character.player(game) then stop() end
     local p = player()
+    if p and Yone.is(p) then stop(); return end
     if not p then return end
     local clock = game:GetFrameCount()
     Combat.syncCooldownClock(clock)
@@ -424,5 +428,7 @@ Weapons.init(mod, game, player, Items, function(kind, heading, context)
 end)
 Kills.init(mod, game, player, Combat.onKill)
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, function(_, continued)
+    if Yone.is(Isaac.GetPlayer(0)) then return end
     if Character.player(game) or continued and Items.isEnabled and Items.isEnabled() then start(continued) end
 end)
+Yone.init(mod, game)

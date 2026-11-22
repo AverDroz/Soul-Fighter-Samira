@@ -44,7 +44,7 @@ class Mixer:
         for channel, gain in zip(self.channels, self.volumes):
             channel.set_volume(volume * gain)
 
-    def play(self, role, group, gain):
+    def play(self, role, group, gain, *, loops=0):
         if group == "voice":
             index = 0
         elif group == "ultimate":
@@ -61,7 +61,7 @@ class Mixer:
         number = self.indices.get(role, 0)
         channel = self.channels[index]
         # SDL_mixer resets channel volume on some playback paths.
-        channel.play(variants[number % len(variants)])
+        channel.play(variants[number % len(variants)], loops=loops)
         channel.set_volume(self.volume * gain)
         self.volumes[index] = gain
         self.roles[index] = role

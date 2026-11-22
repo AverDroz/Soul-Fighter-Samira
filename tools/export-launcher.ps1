@@ -134,7 +134,7 @@ try {
         exit 0
     }
     if ($running) {
-        Show-Notice 'Рендер уже запущен. Открой игру через REPENTOGON и выбери Samira.'
+        Show-Notice 'Рендер уже запущен. Открой игру через REPENTOGON и выбери Samira или Yone.'
         exit 0
     }
 
@@ -178,7 +178,7 @@ try {
     if ($process.WaitForExit(500)) {
         throw "Рендер завершился при запуске. Журнал находится в companion\work\testroom-renderer.err. $stderr"
     }
-    Show-Notice 'Рендер запущен. Открой Isaac через REPENTOGON, включи Soul Fighter Samira в меню Mods и выбери Samira.'
+    Show-Notice 'Рендер запущен. Открой Isaac через REPENTOGON, включи Soul Fighter Samira в меню Mods и выбери Samira или Yone.'
 } catch {
     Show-Notice $_.Exception.Message Error
     exit 1

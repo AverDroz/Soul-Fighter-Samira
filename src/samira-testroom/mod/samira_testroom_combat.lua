@@ -29,21 +29,7 @@ local function direction(delta, fallback)
     return delta:Length() > 0.01 and delta:Normalized() or fallback
 end
 
-local function screenAxes()
-    return (Isaac.WorldToScreen(Vector(1000, 1000)) - Isaac.WorldToScreen(Vector.Zero)) * .001
-end
-
-local function worldCursor(room)
-    -- The native mouse sample uses viewport pixels. Match the reference's
-    -- conversion to the same logical screen space used by WorldToScreen.
-    local raw = Input.GetMousePosition(false)
-    local span = Isaac.ScreenToWorld(Vector(10000, 10000)) - Isaac.ScreenToWorld(Vector.Zero)
-    local scale = Isaac.WorldToScreenDistance(span) * .0001
-    local screen = Vector(raw.X * scale.X, raw.Y * scale.Y)
-    if room:IsMirrorWorld() then screen.X = Isaac.GetScreenWidth() - screen.X end
-    local delta, axis = screen - Isaac.WorldToScreen(Vector.Zero), screenAxes()
-    return Vector(delta.X / axis.X, delta.Y / axis.Y)
-end
+local screenAxes, worldCursor = Navigation.screenAxes, Navigation.worldCursor
 
 local function releaseDash(dash, relocate)
     local p = dash and dash.owner

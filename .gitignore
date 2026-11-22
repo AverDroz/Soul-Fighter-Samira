@@ -1,6 +1,7 @@
 vendor/
 work/
 assets/*
+assets/yone-local/
 !assets/samira-items/
 assets/samira-items/*
 !assets/samira-items/isaac-atlas.png

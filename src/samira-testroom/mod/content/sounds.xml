@@ -5,4 +5,7 @@
     <sample weight="1" path="heartsteel_proc_112272935.wav" />
     <sample weight="1" path="heartsteel_proc_767032564.wav" />
   </sound>
+  <sound name="Yone Mastery">
+    <sample weight="1" path="mastery.wav"/>
+  </sound>
 </sounds>

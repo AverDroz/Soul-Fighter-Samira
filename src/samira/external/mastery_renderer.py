@@ -30,14 +30,15 @@ class MasteryRenderer:
         return np.concatenate([np.c_[position[p['indices']],p['uv'][p['indices']]]
             for p,position in zip(self.model.parts,self.model.positions(self.clip,seconds))]).astype('f4')
 
-    def draw(self,state,canvas):
+    def draw(self,state,canvas=None,*,normalized=False):
         badge=state.get('mastery')
         if not badge or state.get('paused') or state.get('dead') or state.get('shop') or state.get('preview'):return False
-        seconds=(state.get('clock',0)-badge['at'])/30
+        seconds=badge['at']*self.duration if normalized else (state.get('clock',0)-badge['at'])/30
         if not 0<=seconds<self.duration:return False
         ctx=self.ctx;x,y=badge['position'];sw,sh=state['screen'];vx,vy,vw,vh=ctx.viewport
         size=(max(160,int(160*vw/sw)),max(160,int(160*vh/sh)))
-        canvas.flush();previous=ctx.fbo;viewport=ctx.viewport
+        if canvas is not None:canvas.flush()
+        previous=ctx.fbo;viewport=ctx.viewport
         if self.target is None or self.target.size!=size:
             if self.target:self.target.release();self.color.release();self.depth.release()
             self.color=ctx.texture(size,4);self.color.filter=(moderngl.LINEAR,moderngl.LINEAR)
@@ -48,7 +49,8 @@ class MasteryRenderer:
             self.particles.begin((160,160),(1,1),state['clock'])
             # Original crest uses uniform 1.4 scale and y=250. Anchor its center above the hero.
             units=54/(114.96*1.4)
-            self.particles.draw('Mastery',seconds,(80,80+(250+44.128*1.4)*units),(-1,0),units,key=badge['at'])
+            key=(state.get('session'),state.get('room')) if normalized else badge['at']
+            self.particles.draw('Mastery',seconds,(80,80+(250+44.128*1.4)*units),(-1,0),units,key=key)
         finally:
             previous.use();ctx.viewport=viewport
         ctx.disable(moderngl.DEPTH_TEST);ctx.enable(moderngl.BLEND)
