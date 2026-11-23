@@ -1033,10 +1033,28 @@ do
     assert(progress.award(run, 65) == 1)
     local earned = captureHud()
     local bounds = include('yone_hud').bounds(hudScale, include('samira_inventory_hud').bounds(player, hudScale), true)
-    assert(earned['LVL 2  5/72 XP'].y >= earned.icons[1].y + earned.icons[1].size
-        and earned['LVL 2  5/72 XP'].y < bounds.y + bounds.height
+    local xp = earned['LVL 2  5/72 XP']
+    assert(xp.x >= bounds.progress.x
+        and xp.x + Isaac.GetTextWidth('LVL 2  5/72 XP') * xp.scale <= bounds.combat.x
+        and bounds.progress.y == bounds.combat.y and bounds.height == 39 * bounds.scale
         and earned['Alt+QWER: 1 pt'] and earned.upgradeArrows == 6,
-        'XP must stay inside the lower HUD strip with arrows on the three available upgrades')
+        'XP must stay left of the combat HUD without increasing its height')
+    do
+        local width, height = Isaac.GetScreenWidth, Isaac.GetScreenHeight
+        Isaac.GetScreenWidth, Isaac.GetScreenHeight = function() return 688 end, function() return 288 end
+        for _, scale in ipairs({1, 1.5}) do
+            hudScale = scale
+            local bag = include('samira_inventory_hud').bounds(player, scale)
+            local wide = include('yone_hud').bounds(scale, bag, true)
+            assert(wide.progress.x > bag.x + bag.width and wide.combat.x > wide.progress.x + wide.progress.width
+                and wide.combat.y + wide.combat.height >= Isaac.GetScreenHeight() - 5
+                and wide.combat.x + wide.combat.width <= Isaac.GetScreenWidth() - 5,
+                'wide HUD did not fit the left panel and the skills beside the backpack')
+            local hud = captureHud()
+            assert(hud['LVL 2  5/72 XP'].x < hud.icons[1].x and hud.upgradeArrows == 6)
+        end
+        Isaac.GetScreenWidth, Isaac.GetScreenHeight, hudScale = width, height, 1
+    end
     input.held = 'KEY_LEFT_ALT'
     tick('KEY_Q')
     tick('KEY_Q')

@@ -1,7 +1,7 @@
 local HUD = {}
 local Progression = include('yone_progression')
 local abilities = {'q', 'w', 'e', 'r'}
-local width, combatHeight, progressHeight = 206, 39, 11
+local width, height, progressWidth, panelGap = 206, 39, 70, 3
 local iconSize, iconStep, firstIcon = 26, 33, 76
 local cellWidth, cellHeight = 32, 10
 local ready = {.95, .91, .80, 1}
@@ -37,24 +37,36 @@ local shieldMark = {{1, 1, 7, 1, 7, 5, 4, 8, 1, 5, 1, 1}}
 local boltMark = {{5, 0, 1, 5, 4, 5, 3, 8, 7, 3, 4, 3, 5, 0}}
 
 function HUD.bounds(requestedScale, backpack, hasProgress)
-    local height = combatHeight + (hasProgress and progressHeight or 0)
+    local leftInset = hasProgress and progressWidth + panelGap or 0
+    local totalWidth = width + leftInset
     local screenWidth, screenHeight = Isaac.GetScreenWidth(), Isaac.GetScreenHeight()
-    local scale = math.min(requestedScale, (screenWidth - 12) / width, (screenHeight - 10) / height)
-    local x = (screenWidth - width * scale) / 2
+    local scale = math.min(requestedScale, (screenWidth - 12) / totalWidth, (screenHeight - 10) / height)
+    local right = backpack and backpack.x + backpack.width + 7
+    if right and hasProgress then
+        local scaleBesideBackpack = (screenWidth - right - 6) / totalWidth
+        if scaleBesideBackpack >= .75 then scale = math.min(scale, scaleBesideBackpack) end
+    end
+    local x = math.max(6, (screenWidth - width * scale) / 2 - leftInset * scale)
     local bottom = screenHeight - 4
     if backpack then
-        local right = backpack.x + backpack.width + 7
-        if right + width * scale + 6 <= screenWidth then
+        if right + totalWidth * scale + 6 <= screenWidth + .001 then
             x = math.max(x, right)
         else
             bottom = backpack.y - 17 * backpack.scale - 3
             scale = math.min(scale, (bottom - 3) / height)
-            x = screenWidth - width * scale - 6
+            x = screenWidth - totalWidth * scale - 6
         end
     end
     if scale <= 0 then return end
-    return {x = math.floor(x), y = math.floor(bottom - height * scale),
-        width = width * scale, height = height * scale, scale = scale}
+    local bounds = {x = math.floor(x), y = math.floor(bottom - height * scale),
+        width = totalWidth * scale, height = height * scale, scale = scale}
+    if hasProgress then
+        bounds.progress = {x = bounds.x, y = bounds.y, width = progressWidth * scale,
+            height = bounds.height, scale = scale}
+        bounds.combat = {x = bounds.x + leftInset * scale, y = bounds.y, width = width * scale,
+            height = bounds.height, scale = scale}
+    end
+    return bounds
 end
 
 local function line(x1, y1, x2, y2, tint, weight)
@@ -307,7 +319,7 @@ end
 
 local function drawProgress(b, progress, clock, pointer)
     local x, s = b.x, b.scale
-    local y = b.y + combatHeight * s
+    local y = b.y
     local atMax = progress.level == Progression.MAX_LEVEL
     local required = Progression.required(progress.level)
     local fraction = atMax and 1 or math.min(1, math.max(0, progress.xp / required))
@@ -318,16 +330,18 @@ local function drawProgress(b, progress, clock, pointer)
         ranks[#ranks + 1] = key:upper() .. Progression.rank(progress, key)
     end
 
+    panel(x, y, b.width, b.height, s, palette.edge, palette.body)
     centered(level .. (atMax and '  MAX' or ('  %d/%d XP'):format(progress.xp, required)),
-        x + 36 * s, y, .73 * s, gold, 62 * s)
-    local runeTip, runeX = drawRune(progress, clock, x + 70 * s, y, s, pointer)
-    fill(x + 5 * s, y + 8 * s, b.width - 10 * s, s, palette.divider)
-    if fraction > 0 then fill(x + 5 * s, y + 8 * s, (b.width - 10 * s) * fraction, s, palette.wind) end
+        x + 35 * s, y + 2 * s, .78 * s, gold, 62 * s)
+    fill(x + 5 * s, y + 11 * s, b.width - 10 * s, 1.5 * s, palette.divider)
+    if fraction > 0 then fill(x + 5 * s, y + 11 * s, (b.width - 10 * s) * fraction, 1.5 * s, palette.wind) end
+    local runeTip, runeX = drawRune(progress, clock, x + 13 * s, y + 17 * s, s, pointer)
     if points > 0 then
-        centered(('Alt+QWER: %d pt'):format(points), x + 175 * s, y, .73 * s, gold, 50 * s)
+        centered(('Alt+QWER: %d pt'):format(points), x + 35 * s, y + 31 * s, .66 * s, gold, 62 * s)
+        centered(table.concat(ranks, ' '), x + 35 * s, y + 24.5 * s, .60 * s, cooling, 62 * s)
+    else
+        centered(table.concat(ranks, ' '), x + 35 * s, y + 29 * s, .71 * s, cooling, 62 * s)
     end
-    centered(table.concat(ranks, ' '), x + (points > 0 and 132 or 157) * s,
-        y, .73 * s, cooling, (points > 0 and 34 or 79) * s)
     return runeTip, runeX
 end
 
@@ -339,6 +353,7 @@ end
 
 function HUD.upgradeHit(b, progress)
     if not b then return end
+    b = b.combat or b
     local pointer = mousePosition()
     for i, key in ipairs(abilities) do
         if Progression.canUpgrade(progress, key) and contains(pointer, upgradeBounds(b, i)) then return key end
@@ -356,6 +371,8 @@ end
 
 function HUD.render(b, combat, clock, aiming, picture, stats, aimColors, progress)
     if not b or not Isaac.DrawLine or not KColor then return end
+    local progressBounds = b.progress
+    b = b.combat or b
     setup()
     local pointer = mousePosition()
     drawPlate(b)
@@ -400,8 +417,8 @@ function HUD.render(b, combat, clock, aiming, picture, stats, aimColors, progres
         if status then centered(status, x + size / 2, y + 9 * s, 1.05 * s, spirit and recast or ready, size - 2 * s) end
         if progress and Progression.canUpgrade(progress, key) then drawUpgrade(b, i, pointer) end
     end
-    if progress then
-        local runeTip, runeX = drawProgress(b, progress, clock, pointer)
+    if progress and progressBounds then
+        local runeTip, runeX = drawProgress(progressBounds, progress, clock, pointer)
         if runeTip then tooltip, anchor = runeTip, runeX end
     end
     drawTooltip(b, tooltip, anchor)
