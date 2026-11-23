@@ -626,6 +626,9 @@ assert(event('ENTITY_TAKE_DMG', player, 1, DamageFlag.DAMAGE_FAKE, EntityRef(att
 local ultimateHud = captureHud()
 sameSlots(readyHud, ultimateHud)
 assert(statusOver(ultimateHud, '30s', 4), 'R lost its cooldown display')
+for _ = 1, 40 do tick() end
+assert(event('ENTITY_TAKE_DMG', player, 1, 0, nil) == false,
+    'R no longer protects from contact once the animation ends')
 
 local roomKey, claimed = 1, {[1] = true}
 noItems.claimCombatRoomReset = function()

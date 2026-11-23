@@ -347,11 +347,13 @@ assert(#front.damage == 1 and #near.damage == 1 and player.Position.X > 160 and 
     'R failed to hit and pull through an interior obstacle')
 assert(#wideR.damage == 1 and #outsideR.damage == 0, 'R damage disagrees with the wider indicator')
 assert(combat.visual(state,24).fx[1].footprint.width == 28, 'R effect lost its impact width')
-assert(combat.invulnerable(state,24) and combat.invulnerable(state,40) and not combat.invulnerable(state,41),
-    'R did not end immunity with the cast animation')
+assert(combat.invulnerable(state,24) and combat.invulnerable(state,40), 'R lost immunity at impact or during recovery')
 assert(not combat.cast(state, 'q', player, aim, 25), 'R recovery allowed a new cast')
-combat.resetRoom(state, 26)
-assert(not combat.invulnerable(state,26), 'room change kept R immunity')
+assert(combat.cast(state,'attack',player,aim,41,room), 'R grace kept combat locked after the animation')
+assert(combat.invulnerable(state,41) and combat.invulnerable(state,55) and not combat.invulnerable(state,56),
+    'R grace did not protect for fifteen frames after the animation')
+combat.resetRoom(state, 42)
+assert(not combat.invulnerable(state,42), 'room change kept R immunity')
 wall = {}
 
 -- An L-shaped room may contain a second region on the same ray; R must not jump the gap.

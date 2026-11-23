@@ -9,7 +9,7 @@ local skills = {
     w = {windup = 8, duration = 22, cooldown = 210},
     e = {windup = 3, duration = 14, cooldown = 450},
     e_return = {windup = 0, duration = 13},
-    r = {windup = 23, duration = 40, cooldown = 900},
+    r = {windup = 23, duration = 40, cooldown = 900, landingGrace = 15},
 }
 local qRange, q3Range, ultRange, wRange = 124, 212, 202, 122
 local meleeRange, maxMeleeRange, meleeHalfWidth = qRange * .85, 145, 17
@@ -170,7 +170,8 @@ end
 function Combat.resetRoom(state, clock, relocate)
     releaseReturn(state, relocate)
     state.pending, state.action, state.spirit, state.shieldUntil = nil, nil, nil, nil
-    state.directImpact, state.effects, state.q3InvulnerableUntil, state.airborne = nil, {}, nil, {}
+    state.directImpact, state.effects, state.airborne = nil, {}, {}
+    state.q3InvulnerableUntil, state.rInvulnerableUntil = nil, nil
     state.qStacks, state.qExpires = 0, nil
     if state.lastClock and clock < state.lastClock then
         for key, deadline in pairs(state.ready) do
@@ -611,6 +612,7 @@ local function resolve(state, room, player, enemies, strike, clock)
         returnSpirit(state, room, player, clock)
     elseif key == 'r' then
         local targets, contacts = {}, {}
+        state.rInvulnerableUntil = math.max(clock, state.action.finish) + skills.r.landingGrace
         local hit, far = blade(state, room, player, enemies, strike, footprint.width, footprint.reach, 2.5, false, targets, true, contacts)
         local destination = landing(room, player, start, start + facing * math.min(footprint.reach, hit and far + 23 or footprint.reach))
         teleport(player, destination)
@@ -652,6 +654,7 @@ function Combat.invulnerable(state, clock)
         return true
     end
     return state.returning ~= nil or Combat.q3Invulnerable(state, clock) or castingUltimate(state, clock)
+        or clock < (state.rInvulnerableUntil or 0)
 end
 
 function Combat.absorb(state, clock, position)
