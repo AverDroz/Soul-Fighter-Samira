@@ -164,7 +164,7 @@ local readyHud = captureHud(Vector(0, 0))
 assert(glyphLines >= 8, 'ability panel did not draw its plate')
 assert(readyHud.icons[1].name == 'Q' and readyHud.icons[2].name == 'W'
     and readyHud.icons[3].name == 'E' and readyHud.icons[4].name == 'R' and readyHud.pips == 0)
-checkStatGrid(readyHud, {'4.00', '0%', '2.00', '0', '1.00', '69'})
+checkStatGrid(readyHud, {'4.00', '0%', '2.00', '0', '1.00', '86'})
 assert(not readyHud.CRIT and not readyHud.DMG and not readyHud['Critical strike chance'] and readyHud.shield == 0,
     'idle HUD leaked labels or a W shield indicator')
 noItems.combatStats = function(owner)
@@ -173,7 +173,7 @@ noItems.combatStats = function(owner)
 end
 player.MaxFireDelay, player.Damage, player.MoveSpeed, player.TearRange = 5, 7.25, 1.23, 365
 local boosted = captureHud(Vector(0, 0))
-checkStatGrid(boosted, {'7.25', '52%', '3.33', '17', '1.23', '77'})
+checkStatGrid(boosted, {'7.25', '52%', '3.33', '17', '1.23', '96'})
 assert(not boosted['0%'] and boosted['52%'].color[1] > readyHud['0%'].color[1],
     'current critical chance did not update or pick up its accent')
 noItems.combatStats = nil
@@ -182,7 +182,7 @@ Isaac.DrawLine = function() end
 do
     local width, height = Isaac.GetScreenWidth, Isaac.GetScreenHeight
     local inventoryBounds = include('samira_inventory_hud').bounds
-    local values = {'4.00', '0%', '2.00', '0', '1.00', '69'}
+    local values = {'4.00', '0%', '2.00', '0', '1.00', '86'}
     local statLabels = {'Attack damage', 'Critical strike chance', 'Attacks per second',
         'Ability haste', 'Movement speed', 'Attack range'}
     local function checkHover(hud, i)
@@ -209,7 +209,7 @@ do
     hudScale = .75
     noItems.combatStats = function() return 1, 17.5 end
     local saturated = captureHud(Vector(0, 0))
-    checkStatGrid(saturated, {'4.00', '100%', '2.00', '17.5', '1.00', '69'})
+    checkStatGrid(saturated, {'4.00', '100%', '2.00', '17.5', '1.00', '86'})
     assert(saturated.icons[1].size == 19.5 and saturated['100%'].scale > .5)
     noItems.combatStats, hudScale = nil, 1
     Isaac.GetScreenWidth, Isaac.GetScreenHeight = function() return 688 end, function() return 288 end
@@ -412,6 +412,8 @@ local attacker = makeEntity('enemy', player.Position.X + 25, player.Position.Y, 
 entities = {attacker}
 function player:SetMinDamageCooldown(frames) self.shieldCooldown = frames end
 castKey('KEY_W')
+assert(event('ENTITY_TAKE_DMG', player, 1, 0, nil) == false and player.shieldCooldown == nil,
+    'W windup took damage or consumed a shield too early')
 for _ = 1, 9 do tick() end
 local cleave = packet.yone.fx[#packet.yone.fx]
 assert(cleave.kind == 'w' and #cleave.arc == 13, 'W had no projected cleave arc')
@@ -613,9 +615,13 @@ for _ = 1, 45 do
     tick('KEY_R')
     assert(callAction('ACTION_RESTART', 'IS_ACTION_PRESSED') == false, 'long R hold allowed restart')
     assert(rCasts == 0, 'R cast before release')
+    assert(event('ENTITY_TAKE_DMG', player, 1, 0, nil) == nil, 'holding R gave immunity before cast')
 end
 tick()
 assert(rCasts == 1, 'R release did not cast exactly once')
+assert(event('ENTITY_TAKE_DMG', player, 1, 0, nil) == false, 'R cast did not prevent environmental damage')
+assert(event('ENTITY_TAKE_DMG', player, 1, DamageFlag.DAMAGE_FAKE, EntityRef(attacker)) == nil,
+    'R immunity swallowed fake damage')
 local ultimateHud = captureHud()
 sameSlots(readyHud, ultimateHud)
 assert(statusOver(ultimateHud, '30s', 4), 'R lost its cooldown display')
@@ -631,6 +637,7 @@ event('PRE_CHANGE_ROOM')
 roomKey, entities = 2, {attacker}
 local hpOnEntry = attacker.HitPoints
 event('POST_NEW_ROOM')
+assert(event('ENTITY_TAKE_DMG', player, 1, 0, nil) == nil, 'R immunity remained in the next room')
 tick('KEY_E')
 tick()
 assert(packet.clip == 'idle', 'held E leaked into the new room')

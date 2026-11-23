@@ -14,6 +14,10 @@ local function eligible(hit)
         and (hit.kind == 'attack' or hit.kind == 'q' or hit.kind == 'q3')
 end
 
+function Artifacts.cricket(player, hit)
+    return eligible(hit) and owns(player, 'COLLECTIBLE_CRICKETS_BODY')
+end
+
 function Artifacts.range(player)
     local nativeRange = tonumber(player.TearRange) or 260
     local bonus = owns(player, 'COLLECTIBLE_MOMS_KNIFE') and .10 or 0
@@ -113,6 +117,12 @@ function Artifacts.fire(player, strike, origin, reach, clock)
         local velocity = strike.facing:Rotated(angles[index]) * speed
         local tear = player:FireTear(origin, velocity, true, false, false, player, multiplier)
         if tear and tear:Exists() then
+            -- Cricket's Body is represented by the blade impact, not a second
+            -- straight tear. Preserve every unrelated native tear effect.
+            if owns(player, 'COLLECTIBLE_CRICKETS_BODY') and TearFlags.TEAR_QUADSPLIT
+                and tear.ClearTearFlags then
+                tear:ClearTearFlags(TearFlags.TEAR_QUADSPLIT)
+            end
             if rainbow then addRainbowMotion(player, tear, clock) end
             if rainbow or #angles > 1 or modifiedTear(player, tear, multiplier) then
                 tear:GetData().YoneTearRange = {origin = origin, reach = reach}

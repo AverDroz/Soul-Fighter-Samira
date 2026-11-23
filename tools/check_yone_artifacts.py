@@ -13,11 +13,11 @@ def main():
     lua.execute(r"""
 local a = assert(load(source))()
 CollectibleType = {COLLECTIBLE_20_20=1, COLLECTIBLE_INNER_EYE=2, COLLECTIBLE_MUTANT_SPIDER=3,
-    COLLECTIBLE_MOMS_KNIFE=4, COLLECTIBLE_EYE_SORE=5}
+    COLLECTIBLE_MOMS_KNIFE=4, COLLECTIBLE_EYE_SORE=5, COLLECTIBLE_CRICKETS_BODY=6}
 TrinketType = {TRINKET_RAINBOW_WORM=64}
 TearVariant = {BLUE=0, BLOOD=1, TOOTH=2}
 TearFlags = {TEAR_NORMAL=0, TEAR_WIGGLE=1, TEAR_PULSE=2, TEAR_SPIRAL=4, TEAR_SQUARE=8, TEAR_FLAT=16,
-    TEAR_BIG_SPIRAL=32, TEAR_HOMING=64, TEAR_UNRECOGNIZED=1<<55}
+    TEAR_BIG_SPIRAL=32, TEAR_HOMING=64, TEAR_QUADSPLIT=128, TEAR_UNRECOGNIZED=1<<55}
 WeaponType = {WEAPON_TEARS=1, WEAPON_BRIMSTONE=2, WEAPON_LASER=3, WEAPON_TECH_X=9}
 LaserOffset = {LASER_TECH1_OFFSET=0}
 ModCallbacks = {MC_POST_TEAR_UPDATE=1, MC_POST_LASER_UPDATE=2}
@@ -65,6 +65,7 @@ function p:FireTear(pos, vel, canBeEye, ignoreTractor, canEndStreak, owner, mult
     tore.CollisionDamage = self.Damage * multiplier
     function tore:HasTearFlags(flag) return self.TearFlags & flag == flag end
     function tore:AddTearFlags(flag) self.TearFlags = self.TearFlags | flag end
+    function tore:ClearTearFlags(flag) self.TearFlags = self.TearFlags & ~flag end
     self.fired[#self.fired+1] = tore
     return tore
 end
@@ -94,6 +95,14 @@ local function fire(kind, clock, reach)
 end
 local base = fire('attack', 0)
 assert(#base==1 and base[1].removed, 'ordinary blade left an extra tear')
+p.owned[6]=true; p.flags=TearFlags.TEAR_QUADSPLIT
+assert(fire('attack',0)[1].removed, 'Cricket alone created an extra straight tear')
+p.flags=TearFlags.TEAR_QUADSPLIT | TearFlags.TEAR_HOMING
+local mixed=fire('q',0)[1]
+assert(mixed:Exists() and mixed.TearFlags==TearFlags.TEAR_HOMING, 'Cricket suppressed an unrelated tear effect')
+p.owned[6]=false; p.flags=TearFlags.TEAR_QUADSPLIT
+assert(fire('q',0)[1]:Exists(), 'non-Cricket quadsplit was removed')
+p.flags=0
 p.rainbow=2
 for _, kind in ipairs({'attack','q','q3'}) do
     local early, late = fire(kind, 15)[1], fire(kind, 105)[1]

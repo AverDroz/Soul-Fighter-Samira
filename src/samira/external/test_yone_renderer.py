@@ -305,6 +305,26 @@ class YoneRendererTests(unittest.TestCase):
         state['phase'] = .7
         self.assertNotIn('yoneVfx', renderer.draw(state, 0)[1])
 
+    def test_projected_ultimate_width_and_cricket_rays(self):
+        from run_testroom_renderer import YoneRenderer
+        renderer = YoneRenderer(self.ctx, Path('unavailable-yone.glb'))
+        self.addCleanup(renderer.close)
+        event = {'kind': 'r', 'age': .04, 'origin': [40, 100], 'target': [125, 100],
+                 'landing': [60, 100], 'halfWidth': 30}
+        state = {'kind': 'idle', 'screen': [160, 160], 'position': [40, 100],
+                 'face': [1, 0], 'clock': 120, 'yone': {'fx': [event]}}
+        renderer.draw(state, 0)
+        self.assertTrue(self.region(85, 65, 110, 70)[:, :, 3].any())
+        self.assertTrue(self.region(85, 116, 110, 121)[:, :, 3].any())
+        self.fbo.clear(0, 0, 0, 0)
+        event.update(kind='cricket', age=.14, origin=[80, 87], target=[115, 87],
+                     rays=[[115, 87], [80, 115], [48, 87], [80, 52]])
+        renderer.draw(state, 0)
+        for box in ((107, 75, 116, 88), (73, 102, 86, 111),
+                    (47, 74, 58, 88), (73, 45, 86, 56)):
+            self.assertTrue(self.region(*box)[:, :, 3].any(), box)
+        self.assertEqual(self.ctx.error, 'GL_NO_ERROR')
+
     def test_visible_impacts_follow_packet_endpoints_and_fade(self):
         from run_testroom_renderer import YoneRenderer
 

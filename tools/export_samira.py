@@ -17,16 +17,20 @@ YONE_AUDIO = (
 )
 
 
-def build(output, *, include_local_yone=False):
+def build(output, *, include_local_yone=False, staging_area=None):
     if include_local_yone:
         missing = [name for name in YONE_FILES if not (ROOT / "assets/yone-local" / name).is_file()]
         if missing:
             raise FileNotFoundError("Run tools/import_yone_assets.py first. Missing from assets/yone-local: "
                                     + ", ".join(missing))
     output.mkdir(parents=True, exist_ok=True)
-    staging_area = ROOT / "work" / ("friend-export-yone-local" if include_local_yone else "friend-export")
+    dedicated_stage = staging_area is not None
+    if staging_area is None:
+        staging_area = ROOT / "work" / ("friend-export-yone-local" if include_local_yone else "friend-export")
     stage = staging_area / "Soul-Fighter-Samira"
     if stage.exists():
+        if dedicated_stage:
+            raise FileExistsError(f"Choose a fresh staging directory: {staging_area}")
         assert stage.resolve().parent == staging_area.resolve()
         shutil.rmtree(stage)
     stage.mkdir(parents=True)
@@ -112,7 +116,8 @@ def build(output, *, include_local_yone=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--staging-area", type=Path, help="Use a fresh directory for the temporary release tree.")
     parser.add_argument("--include-local-yone", action="store_true",
                         help="Include the locally imported classic Yone model in a personal ZIP.")
     arguments = parser.parse_args()
-    build(arguments.output, include_local_yone=arguments.include_local_yone)
+    build(arguments.output, include_local_yone=arguments.include_local_yone, staging_area=arguments.staging_area)

@@ -10,7 +10,7 @@ ROSE = (1., .68, .79)
 WIND = (.40, .85, .98)
 IVORY = (.91, .98, 1.)
 SHADE = (.10, .025, .09)
-DURATIONS = {'attack': .22, 'attack2': .22, 'q': .27, 'q3': .47, 'w': .38,
+DURATIONS = {'attack': .22, 'attack2': .22, 'q': .27, 'q3': .47, 'w': .38, 'cricket': .25,
              'e': .36, 'e_return': .42, 'e_echo': .31, 'r': .57, 'shield': .31}
 
 
@@ -203,6 +203,9 @@ class YoneVFX:
         face = direction((end[0] - start[0], end[1] - start[1]), self.facing)
         length = math.dist(start, end)
         contacts = [p for p in entries(event.get('contacts'))[:24] if point(p)]
+        half_width = event.get('halfWidth')
+        if not number(half_width) or not 0 < half_width <= 80:
+            half_width = None
         if kind == 'shield':
             center = end[0], end[1] - 12
             self.shield(center, progress, alpha)
@@ -218,14 +221,13 @@ class YoneVFX:
                     self.sparks((contact[0], contact[1] - 9), IVORY, progress, alpha, seed, count=9)
                     self.canvas.flush()
         elif kind == 'r':
-            landing = event.get('landing')
-            if point(landing):
-                end = landing
-                face = direction((end[0]-start[0], end[1]-start[1]), self.facing)
-                length = math.dist(start, end)
-            self.ultimate(start, face, length, progress, alpha * (1 if contacts else .55))
+            self.ultimate(start, face, length, progress, alpha * (1 if contacts else .55), half_width or 17)
             for contact in contacts:
                 self.contact_burst(contact, progress, alpha, seed, ultimate=True)
+        elif kind == 'cricket':
+            for tip in entries(event.get('rays'))[:4]:
+                if point(tip) and math.dist(start, tip) > 1:
+                    self.cricket_slash(start, tip, progress, alpha)
         elif kind in ('e', 'e_return'):
             self.spirit_dash(start, end, face, length, progress, alpha, kind == 'e_return')
             if kind == 'e_return':
@@ -235,7 +237,7 @@ class YoneVFX:
             for contact in contacts:
                 self.contact_burst(contact, progress, alpha, seed)
         else:
-            self.strike(start, face, length, kind, progress, alpha)
+            self.strike(start, face, length, kind, progress, alpha, half_width)
 
     def contact_burst(self, position, progress, alpha, seed, ultimate=False):
         center = position[0], position[1] - 9
@@ -309,22 +311,32 @@ class YoneVFX:
             streak = [offset(tip, face, -length * .25 * t, side * (4 + 9 * t)) for t in (0, .3, .7, 1)]
             self.ribbon(streak, 2.2, WIND, alpha * .7)
 
-    def ultimate(self, start, face, length, progress, alpha):
+    def ultimate(self, start, face, length, progress, alpha, half_width):
         origin = start[0], start[1] - 7
         core = [offset(origin, face, length * t, 0) for t in (0, .5, 1)]
         for side, hue in ((-1, WIND), (1, RUBY)):
-            converge = [offset(origin, face, length * t, side * (17 * (1 - t))) for t in (0, .25, .5, .75, 1)]
+            converge = [offset(origin, face, length * t, side * half_width * (1 - t)) for t in (0, .25, .5, .75, 1)]
             self.ribbon(converge, 4.2, hue, alpha * .85)
         for side, hue in ((-1, WIND), (1, RUBY)):
-            edge = [offset(origin, face, length * t, side * 14) for t in (0, .25, .5, .75, 1)]
+            edge = [offset(origin, face, length * t, side * half_width * .85) for t in (0, .25, .5, .75, 1)]
             self.ribbon(edge, 3.3, hue, alpha * .9)
         self.ribbon(core, 10 + 9 * progress, WIND, alpha * .65)
         self.ribbon(core, 4.2, IVORY, alpha * .98)
         for side in (-1, 1):
-            span = 10 + 11 * progress
+            span = half_width * (.6 + .4 * progress)
             blade = [offset(origin, face, length * t, side * span * (2 * t - 1))
                      for t in (0, .28, .58, .82, 1)]
             self.ribbon(blade, 3.9, ROSE if side == 1 else WIND, alpha * .82)
+
+    def cricket_slash(self, start, tip, progress, alpha):
+        dx, dy = tip[0] - start[0], tip[1] - start[1]
+        reveal = min(1., .45 + 4 * progress)
+        origin = start[0], start[1] - 7
+        slash = [(origin[0] + dx * reveal * t - dy * .10 * math.sin(math.pi * t),
+                  origin[1] + dy * reveal * t + dx * .10 * math.sin(math.pi * t))
+                 for t in (0., .25, .5, .75, 1.)]
+        self.ribbon(slash, 4, RUBY, alpha * .8)
+        self.ribbon(slash, 1.2, ROSE, alpha)
 
     def spirit_dash(self, start, end, face, length, progress, alpha, returning):
         origin = start[0], start[1] - 7
@@ -342,7 +354,7 @@ class YoneVFX:
         x, y = end
         self.ribbon(ellipse((x, y), (6 + 11 * progress, 3 + 6 * progress)), 2, ROSE, alpha, tapered=False)
 
-    def strike(self, start, face, length, kind, progress, alpha):
+    def strike(self, start, face, length, kind, progress, alpha, half_width):
         origin = start[0], start[1] - 8
         if kind == 'q':
             points = [offset(origin, face, length * t, 0) for t in (0, .25, .5, .75, 1)]
@@ -350,7 +362,7 @@ class YoneVFX:
             self.ribbon(points, 1.2, IVORY, alpha)
             return
         side = -1 if kind == 'attack2' else 1
-        width = 4 if kind == 'q' else 12
+        width = (half_width or 16) * .75
         points = [offset(origin, face, length * t, side * width * math.sin(t * 2.8 + progress))
                   for t in (0, .2, .43, .65, .81, 1)]
         self.ribbon(points, width * .6, RUBY if kind == 'attack2' else WIND, alpha * .86)

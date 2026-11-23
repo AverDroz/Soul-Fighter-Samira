@@ -11,8 +11,9 @@ local skills = {
     e_return = {windup = 0, duration = 13},
     r = {windup = 23, duration = 40, cooldown = 900},
 }
-local meleeRange, qRange, q3Range, ultRange, wRange = 70, 124, 212, 168, 122
-local maxMeleeRange = 100
+local qRange, q3Range, ultRange, wRange = 124, 212, 168, 122
+local meleeRange, maxMeleeRange, meleeHalfWidth = math.floor(qRange * .7 + .5), 120, 17
+local ultHalfWidth = 28
 local spiritDuration, markDamage, wCosine, qStackDuration = 150, .30, .35, 180
 local spiritDash, q3Dash, spiritReturnFrames = 84, 156, 8
 local effectFrames, effectLimit, markerLimit = 21, 12, 24
@@ -27,9 +28,17 @@ function Combat.chargeQ3(state, clock)
     state.qStacks, state.qExpires = 2, clock + qStackDuration
 end
 
-function Combat.hostile(entity)
-    return entity and entity:Exists() and not entity:IsDead() and entity:IsVulnerableEnemy()
+local function activeTarget(entity)
+    return entity and entity:Exists() and not entity:IsDead()
         and not entity:HasEntityFlags(EntityFlag.FLAG_FRIENDLY)
+end
+
+function Combat.hostile(entity)
+    return activeTarget(entity) and entity.Type ~= EntityType.ENTITY_FIREPLACE and entity:IsVulnerableEnemy()
+end
+
+function Combat.attackable(entity)
+    return activeTarget(entity) and (entity.Type == EntityType.ENTITY_FIREPLACE or entity:IsVulnerableEnemy())
 end
 
 function Combat.clearPoint(room, player, point)
@@ -202,8 +211,13 @@ function Combat.reduceCooldowns(state, fraction, clock)
     end
 end
 
+local function castingUltimate(state, clock)
+    local action = state.action
+    return action ~= nil and action.key == 'r' and clock >= action.at and clock < action.finish
+end
+
 function Combat.cast(state, input, player, aim, clock, room)
-    if state.returning or state.pending or (state.action and state.action.key == 'r' and clock < state.action.finish) then return end
+    if state.returning or state.pending or castingUltimate(state, clock) then return end
     local key = input
     if input == 'e' and state.spirit then
         if clock < state.spirit.recastAt then return end
@@ -260,7 +274,7 @@ function Combat.footprint(state, player, input, aim, room)
     elseif key == 'w' then reach, shape, cosine = wRange, 'sector', wCosine
     elseif key == 'e' then reach, width = spiritDash, math.max(6, player.Size * .6)
     elseif key == 'r' then
-        reach, width = ultRange, 16
+        reach, width = ultRange, ultHalfWidth
     else return nil end
     if room and (key == 'q' or key == 'q3' or key == 'r') then
         -- The hit line may cross interior grids but never leave and re-enter a room.
@@ -335,8 +349,22 @@ local function teleport(player, destination)
     player.Velocity = Vector.Zero
 end
 
+local function effect(state, clock, kind, origin, target, footprint, landingPoint, contacts, bodyFace, bodyRemaining)
+    state.effectSerial = state.effectSerial + 1
+    local effects = state.effects
+    if #effects == effectLimit then table.remove(effects, 1) end
+    local entry = {id = state.effectSerial, at = clock, kind = kind,
+        origin = origin, target = target, footprint = footprint, landing = landingPoint,
+        contacts = contacts, bodyFace = bodyFace, bodyRemaining = bodyRemaining}
+    effects[#effects + 1] = entry
+    return entry
+end
+
 local function blade(state, room, player, enemies, strike, width, reach, multiplier, sweep, hitTargets, throughWalls, contacts)
     local hit, furthest = false, 0
+    local cricketImpact
+    local cricket = Artifacts.cricket(player, strike)
+    local directHits = cricket and {} or nil
     local facing = strike.facing
     local origin = strike.footprint and strike.footprint.origin or player.Position
     local side = Vector(-facing.Y, facing.X)
@@ -366,11 +394,48 @@ local function blade(state, room, player, enemies, strike, width, reach, multipl
         local enemy = candidate.entity
         local position = Vector(enemy.Position.X, enemy.Position.Y)
         if Combat.hostile(enemy) and damage(state, player, enemy, player.Damage * multiplier, strike) then
+            if cricket then
+                cricketImpact = cricketImpact or position
+                directHits[GetPtrHash(enemy)] = true
+            end
             hit = true
             furthest = math.max(furthest, candidate.along)
             if hitTargets then hitTargets[#hitTargets + 1] = enemy end
             if contacts and #contacts < markerLimit then contacts[#contacts + 1] = position end
         end
+    end
+    if cricketImpact then
+        -- The four short rays share one hit set, so overlapping rays never
+        -- multiply damage. Direct blade targets have already taken their hit.
+        local splashReach = 42
+        local directions = {facing, facing:Rotated(90), facing:Rotated(180), facing:Rotated(270)}
+        local rays = {}
+        for i, direction in ipairs(directions) do
+            local distance = 1
+            while distance <= splashReach and room:IsPositionInRoom(cricketImpact + direction * distance, 0) do
+                distance = distance + 1
+            end
+            rays[i] = cricketImpact + direction * (distance - 1)
+        end
+        for _, enemy in ipairs(enemies) do
+            local id = GetPtrHash(enemy)
+            if not directHits[id] and Combat.hostile(enemy) and withinRoom(room, cricketImpact, enemy.Position) then
+                local delta = enemy.Position - cricketImpact
+                for _, direction in ipairs(directions) do
+                    local along = delta:Dot(direction)
+                    local side = Vector(-direction.Y, direction.X)
+                    if along >= 0 and along <= splashReach + enemy.Size and math.abs(delta:Dot(side)) <= 5 + enemy.Size then
+                        directHits[id] = true
+                        -- No strike context: secondary damage cannot grant item
+                        -- procs, Q stacks, critical strikes, or spirit marks.
+                        enemy:TakeDamage(player.Damage * .25, 0, EntityRef(player), 0)
+                        break
+                    end
+                end
+            end
+        end
+        local cue = effect(state, state.lastClock, 'cricket', cricketImpact, rays[1])
+        cue.rays = rays
     end
     return hit, furthest
 end
@@ -397,20 +462,20 @@ end
 
 -- Damage tear-collidable non-hostile NPCs separately so scenery cannot grant
 -- Q stacks, E marks, or consume first-target item effects.
-local function qObjects(room, player, entities, strike, multiplier, contacts)
-    local area = strike.footprint
-    local side = Vector(-strike.facing.Y, strike.facing.X)
+local function hitScenery(room, player, entities, area, multiplier, throughWalls, contacts)
+    local side = Vector(-area.facing.Y, area.facing.X)
     for _, entity in ipairs(entities) do
         local collision = entity.EntityCollisionClass
         local tearCollision = EntityCollisionClass and (collision == EntityCollisionClass.ENTCOLL_ALL
             or collision == EntityCollisionClass.ENTCOLL_PLAYEROBJECTS)
-        if entity:Exists() and not entity:IsDead() and not Combat.hostile(entity)
-            and not entity:HasEntityFlags(EntityFlag.FLAG_FRIENDLY)
+        if activeTarget(entity) and not Combat.hostile(entity)
             and (entity.Type == EntityType.ENTITY_FIREPLACE or entity:ToNPC() and tearCollision) then
             local delta = entity.Position - area.origin
-            local along = delta:Dot(strike.facing)
-            if along >= 0 and along <= area.reach and math.abs(delta:Dot(side)) <= area.width + entity.Size then
-                if entity:TakeDamage(player.Damage * multiplier, 0, EntityRef(player), 0) and #contacts < markerLimit then
+            local along = delta:Dot(area.facing)
+            local reach = area.reach + (throughWalls and 0 or entity.Size)
+            if along >= 0 and along <= reach and math.abs(delta:Dot(side)) <= area.width + entity.Size
+                and (throughWalls or room:CheckLine(area.origin, entity.Position, 3, 0, false, false)) then
+                if entity:TakeDamage(player.Damage * multiplier, 0, EntityRef(player), 0) and contacts and #contacts < markerLimit then
                     contacts[#contacts + 1] = Vector(entity.Position.X, entity.Position.Y)
                 end
             end
@@ -427,17 +492,6 @@ local function landing(room, entity, start, goal)
         if Combat.clearPoint(room, entity, point) then return point end
     end
     return start
-end
-
-local function effect(state, clock, kind, origin, target, footprint, landingPoint, contacts, bodyFace, bodyRemaining)
-    state.effectSerial = state.effectSerial + 1
-    local effects = state.effects
-    if #effects == effectLimit then table.remove(effects, 1) end
-    local entry = {id = state.effectSerial, at = clock, kind = kind,
-        origin = origin, target = target, footprint = footprint, landing = landingPoint,
-        contacts = contacts, bodyFace = bodyFace, bodyRemaining = bodyRemaining}
-    effects[#effects + 1] = entry
-    return entry
 end
 
 local function returnSpirit(state, room, player, clock)
@@ -516,15 +570,18 @@ local function resolve(state, room, player, enemies, strike, clock)
     if key == 'attack' then
         state.secondBlade = not state.secondBlade
         local reach = attackReach(player, items)
-        blade(state, room, player, enemies, strike, 14, reach, state.secondBlade and 1 or 1.25)
+        local multiplier = state.secondBlade and 1 or 1.25
+        local area = {origin = start, facing = facing, reach = reach, width = meleeHalfWidth}
+        blade(state, room, player, enemies, strike, area.width, reach, multiplier)
+        hitScenery(room, player, enemies, area, multiplier, false)
         Artifacts.fire(player, strike, start, reach, clock)
-        effect(state, clock, strike.clip, start, start + facing * reach)
+        effect(state, clock, strike.clip, start, start + facing * reach, area)
     elseif key == 'q' then
         local reach, contacts = footprint.reach, {}
         if blade(state, room, player, enemies, strike, footprint.width, reach, 1.4, false, nil, true, contacts) then
             state.qStacks, state.qExpires = math.min(2, state.qStacks + 1), clock + qStackDuration
         end
-        qObjects(room, player, enemies, strike, 1.4, contacts)
+        hitScenery(room, player, enemies, footprint, 1.4, true, contacts)
         breakProps(room, start, facing, footprint.width, reach)
         Artifacts.fire(player, strike, start, reach, clock)
         effect(state, clock, key, start, start + facing * reach, nil, nil, contacts)
@@ -533,7 +590,7 @@ local function resolve(state, room, player, enemies, strike, clock)
         local reach, contacts, targets = footprint.reach, {}, {}
         blade(state, room, player, enemies, strike, footprint.width, reach, 1.6, false, targets, true, contacts)
         knockup(state, targets, clock)
-        qObjects(room, player, enemies, strike, 1.6, contacts)
+        hitScenery(room, player, enemies, footprint, 1.6, true, contacts)
         breakProps(room, start, facing, footprint.width, reach)
         Artifacts.fire(player, strike, start, reach, clock)
         teleport(player, q3Destination(room, player, start, start + facing * math.min(q3Dash, reach)))
@@ -562,7 +619,7 @@ local function resolve(state, room, player, enemies, strike, clock)
             local enemy = targets[index]
             if enemy:Exists() then contacts[index] = Vector(enemy.Position.X, enemy.Position.Y) end
         end
-        effect(state, clock, key, start, start + facing * footprint.reach, nil, destination, contacts)
+        effect(state, clock, key, start, start + facing * footprint.reach, footprint, destination, contacts)
     end
 end
 
@@ -577,8 +634,7 @@ function Combat.update(state, room, player, enemies, clock)
         state.pending = nil
         resolve(state, room, player, enemies, strike, clock)
     end
-    if state.spirit and clock >= state.spirit.untilFrame
-        and not (state.action and state.action.key == 'r' and clock < state.action.finish) then
+    if state.spirit and clock >= state.spirit.untilFrame and not castingUltimate(state, clock) then
         -- An unfinished windup belongs to the spirit's former position.
         state.pending = nil
         returnSpirit(state, room, player, clock)
@@ -590,7 +646,11 @@ function Combat.q3Invulnerable(state, clock)
 end
 
 function Combat.invulnerable(state, clock)
-    return state.returning ~= nil or Combat.q3Invulnerable(state, clock)
+    local action = state.action
+    if action and action.key == 'w' and clock >= action.at and clock <= action.at + skills.w.windup then
+        return true
+    end
+    return state.returning ~= nil or Combat.q3Invulnerable(state, clock) or castingUltimate(state, clock)
 end
 
 function Combat.absorb(state, clock, position)
@@ -625,7 +685,7 @@ function Combat.visual(state, clock)
             picture.fx[#picture.fx + 1] = {id = event.id, kind = event.kind, age = age / 30,
                 origin = event.origin, target = event.target, footprint = event.footprint, landing = event.landing,
                 contacts = event.contacts, bodyFace = event.bodyFace, bodyRemaining = event.bodyRemaining,
-                travel = event.travel}
+                travel = event.travel, rays = event.rays}
         end
     end
     local returning = state.returning

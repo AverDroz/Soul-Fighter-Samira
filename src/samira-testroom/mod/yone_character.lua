@@ -146,7 +146,7 @@ end
 local function targetAt(enemies, point)
     local target, nearest
     for _, enemy in ipairs(enemies) do
-        if Combat.hostile(enemy) then
+        if Combat.attackable(enemy) then
             local distance = enemy.Position:Distance(point)
             if distance <= math.max(16, enemy.Size + 8) and (nearest == nil or distance < nearest) then
                 target, nearest = enemy, distance
@@ -172,7 +172,7 @@ local function updateMovement(state, room, player, clock)
     end
 
     local target = state.target
-    if target and not Combat.hostile(target) then stopMoving(state); return end
+    if target and not Combat.attackable(target) then stopMoving(state); return end
     if target and Combat.inMeleeRange(room, player, target, state.combat.items) then
         state.intent = nil
         Combat.cast(state.combat, 'attack', player, target.Position, clock, room)
@@ -279,8 +279,20 @@ local function visualSnapshot(room, picture)
             snapshot.fx[i].bodyFace = screenHeading(room, event.target, event.bodyFace)
             snapshot.fx[i].bodyRemaining = event.bodyRemaining
         end
-        if event.footprint and event.footprint.shape == 'sector' then
-            snapshot.fx[i].arc = sectorArc(event.footprint, point)
+        if event.footprint then
+            local area = event.footprint
+            if area.shape == 'sector' then
+                snapshot.fx[i].arc = sectorArc(area, point)
+            else
+                local edge = point(area.origin + area.facing:Rotated(90) * area.width)
+                local center = snapshot.fx[i].origin
+                snapshot.fx[i].halfWidth = Vector(edge[1] - center[1], edge[2] - center[2]):Length()
+            end
+        end
+        if event.rays then
+            local rays = {}
+            for j, endpoint in ipairs(event.rays) do rays[j] = point(endpoint) end
+            snapshot.fx[i].rays = rays
         end
     end
     local spirit = picture.spirit
@@ -472,14 +484,37 @@ local function drawNativeEffects(room, player, picture, x, y, geometry, clock)
                     line(arc[i - 1], arc[i], 5, .81, .09, .24, opacity * .65)
                     line(arc[i - 1], arc[i], 1, 1, .76, .76, opacity)
                 end
-            elseif event.kind == 'q' or event.kind == 'q3' or event.kind == 'r' then
+            elseif event.kind == 'r' and event.footprint then
+                local area = event.footprint
+                local side = area.facing:Rotated(90) * area.width
+                for _, scale in ipairs({-.85, 0, .85}) do
+                    local offset = side * scale
+                    line(point(event.origin + offset), point(event.target + offset), 2, .98, .59, .64, opacity)
+                end
+            elseif event.kind == 'q' or event.kind == 'q3' then
                 local start, finish = point(event.origin), point(event.target)
                 local side = (finish - start):Normalized():Rotated(90)
-                local width = event.kind == 'r' and 6 or (event.kind == 'q3' and 4 or 1)
+                local width = event.kind == 'q3' and 4 or 1
                 for _, offset in ipairs({-width, width}) do
                     local shift = side * offset
-                    local blue = event.kind ~= 'r' and .98 or .64
-                    line(start + shift, finish + shift, 2, .98, .59, blue, opacity)
+                    line(start + shift, finish + shift, 2, .98, .59, .98, opacity)
+                end
+            elseif event.kind == 'attack' or event.kind == 'attack2' then
+                local area = event.footprint
+                if area then
+                    local side = area.facing:Rotated(event.kind == 'attack2' and -90 or 90)
+                    local start = point(event.origin)
+                    local middle = point(event.origin + area.facing * (area.reach * .6) + side * (area.width * .7))
+                    local tip = point(event.target)
+                    line(start, middle, 2, .7, .9, 1, opacity * .7)
+                    line(middle, tip, 2, .7, .9, 1, opacity * .85)
+                end
+            elseif event.kind == 'cricket' then
+                local start = point(event.origin)
+                for _, endpoint in ipairs(event.rays or {}) do
+                    local tip = point(endpoint)
+                    line(start, tip, 3, .84, .29, .63, opacity * .7)
+                    line(start, tip, 1, 1, .79, .88, opacity)
                 end
             elseif event.kind == 'e_echo' then
                 for _, contact in ipairs(event.contacts or {}) do

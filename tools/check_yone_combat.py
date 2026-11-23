@@ -41,7 +41,30 @@ local function enemy(x, y, id)
     end
     return e
 end
+CollectibleType.COLLECTIBLE_CRICKETS_BODY = 998
+local priorHasCollectible = player.HasCollectible
+function player:HasCollectible(id)
+    if id == CollectibleType.COLLECTIBLE_CRICKETS_BODY then return self.cricket == true end
+    return priorHasCollectible(self, id)
+end
 local aim = Vector(350, 100)
+-- First accepted impact emits a single splash even when its victim dies.
+for _, spec in ipairs({{'attack',4}, {'q',6}, {'q3',7}}) do
+    state=combat.new(); player.Position=Vector(60,100); player.cricket=true
+    if spec[1]=='q3' then state.qStacks=2 end
+    local reject, victim, nearby = enemy(80,100,900), enemy(95,100,901), enemy(95,135,902)
+    function reject:TakeDamage() return false end
+    local original = victim.TakeDamage
+    function victim:TakeDamage(...) original(self,...); self.dead=true; return true end
+    function victim:IsDead() return self.dead == true end
+    assert(combat.cast(state,spec[1]=='q3' and 'q' or spec[1],player,aim,1,room))
+    combat.update(state,room,player,{nearby,victim,reject},1+spec[2])
+    assert(#nearby.damage==1 and math.abs(nearby.damage[1]-player.Damage*.25)<.001, 'splash missing or duplicated')
+    local n=0
+    for _, fx in ipairs(state.effects) do if fx.kind=='cricket' then n=n+1; assert(fx.origin.X==95) end end
+    assert(n==1, 'splash did not follow first accepted impact')
+end
+player.cricket=false; state=combat.new(); player.Position=Vector(60,100)
 local function poop(x, stateValue)
     return {Position = Vector(x, 100), State = stateValue, CollisionClass = GridCollisionClass.COLLISION_NONE,
         GetType = function() return GridEntityType.GRID_POOP end}
@@ -69,7 +92,19 @@ for _,variant in ipairs({0,1,2,3,10}) do
     function fire:IsVulnerableEnemy() return false end
     assert(combat.cast(state,'q',player,aim,1,room)); combat.update(state,room,player,{fire},7)
     assert(#fire.damage==1 and state.qStacks==0, 'Q missed a fireplace or granted a stack')
+    function fire:IsVulnerableEnemy() return variant % 2 == 0 end
+    state = combat.new()
+    state.spirit = {anchor=player.Position, face=Vector(1,0), untilFrame=100, marks={}}
+    assert(combat.attackable(fire) and not combat.hostile(fire), 'fireplace cannot be selected without counting as a foe')
+    assert(combat.cast(state,'attack',player,aim,1,room)); combat.update(state,room,player,{fire},5)
+    assert(#fire.damage==2 and next(state.spirit.marks)==nil, 'A missed a fireplace or marked it with E')
 end
+state = combat.new(); player.Position = Vector(60,100)
+local screenedFire = enemy(140,100,519); screenedFire.Type = EntityType.ENTITY_FIREPLACE
+wall[room:GetGridIndex(Vector(120,100))] = GridCollisionClass.COLLISION_WALL
+assert(combat.cast(state,'attack',player,aim,1,room)); combat.update(state,room,player,{screenedFire},5)
+assert(#screenedFire.damage==0, 'A reached a fireplace through a solid wall')
+wall = {}
 state=combat.new(); player.Position=Vector(60,100)
 local object=enemy(95,100,520)
 function object:IsVulnerableEnemy() return false end
@@ -114,13 +149,18 @@ end
 do
     local oldRange = player.TearRange
     player.TearRange = 260
-    local edge, outside = enemy(129,100,900), enemy(131,100,901)
+    local edge, outside = enemy(147,100,900), enemy(148,100,901)
     edge.Size, outside.Size = 0, 0
-    assert(combat.hudStats(state, player).range == 70, 'HUD melee range disagrees with the base attack')
+    local melee = combat.hudStats(state, player).range
+    assert(melee == 87 and math.abs(melee / combat.footprint(state,player,'q',aim,room).reach - .7) < .01,
+        'base melee range is not seventy percent of Q')
     assert(combat.inMeleeRange(room,player,edge), 'click attack cannot acquire the extended range')
     assert(not combat.inMeleeRange(room,player,outside), 'click attack acquired a foe beyond the extended range')
-    state=combat.new(); entities={edge, outside}; cast('attack',1); resolve(5)
+    local sideEdge, sideOutside = enemy(121,117,904), enemy(121,118,905)
+    sideEdge.Size, sideOutside.Size = 0, 0
+    state=combat.new(); entities={edge, outside, sideEdge, sideOutside}; cast('attack',1); resolve(5)
     assert(#edge.damage==1 and #outside.damage==0, 'direct attack disagrees with click range on axis')
+    assert(#sideEdge.damage==1 and #sideOutside.damage==0, 'direct attack missed its widened flank')
     player.TearRange = oldRange
     state=combat.new({cooldown=function(_,key,base) return key=='r' and base/2 or base end})
     player.Position=Vector(60,100); entities={}; cast('r',1)
@@ -163,7 +203,10 @@ local wEdge, wOutside = enemy(177,100,902), enemy(183,100,903)
 wEdge.Size, wOutside.Size = 0, 0
 entities = {front, wide, wEdge, wOutside}
 assert(combat.footprint(state, player, 'w', aim, room).reach == 122)
-cast('w', 155); resolve(167)
+cast('w', 155)
+assert(combat.invulnerable(state,155) and combat.invulnerable(state,163), 'W windup was vulnerable')
+resolve(167)
+assert(not combat.invulnerable(state,167), 'W recovery kept immunity instead of using its shield')
 assert(#wide.damage == 1, 'W failed to reach a target within its wider sector')
 assert(#wEdge.damage == 1 and #wOutside.damage == 0, 'W hit disagrees with its extended indicator')
 local wfx = combat.visual(state, 167).fx[#combat.visual(state, 167).fx]
@@ -281,14 +324,26 @@ state = combat.new()
 player.Position = Vector(60,100)
 front = enemy(200,100,22)
 local near = enemy(92,100,23)
-entities = {front, near}
+local wideR, outsideR = enemy(190,127,27), enemy(190,129,28)
+wideR.Size, outsideR.Size = 0, 0
+entities = {front, near, wideR, outsideR}
 wall[2 * room:GetGridWidth() + 3] = GridCollisionClass.COLLISION_WALL
-cast('r', 1); resolve(23)
+assert(not combat.invulnerable(state,1), 'aiming R gave immunity before commitment')
+cast('r', 1)
+assert(combat.activeFootprint(state,player,room).width == 28, 'R indicator did not use the wider footprint')
+assert(combat.invulnerable(state,1) and combat.invulnerable(state,23), 'R was vulnerable during windup')
+resolve(23)
 assert(#front.damage == 0 and player.Position.X == 60, 'R hit before windup')
 resolve(24)
 assert(#front.damage == 1 and #near.damage == 1 and player.Position.X > 160 and near.Position.X > 160,
     'R failed to hit and pull through an interior obstacle')
+assert(#wideR.damage == 1 and #outsideR.damage == 0, 'R damage disagrees with the wider indicator')
+assert(combat.visual(state,24).fx[1].footprint.width == 28, 'R effect lost its impact width')
+assert(combat.invulnerable(state,24) and combat.invulnerable(state,40) and not combat.invulnerable(state,41),
+    'R did not end immunity with the cast animation')
 assert(not combat.cast(state, 'q', player, aim, 25), 'R recovery allowed a new cast')
+combat.resetRoom(state, 26)
+assert(not combat.invulnerable(state,26), 'room change kept R immunity')
 wall = {}
 
 -- An L-shaped room may contain a second region on the same ray; R must not jump the gap.
