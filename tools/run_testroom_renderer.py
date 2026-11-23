@@ -397,6 +397,7 @@ def run(args):
         last=time.perf_counter();last_ack=0;last_report=last;count=0;scene=None;next_settings=0
         last_presentation=None
         last_display_reason=None
+        received_playable_frame = False
         settings=ROOT/'src/samira-testroom/visual-settings.json'
         while not stop.exists():
             now=time.perf_counter();dt=min(.1,now-last);last=now;glfw.poll_events()
@@ -414,8 +415,12 @@ def run(args):
                 print(f'Display: {display_gate.reason or "viewport confirmed"}; logical={logical}; '
                       f'render={state.get("display")}; client={client}; overlay={box}',flush=True)
                 last_display_reason=display_gate.reason
-            visible=bool(state and box and not state.get('occluded')
-                         and not state.get('transition') and not state.get('paused'))
+            playable = bool(state and not state.get('occluded')
+                            and not state.get('transition') and not state.get('paused'))
+            if playable and not received_playable_frame:
+                print('Playable Isaac frame received', flush=True)
+                received_playable_frame = True
+            visible = playable and box is not None
             hero=state.get('hero','samira') if state else None
             if hero and hero!=audio_hero:
                 if audio:audio.close()

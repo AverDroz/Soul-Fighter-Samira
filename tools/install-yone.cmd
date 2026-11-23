@@ -374,10 +374,37 @@ function Get-LauncherArguments([string]$Isaac) {
     return '--isaac="' + $Isaac + '" --skip-wizard --launch-mode=repentogon --stealth-mode'
 }
 
+function Install-PlayShortcut([string]$Source, [string]$Cache, [string]$Programs, [string]$Isaac) {
+    $target = Join-Path $Cache 'Play-Yone.cmd'
+    if (-not (Test-SamePath $Source $target)) {
+        $stage = Join-Path $Cache 'Play-Yone.cmd.new'
+        try {
+            [IO.File]::Copy($Source, $stage, $true)
+            if ([IO.File]::Exists($target)) { [IO.File]::Replace($stage, $target, [NullString]::Value) }
+            else { [IO.File]::Move($stage, $target) }
+        } finally {
+            if ([IO.File]::Exists($stage)) { [IO.File]::Delete($stage) }
+        }
+    }
+    [void][IO.Directory]::CreateDirectory($Programs)
+    $shell = New-Object -ComObject WScript.Shell
+    $shortcut = $shell.CreateShortcut((Join-Path $Programs 'Isaac - Yone.lnk'))
+    $shortcut.TargetPath = $target
+    $shortcut.WorkingDirectory = $Cache
+    $shortcut.IconLocation = "$Isaac,0"
+    $shortcut.Description = 'Launch Isaac with REPENTOGON and the Yone Companion'
+    $shortcut.Save()
+}
+
+function Test-PresentedFrame([string]$Log) {
+    if (-not [IO.File]::Exists($Log)) { return $false }
+    return [bool](Select-String -LiteralPath $Log -Pattern '^LIVE frame presented: ' -Quiet -ErrorAction SilentlyContinue)
+}
+
 if ($LibraryOnly) { return }
 
 $releaseHash = '__YONE_RELEASE_SHA256__'
-$releaseUrl = 'https://github.com/N1kromant/Soul-Fighter-Samira/releases/download/yone-immersion-v21/Soul-Fighter-Samira-Yone-v21-Windows.zip'
+$releaseUrl = 'https://github.com/N1kromant/Soul-Fighter-Samira/releases/download/yone-immersion-v22/Soul-Fighter-Samira-Yone-v22-Windows.zip'
 $launcherHash = '7e4a45d8b9f099ea79e42f86bc24c2a05b35e239d7bc4d597c11b5bceaccfd6a'
 $launcherUrl = 'https://github.com/TeamREPENTOGON/Launcher/releases/download/v0.4.9-beta/REPENTOGONLauncher.zip'
 $cache = Join-Path $env:LOCALAPPDATA 'YoneInstaller'
@@ -426,7 +453,7 @@ try {
     Write-Host "Папка обмена Companion: $($paths.Status)"
     Assert-ModDestination (Join-Path $paths.Mods $modDirectory)
 
-    $releaseZip = Join-Path $cache 'Yone-v21.zip'
+    $releaseZip = Join-Path $cache 'Yone-v22.zip'
     $launcherZip = Join-Path $cache 'REPENTOGONLauncher-0.4.9-beta.zip'
     Get-VerifiedFile $releaseUrl $releaseZip $releaseHash
     Get-VerifiedFile $launcherUrl $launcherZip $launcherHash
@@ -446,6 +473,8 @@ try {
         throw 'Запись Ёнэ не найдена в установленной копии. Проверь указанный выше путь к mods.'
     }
     Write-Host 'Запись Yone и обе анимации выбора установлены в каталог модов REPENTOGON.'
+    Install-PlayShortcut $env:YONE_BOOTSTRAP $cache ([Environment]::GetFolderPath('Programs')) $game.Exe
+    Write-Host 'Для следующих запусков используй «Isaac - Yone» в меню Пуск.'
 
     $companion = Join-Path $payload 'companion'
     $work = Join-Path $companion 'work'
@@ -468,13 +497,31 @@ try {
     while (-not $child.HasExited -and $timer.Elapsed.TotalSeconds -lt 60 -and -not (Test-RendererReady $stdout)) {
         Start-Sleep -Milliseconds 250
     }
-    if ($child.HasExited -or -not (Test-RendererReady $stdout)) {
-        throw "Companion не загрузил модель Йоне. Журналы: $stdout и $stderr"
+    $rendererReady = -not $child.HasExited -and (Test-RendererReady $stdout)
+    if (-not $rendererReady) {
+        Write-Warning "Companion не загрузил модель. Isaac запустится со штатным спрайтом и эффектами. Журналы: $stdout и $stderr"
     }
-
-    Write-Host 'Companion готов. Запускаю REPENTOGON. При первой установке дождись окна с подтверждением и нажми OK.'
+    Write-Host 'Запускаю REPENTOGON. При первой установке подтверди установку, если появится запрос.'
     Write-Host 'В игре включи Soul Fighter Samira в Mods, если мод выключен, и выбери Yone в новом одиночном забеге.'
-    Start-Process -FilePath $launcher -ArgumentList (Get-LauncherArguments $game.Exe) -WorkingDirectory $launcherDir
+    $gameLauncher = Start-Process -FilePath $launcher -ArgumentList (Get-LauncherArguments $game.Exe) -WorkingDirectory $launcherDir -PassThru
+    if ($rendererReady) {
+        Write-Host 'Жду первый кадр Companion после входа в забег.'
+        $frameTimer = $null
+        $reportedDelay = $false
+        while (-not $child.HasExited -and -not (Test-PresentedFrame $stdout)) {
+            if ($gameLauncher.HasExited -and -not (Get-Process -Name 'isaac-ng' -ErrorAction SilentlyContinue)) { break }
+            if (-not $frameTimer -and (Select-String -LiteralPath $stdout -Pattern '^Playable Isaac frame received$' -Quiet -ErrorAction SilentlyContinue)) {
+                $frameTimer = [Diagnostics.Stopwatch]::StartNew()
+            }
+            if ($frameTimer -and $frameTimer.Elapsed.TotalSeconds -ge 12 -and -not $reportedDelay) {
+                $reportedDelay = $true
+                Write-Warning "Companion получает данные игры, но пока не вывел кадр. Причина и параметры экрана в журнале: $stdout"
+            }
+            Start-Sleep -Milliseconds 700
+        }
+        if (Test-PresentedFrame $stdout) { Write-Host 'Первый кадр Companion показан в игре.' }
+        elseif ($child.HasExited) { Write-Warning "Companion завершился до первого кадра. Журналы: $stdout и $stderr" }
+    }
 } catch {
     $failure = $_.Exception.Message
     if ($child -and $companion) {

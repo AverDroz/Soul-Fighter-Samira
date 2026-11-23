@@ -140,10 +140,27 @@ try {
     Assert (-not (Test-RendererReady $stdout)) 'A partially initialized Companion was accepted'
     Write-Fixture $stdout "Yone model loaded`r`nReady: Soul Fighter; GPU mock`r`n"
     Assert (Test-RendererReady $stdout) 'Full Companion readiness was missed'
+    Assert (-not (Test-PresentedFrame $stdout)) 'GPU initialization was treated as an in-game frame'
+    Add-Content -LiteralPath $stdout 'LIVE frame presented: {"hero":"yone"}'
+    Assert (Test-PresentedFrame $stdout) 'A presented frame was missed'
 
     $exe = Join-Path $game 'isaac-ng.exe'
     $launcherArgs = '--isaac="' + $exe + '" --skip-wizard --launch-mode=repentogon --stealth-mode'
     Assert ((Get-LauncherArguments $exe) -ceq $launcherArgs) 'Official launcher arguments were changed'
+    $localCache = Join-Path $fixture "$unicode Cache"
+    $programs = Join-Path $fixture "$unicode Start Menu"
+    $download = Join-Path $fixture 'Install-Yone.cmd'
+    Write-Fixture $download 'first installer'
+    [void][IO.Directory]::CreateDirectory($localCache)
+    Install-PlayShortcut $download $localCache $programs $exe
+    $play = Join-Path $localCache 'Play-Yone.cmd'
+    $shell = New-Object -ComObject WScript.Shell
+    $link = $shell.CreateShortcut((Join-Path $programs 'Isaac - Yone.lnk'))
+    Assert ((Test-SamePath $link.TargetPath $play) -and (Test-SamePath $link.WorkingDirectory $localCache)) 'Start Menu shortcut does not use the installed copy'
+    Write-Fixture $download 'updated installer'
+    Install-PlayShortcut $download $localCache $programs $exe
+    Install-PlayShortcut $play $localCache $programs $exe
+    Assert ([IO.File]::ReadAllText($play) -eq 'updated installer') 'Rerun did not preserve the updated launcher'
 
     $zip = Join-Path $fixture 'verified.zip'
     Compress-Archive -LiteralPath $source -DestinationPath $zip
