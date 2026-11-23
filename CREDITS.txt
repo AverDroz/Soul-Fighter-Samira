@@ -1,4 +1,4 @@
-Soul Fighter Samira — personal experimental mod, version 0.5.0.
+Soul Fighter Samira — personal experimental mod, version 0.5.1.
 League of Legends character, model, animations, sounds and original artwork: Riot Games.
 Framework and external renderer adapted from TFOS4 Isaac-LoL-HeroStudio:
 https://github.com/TFOS4/Isaac-LoL-HeroStudio

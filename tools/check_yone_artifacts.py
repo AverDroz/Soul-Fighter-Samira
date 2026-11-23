@@ -30,6 +30,11 @@ ModCallbacks = {MC_POST_TEAR_UPDATE=1, MC_POST_LASER_UPDATE=2, MC_POST_FIRE_SPLI
 local methods = {}
 local meta = {__index=methods}
 function Vector(x,y) return setmetatable({X=x,Y=y}, meta) end
+function Color(...)
+    local color = {components={...}}
+    function color:SetColorize(...) self.colorize={...} end
+    return color
+end
 function meta.__mul(v, n) return Vector(v.X*n,v.Y*n) end
 function methods:Rotated(d)
     local c,s = math.cos(math.rad(d)), math.sin(math.rad(d))
@@ -39,6 +44,10 @@ function methods:Distance(other) return math.sqrt((self.X-other.X)^2+(self.Y-oth
 local origin, facing = Vector(1, 1), Vector(1, 0)
 local p = {Damage=4, TearRange=260, ShotSpeed=1, owned={}, InitSeed=0,
     flags=0, variant=0, fired={}, rainbow=0, shots=1, weapon=1}
+local defaultLaserColor = Color(1, 0, 0, 1)
+p.laserColor = defaultLaserColor
+function p:GetLaserColor() return self.laserColor end
+function p:SetLaserColor(color) self.laserColor = color end
 function p:HasCollectible(id) return self.owned[id] == true end
 function p:GetTrinketMultiplier(id) assert(id==64); return self.rainbow end
 function p:GetMultiShotParams(kind)
@@ -66,6 +75,10 @@ local function entity()
     function e:Exists() return not self.removed end
     function e:Remove() self.removed = true end
     function e:Die() self.died = true end
+    function e:SetColor(color, frames, priority, fade, share)
+        assert(frames > 0 and priority == 8 and not fade and not share)
+        self.color = color
+    end
     return e
 end
 function p:FireTear(pos, vel, canBeEye, ignoreTractor, canEndStreak, owner, multiplier)
@@ -81,8 +94,10 @@ function p:FireTear(pos, vel, canBeEye, ignoreTractor, canEndStreak, owner, mult
 end
 function p:FireBrimstone(heading, owner, multiplier)
     assert(heading==facing and owner==self and multiplier==.18)
+    if self.failBeam then error('beam callback failed') end
     local laser = entity()
     laser.Timeout = 19
+    laser.spawnColor = self.laserColor
     function laser:SetMaxDistance(n) self.distance = n end
     self.fired[#self.fired+1] = laser
     return laser
@@ -98,15 +113,15 @@ end
 
 local callbacks={}
 a.init({AddCallback=function(_, which, callback) callbacks[which]=callback end})
-local function fire(kind, clock, reach, target)
+local function fire(kind, clock, reach, target, clip)
     p.fired={}
-    local strike = {kind=kind, facing=facing}
+    local strike = {kind=kind, clip=clip, facing=facing}
     if target then a.acceptHit(strike, target) end
     a.fire(p, strike, origin, reach or 70, clock)
     return p.fired
 end
 local base = fire('attack', 0)
-assert(#base==1 and base[1].removed, 'ordinary blade left an extra tear')
+assert(#base==1 and base[1].removed and not base[1].color, 'ordinary blade left a colored extra tear')
 local target = entity()
 target.Position = Vector(25, 1)
 function target:ToNPC() return self end
@@ -160,6 +175,7 @@ assert(flagged.died, 'range cap did not end the extra shot')
 local child = entity()
 child.Position = Vector(126,1)
 callbacks[3](nil,child,flagged)
+assert(child.color == flagged.color, 'split tear did not inherit the blade tint')
 callbacks[1](nil,child)
 assert(child.removed and not child.died, 'projectile descendant ignored range or triggered a synthetic split')
 p.flags, p.variant=0, TearVariant.TOOTH
@@ -184,8 +200,23 @@ for _, kind in ipairs({WeaponType.WEAPON_BRIMSTONE, WeaponType.WEAPON_LASER}) do
     assert(#laser == 1 and laser[1].distance == 124 and laser[1].Timeout == 6
         and laser[1].DisableFollowParent and laser[1].Position == origin)
 end
+p.weapon = WeaponType.WEAPON_BRIMSTONE
+local steel = fire('attack',0,124,nil,'attack')[1]
+local azakana = fire('attack',0,124,nil,'attack2')[1]
+assert(steel.color == steel.spawnColor and steel.color.colorize[3] > steel.color.colorize[1])
+assert(azakana.color == azakana.spawnColor and azakana.color.colorize[1] > azakana.color.colorize[3])
+assert(steel.color ~= azakana.color and p.laserColor == defaultLaserColor, 'beam lost blade palette or leaked it globally')
+for _, kind in ipairs({'q','q3'}) do
+    local beam = fire(kind,0,124)[1]
+    assert(beam.color.colorize[3] > beam.color.colorize[1], 'Q did not use the steel blade palette')
+end
+p.failBeam = true
+assert(not pcall(fire,'attack',0,124,nil,'attack2') and p.laserColor == defaultLaserColor,
+    'failing native beam left the player with a different global laser color')
+p.failBeam = false
 p.weapon=WeaponType.WEAPON_TECH_X
 local ring = fire('q',0,124)[1]
+assert(ring.color and ring.color.colorize[3] > ring.color.colorize[1])
 ring.Position = Vector(126,1)
 callbacks[2](nil,ring)
 assert(ring.died)

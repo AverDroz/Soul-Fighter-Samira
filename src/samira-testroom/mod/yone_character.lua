@@ -1,5 +1,6 @@
 local Yone = {}
 local Combat = include('yone_combat')
+local Artifacts = include('yone_artifacts')
 local Debug = include('yone_debug')
 local Emotes = include('yone_emotes')
 local Navigation = include('samira_navigation')
@@ -508,9 +509,10 @@ local function drawNativeEffects(room, player, picture, x, y, geometry, clock)
                 local start, finish = point(event.origin), point(event.target)
                 local side = (finish - start):Normalized():Rotated(90)
                 local width = event.kind == 'q3' and 4 or 1
+                local r, g, b = table.unpack(Artifacts.bladeHue(event.kind))
                 for _, offset in ipairs({-width, width}) do
                     local shift = side * offset
-                    line(start + shift, finish + shift, 2, .98, .59, .98, opacity)
+                    line(start + shift, finish + shift, 2, r, g, b, opacity)
                 end
             elseif event.kind == 'attack' or event.kind == 'attack2' then
                 local area = event.footprint
@@ -519,8 +521,9 @@ local function drawNativeEffects(room, player, picture, x, y, geometry, clock)
                     local start = point(event.origin)
                     local middle = point(event.origin + area.facing * (area.reach * .6) + side * (area.width * .7))
                     local tip = point(event.target)
-                    line(start, middle, 2, .7, .9, 1, opacity * .7)
-                    line(middle, tip, 2, .7, .9, 1, opacity * .85)
+                    local r, g, b = table.unpack(Artifacts.bladeHue(event.kind))
+                    line(start, middle, 2, r, g, b, opacity * .7)
+                    line(middle, tip, 2, r, g, b, opacity * .85)
                 end
             elseif event.kind == 'cricket' then
                 local start = point(event.origin)

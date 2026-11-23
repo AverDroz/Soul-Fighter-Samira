@@ -6,6 +6,26 @@ local rainbowMotion = {'TEAR_WIGGLE', 'TEAR_PULSE', 'TEAR_SPIRAL', 'TEAR_SQUARE'
 local impactFlags = {'TEAR_SLOW', 'TEAR_POISON', 'TEAR_FREEZE', 'TEAR_CHARM', 'TEAR_CONFUSION',
     'TEAR_PERMANENT_CONFUSION', 'TEAR_BURN', 'TEAR_FEAR', 'TEAR_GODS_FLESH', 'TEAR_MIDAS'}
 local volleyBudget, volleyLimit = .28, 6
+local steelHue, azakanaHue = {.42, .83, 1}, {1, .26, .48}
+
+function Artifacts.bladeHue(clip)
+    return clip == 'attack2' and azakanaHue or steelHue
+end
+
+local function bladeTint(clip)
+    if not Color then return end
+    local r, g, b = table.unpack(Artifacts.bladeHue(clip))
+    local color = Color(1, 1, 1, 1, r * .09, g * .09, b * .09)
+    -- Colorize replaces the base hue, including Brimstone's red texture.
+    if color.SetColorize then color:SetColorize(r * 1.25, g * 1.25, b * 1.25, 1) end
+    return color
+end
+
+local function tintArtifact(entity, color, frames)
+    if not color or not entity.SetColor then return end
+    entity:SetColor(color, frames or 90, 8, false, false)
+    entity:GetData().YoneArtifactTint = color
+end
 
 local function owns(player, name)
     local id = CollectibleType[name]
@@ -108,38 +128,57 @@ local function applyImpactFlags(player, target, tear)
     end
 end
 
-local function fireLaser(player, origin, facing, reach)
+local function withLaserColor(player, color, fire)
+    if not (color and player.GetLaserColor and player.SetLaserColor) then return fire() end
+    local previous = player:GetLaserColor()
+    if not previous then return fire() end
+    player:SetLaserColor(color)
+    local ok, result = pcall(fire)
+    player:SetLaserColor(previous)
+    if not ok then error(result, 0) end
+    return result
+end
+
+local function fireLaser(player, origin, facing, reach, color)
     if not player.GetWeapon or not WeaponType then return false end
     local weapon = player:GetWeapon(1)
-    local kind = weapon and weapon:GetWeaponType()
-    local laser
+    if not weapon then return false end
+    local kind = weapon:GetWeaponType()
+    local fire
     if kind == WeaponType.WEAPON_BRIMSTONE then
-        laser = player:FireBrimstone(facing, player, .18)
+        fire = function() return player:FireBrimstone(facing, player, .18) end
     elseif kind == WeaponType.WEAPON_LASER then
-        laser = player:FireTechLaser(origin, LaserOffset.LASER_TECH1_OFFSET, facing, true, true, player, .28)
+        fire = function() return player:FireTechLaser(origin, LaserOffset.LASER_TECH1_OFFSET, facing, true, true, player, .28) end
     elseif kind == WeaponType.WEAPON_TECH_X then
-        laser = player:FireTechXLaser(origin, facing * 10, 17, player, .20)
-        if laser then laser:GetData().YoneTearRange = {origin = origin, reach = reach} end
-        return laser ~= nil
+        fire = function() return player:FireTechXLaser(origin, facing * 10, 17, player, .20) end
     end
+    if not fire then return false end
+    local laser = withLaserColor(player, color, fire)
     if not laser then return false end
-    laser.DisableFollowParent = true
-    laser.Position = origin
-    laser:SetMaxDistance(reach)
-    laser.Timeout = math.min(laser.Timeout, 6)
+    tintArtifact(laser, color)
+    if kind == WeaponType.WEAPON_TECH_X then
+        laser:GetData().YoneTearRange = {origin = origin, reach = reach}
+    else
+        laser.DisableFollowParent = true
+        laser.Position = origin
+        laser:SetMaxDistance(reach)
+        laser.Timeout = math.min(laser.Timeout, 6)
+    end
     return true
 end
 
 function Artifacts.fire(player, strike, origin, reach, clock)
     if not player.FireTear or not TearFlags or not TearVariant or reach <= 0 then return end
-    if fireLaser(player, origin, strike.facing, reach) then return end
+    local color = bladeTint(strike.clip or strike.kind)
+    if fireLaser(player, origin, strike.facing, reach, color) then return end
     local function track(entity)
         entity:GetData().YoneTearRange = {origin = origin, reach = reach}
+        tintArtifact(entity, color)
     end
     if Weapons.fire(player, strike, origin, reach, function(tear)
         applyImpactFlags(player, strike.artifactTarget, tear)
         track(tear)
-    end) then return end
+    end, function(entity, frames) tintArtifact(entity, color, frames) end) then return end
     local rainbow = hasRainbow(player)
     local angles = shotAngles(player)
     local count = math.min(volleyLimit, #angles)
@@ -185,10 +224,13 @@ function Artifacts.init(mod)
     end
     if ModCallbacks.MC_POST_FIRE_SPLIT_TEAR then
         mod:AddCallback(ModCallbacks.MC_POST_FIRE_SPLIT_TEAR, function(_, tear, parent)
-            local range = parent and parent:GetData().YoneTearRange
+            if not parent then return end
+            local data = parent:GetData()
+            local range = data.YoneTearRange
             if range then
                 tear:GetData().YoneTearRange = {origin = range.origin, reach = range.reach, derived = true}
             end
+            tintArtifact(tear, data.YoneArtifactTint)
         end)
     end
 end
