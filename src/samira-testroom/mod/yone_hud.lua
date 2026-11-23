@@ -34,6 +34,7 @@ local statCells = {
     }},
 }
 local shieldMark = {{1, 1, 7, 1, 7, 5, 4, 8, 1, 5, 1, 1}}
+local boltMark = {{5, 0, 1, 5, 4, 5, 3, 8, 7, 3, 4, 3, 5, 0}}
 
 function HUD.bounds(requestedScale, backpack, hasProgress)
     local height = combatHeight + (hasProgress and progressHeight or 0)
@@ -103,6 +104,8 @@ local function setup()
             wind = KColor(.60, .93, 1, 1), spirit = KColor(1, .38, .55, 1),
             stat = KColor(.74, .65, .49, 1), statCrit = KColor(.97, .78, .46, 1),
             hover = KColor(.10, .17, .20, 1), shield = KColor(.55, .87, 1, 1),
+            conqueror = KColor(1, .73, .32, 1), lethal_tempo = KColor(.47, .85, .98, 1),
+            electrocute = KColor(1, .40, .40, 1), runeCooldown = KColor(.54, .30, .37, 1),
         }
     end
 end
@@ -271,13 +274,40 @@ function HUD.renderRunePicker(choices, selectedIndex, hudScale)
         .86 * s, ready, w - 16 * s)
 end
 
-local function drawProgress(b, progress)
+local function drawRune(progress, clock, x, y, s, pointer)
+    local status = Progression.runeStatus(progress, clock)
+    if not status then return end
+    local name
+    for _, choice in ipairs(Progression.choices) do
+        if choice.id == progress.rune then name = choice.name; break end
+    end
+    local runeColor = palette[progress.rune]
+    local label
+    if status.limit then
+        centered(name, x + 22 * s, y - s, .66 * s, ready, 43 * s)
+        local step = 44 * s / status.limit
+        for i = 1, status.limit do
+            fill(x + (i - 1) * step, y + 5.5 * s, step - s, 2 * s,
+                i <= status.stacks and runeColor or palette.divider)
+        end
+        label = ('%s  %d/%d'):format(name, status.stacks, status.limit)
+        if status.stacks > 0 then label = label .. ('  %.1fs'):format(status.remaining / 30) end
+    else
+        drawMark(boltMark, x, y - .5 * s, .73 * s, status.ready and runeColor or palette.divider)
+        centered(name, x + 26 * s, y - s, .66 * s, status.ready and ready or cooling, 35 * s)
+        fill(x, y + 5.5 * s, 44 * s, 2 * s, palette.divider)
+        local fraction = math.max(0, 1 - status.remaining / status.duration)
+        if fraction > 0 then
+            fill(x, y + 5.5 * s, 44 * s * fraction, 2 * s, status.ready and runeColor or palette.runeCooldown)
+        end
+        label = status.ready and 'Electrocute ready' or ('Electrocute  %.1fs'):format(math.ceil(status.remaining / 3) / 10)
+    end
+    if contains(pointer, x - s, y - s, 46 * s, 9 * s) then return label, x end
+end
+
+local function drawProgress(b, progress, clock, pointer)
     local x, s = b.x, b.scale
     local y = b.y + combatHeight * s
-    local runeName
-    for _, choice in ipairs(Progression.choices) do
-        if choice.id == progress.rune then runeName = choice.name; break end
-    end
     local atMax = progress.level == Progression.MAX_LEVEL
     local required = Progression.required(progress.level)
     local fraction = atMax and 1 or math.min(1, math.max(0, progress.xp / required))
@@ -290,7 +320,7 @@ local function drawProgress(b, progress)
 
     centered(level .. (atMax and '  MAX' or ('  %d/%d XP'):format(progress.xp, required)),
         x + 36 * s, y, .73 * s, gold, 62 * s)
-    if runeName then centered(runeName, x + 92 * s, y, .73 * s, ready, 47 * s) end
+    local runeTip, runeX = drawRune(progress, clock, x + 70 * s, y, s, pointer)
     fill(x + 5 * s, y + 8 * s, b.width - 10 * s, s, palette.divider)
     if fraction > 0 then fill(x + 5 * s, y + 8 * s, (b.width - 10 * s) * fraction, s, palette.wind) end
     if points > 0 then
@@ -298,6 +328,7 @@ local function drawProgress(b, progress)
     end
     centered(table.concat(ranks, ' '), x + (points > 0 and 132 or 157) * s,
         y, .73 * s, cooling, (points > 0 and 34 or 79) * s)
+    return runeTip, runeX
 end
 
 local function upgradeBounds(b, index)
@@ -369,7 +400,10 @@ function HUD.render(b, combat, clock, aiming, picture, stats, aimColors, progres
         if status then centered(status, x + size / 2, y + 9 * s, 1.05 * s, spirit and recast or ready, size - 2 * s) end
         if progress and Progression.canUpgrade(progress, key) then drawUpgrade(b, i, pointer) end
     end
-    if progress then drawProgress(b, progress) end
+    if progress then
+        local runeTip, runeX = drawProgress(b, progress, clock, pointer)
+        if runeTip then tooltip, anchor = runeTip, runeX end
+    end
     drawTooltip(b, tooltip, anchor)
 end
 

@@ -4,6 +4,10 @@ local skillKeys = {'q', 'w', 'e', 'r'}
 local keystones = {'conqueror', 'lethal_tempo', 'electrocute'}
 local strikeKinds = {attack = true, q = true, w = true, e = true, r = true}
 local electrocuteWindow, electrocuteCooldown = 90, 240
+local stackRunes = {
+    conqueror = {limit = 5, duration = 150},
+    lethal_tempo = {limit = 6, duration = 120},
+}
 
 Progress.choices = {
     {id = 'conqueror', name = 'Conqueror', description = 'Hits grant +2% damage for 5s, up to 5 stacks.'},
@@ -125,15 +129,25 @@ local function activeStacks(progress, clock)
     return 0
 end
 
+function Progress.runeStatus(progress, clock)
+    if progress.rune == 'electrocute' then
+        local remaining = math.max(0, (progress.electrocuteReady or clock) - clock)
+        return {remaining = remaining, duration = electrocuteCooldown, ready = remaining == 0}
+    end
+    local rule = stackRunes[progress.rune]
+    if rule then
+        return {stacks = activeStacks(progress, clock), limit = rule.limit,
+            remaining = math.max(0, (progress.runeExpires or clock) - clock)}
+    end
+end
+
 function Progress.onStrike(progress, strikeKind, clock)
     local key = ability(strikeKind)
     if not strikeKinds[key] then return end
-    if progress.rune == 'conqueror' then
-        progress.runeStacks = math.min(5, activeStacks(progress, clock) + 1)
-        progress.runeExpires = clock + 150
-    elseif progress.rune == 'lethal_tempo' and (key == 'attack' or key == 'q') then
-        progress.runeStacks = math.min(6, activeStacks(progress, clock) + 1)
-        progress.runeExpires = clock + 120
+    local rule = stackRunes[progress.rune]
+    if rule and (progress.rune == 'conqueror' or key == 'attack' or key == 'q') then
+        progress.runeStacks = math.min(rule.limit, activeStacks(progress, clock) + 1)
+        progress.runeExpires = clock + rule.duration
     elseif progress.rune == 'electrocute' and clock >= (progress.electrocuteReady or 0) then
         local hits = progress.electrocuteHits or {}
         hits[key] = clock

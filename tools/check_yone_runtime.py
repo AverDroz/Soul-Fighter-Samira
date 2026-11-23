@@ -55,6 +55,7 @@ local function captureHud(cursor)
     local originalCursor = input.cursor
     if cursor then input.cursor = cursor end
     local text = {pips = 0, ring = 0, qRing = 0, icons = {}, statMarks = {}, shield = 0, upgradeArrows = 0}
+    text.conquerorPips, text.tempoPips, text.electroBolt, text.electroFill = 0, 0, 0, 0
     draws = text.icons
     Isaac.RenderText = function(label, x, y, r, g, b, a)
         text[label] = {x = x, y = y, scale = 1, color = {r, g, b, a}}
@@ -85,6 +86,10 @@ local function captureHud(cursor)
         if color[1] == .76 and color[2] == .57 and a.Y ~= b.Y then
             text.upgradeArrows = text.upgradeArrows + 1
         end
+        if color[1] == 1 and color[2] == .73 then text.conquerorPips = text.conquerorPips + 1 end
+        if color[1] == .47 and color[2] == .85 then text.tempoPips = text.tempoPips + 1 end
+        if color[1] == 1 and color[2] == .40 and a.Y ~= b.Y then text.electroBolt = text.electroBolt + 1 end
+        if color[1] == .54 and color[2] == .30 then text.electroFill = b.X - a.X end
     end
     event('POST_RENDER')
     Isaac.RenderText, Isaac.RenderScaledText, Isaac.DrawLine = originalRender, originalScaled, originalLine
@@ -1052,6 +1057,7 @@ do
     local expected = player.Damage * 1.4 * 1.08 * 1.02
     assert(casts[1] == 'q' and #target.damage == 2 and math.abs(target.damage[2] - expected) < .001,
         'the real Q impact did not combine skill rank with the prior rune stack')
+    assert(captureHud().conquerorPips == 2, 'Conqueror pips did not reflect confirmed hits')
     event('PRE_GAME_EXIT')
 
     local nativeMouse = Input.IsMouseBtnPressed
@@ -1097,9 +1103,31 @@ do
     tick(nil, false, arrow(q))
     tick(nil, false, arrow(q))
     assert(progress.rank(run, 'q') == 2 and progress.points(run) == 1, 'Q arrow click did not spend exactly one point')
+    for _ = 1, 7 do progress.onStrike(run, 'attack', frame) end
+    assert(captureHud().tempoPips == 6, 'Lethal Tempo pips did not show the stack cap')
+    progress.resetRoom(run)
+    assert(captureHud().tempoPips == 0, 'Lethal Tempo pips survived a room reset')
     event('PRE_GAME_EXIT')
     Input.IsMouseBtnPressed = nativeMouse
     hudScale = 1
+
+    event('POST_GAME_STARTED', false)
+    event('POST_NEW_ROOM')
+    assert(progress.choose(run, 'electrocute', 0))
+    tick()
+    local electro = captureHud()
+    local runeCursor = Vector(electro.Electrocute.x + 2, electro.Electrocute.y + 3)
+    assert(electro.electroBolt > 0 and captureHud(runeCursor)['Electrocute ready'])
+    for _, hit in ipairs({'attack', 'q', 'w'}) do progress.onStrike(run, hit, frame) end
+    electro = captureHud(runeCursor)
+    assert(electro.electroBolt == 0 and electro.electroFill == 0 and electro['Electrocute  8.0s'])
+    frame = frame + 120
+    electro = captureHud(runeCursor)
+    assert(electro.electroBolt == 0 and math.abs(electro.electroFill - 22 * bounds.scale) < .001
+        and electro['Electrocute  4.0s'], 'Electrocute cooldown fill did not track time')
+    frame = frame + 120
+    assert(captureHud(runeCursor)['Electrocute ready'])
+    event('PRE_GAME_EXIT')
 end
 """)
     print("PASS Yone registration, input, emotes, leases, HUD, floor lifecycle, console and progression")
