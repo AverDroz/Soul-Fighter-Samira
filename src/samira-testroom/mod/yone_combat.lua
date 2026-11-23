@@ -17,7 +17,7 @@ local ultHalfWidth = 28
 local spiritDuration, markDamage, wCosine, qStackDuration = 150, .30, .35, 180
 local spiritDash, q3Dash, spiritReturnFrames = 84, 156, 8
 local effectFrames, effectLimit, markerLimit = 21, 12, 24
-local airDuration, airHeight = 12, 24
+local airDuration, airHeight = 30, 24
 
 function Combat.new(items)
     return {ready = {}, qStacks = 0, secondBlade = false, face = Vector(0, 1),
@@ -129,6 +129,21 @@ local function knockup(state, targets, clock)
             if not entity:IsBoss() then entity.Velocity = Vector.Zero end
         end
     end
+end
+
+local function airborneDamageSource(state, entity, clock)
+    if not entity then return false end
+    if activeAir(state, entity, clock) then return true end
+    -- A live NPC acts independently of the entity that spawned it.
+    if entity:ToNPC() or entity.Type == EntityType.ENTITY_PLAYER then return false end
+    local spawner, parent = entity.SpawnerEntity, entity.Parent
+    return (spawner and activeAir(state, spawner, clock) ~= nil)
+        or (parent and activeAir(state, parent, clock) ~= nil)
+end
+
+function Combat.airborneDamage(state, source, extraSource, clock)
+    if next(state.airborne) == nil then return false end
+    return airborneDamageSource(state, source, clock) or airborneDamageSource(state, extraSource, clock)
 end
 
 function Combat.preNpcUpdate(state, entity, clock)

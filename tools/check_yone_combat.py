@@ -531,14 +531,27 @@ local originalPosition = lifted.Position
 assert(combat.preNpcUpdate(state, lifted, 9) == true, 'Q3 did not stagger target')
 local render = combat.preNpcRender(state, lifted, Vector(3,4), 11)
 assert(render and render.Y < 4 and lifted.Position == originalPosition, 'Q3 lift must be visual only')
-assert(combat.preNpcRender(state, lifted, Vector(3,4), 20) == nil, 'lift did not expire')
+assert(combat.preNpcUpdate(state, lifted, 37) == true and combat.airborneDamage(state, lifted, nil, 37),
+    'Q3 released the target before one second')
+assert(combat.preNpcRender(state, lifted, Vector(3,4), 38) == nil
+    and not combat.airborneDamage(state, lifted, nil, 38), 'Q3 lift or damage suppression lasted past one second')
 state = combat.new(); player.Position = Vector(60,100); local boss = enemy(130,100,803)
 function boss:IsBoss() return true end
 entities = {boss}; cast('r', 1); resolve(24)
 assert(combat.preNpcRender(state,boss,Vector(0,0),27) and not combat.preNpcUpdate(state,boss,27),
     'boss must be lifted without stopping its updates')
+local bossProjectile = makeEntity(EntityType.ENTITY_PROJECTILE, 130, 100, 804)
+bossProjectile.SpawnerEntity = boss
+local bossMinion = enemy(130, 100, 805); bossMinion.SpawnerEntity = boss
+assert(combat.airborneDamage(state,boss,nil,53) and combat.airborneDamage(state,bossProjectile,nil,53),
+    'R did not suppress the boss or its projectile for the full second')
+assert(not combat.airborneDamage(state,bossMinion,nil,53), 'R disabled an independent, unhit minion')
+assert(not combat.airborneDamage(state,bossProjectile,nil,54), 'boss projectile stayed disabled after landing')
+state = combat.new(); player.Position = Vector(60,100)
+cast('r', 1); resolve(24)
 combat.resetRoom(state, 28)
-assert(not combat.preNpcRender(state,boss,Vector(0,0),28), 'reset left a lift on an entity')
+assert(not combat.preNpcRender(state,boss,Vector(0,0),28)
+    and not combat.airborneDamage(state,bossProjectile,nil,28), 'reset retained the lifted source')
 state = combat.new(); state.qStacks = 2; player.Position = Vector(60,100); entities={lifted}
 cast('q',1); resolve(8); lifted.InitSeed = lifted.InitSeed + 1
 assert(not combat.preNpcRender(state,lifted,Vector(0,0),9), 'reused entity inherited lift')

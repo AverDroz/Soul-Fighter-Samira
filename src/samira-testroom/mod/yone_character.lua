@@ -844,16 +844,20 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
         emit(game, state, player, false, picture)
     end)
 
-    mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function(_, target, _, flags, source)
+    mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function(_, target, _, flags, source, _, extraSource)
         local player = state and driver()
         local attacker = source and source.Entity
         if not player or target.Type ~= EntityType.ENTITY_PLAYER or target.Index ~= player.Index then return end
         if flags & (DamageFlag.DAMAGE_FAKE or 0) ~= 0 then return end
         local bypass = (DamageFlag.DAMAGE_IV_BAG or 0) | (DamageFlag.DAMAGE_CHEST or 0)
             | (DamageFlag.DAMAGE_CURSED_DOOR or 0) | (DamageFlag.DAMAGE_INVINCIBLE or 0)
-        if flags & bypass == 0 and Combat.invulnerable(state.combat, game:GetFrameCount()) then return false end
+        local clock = game:GetFrameCount()
+        if flags & bypass == 0 and (Combat.invulnerable(state.combat, clock)
+            or Combat.airborneDamage(state.combat, attacker, extraSource and extraSource.Entity, clock)) then
+            return false
+        end
         if not attacker or (attacker.Type ~= EntityType.ENTITY_PROJECTILE and not Combat.hostile(attacker)) then return end
-        if Combat.absorb(state.combat, game:GetFrameCount(), player.Position) then
+        if Combat.absorb(state.combat, clock, player.Position) then
             player:SetMinDamageCooldown(15)
             return false
         end

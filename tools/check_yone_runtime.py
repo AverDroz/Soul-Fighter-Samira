@@ -330,7 +330,11 @@ assert(fadingQ.qRing > 0 and fadingQ.qRing < doubleStackHud.qRing, 'Q3 duration 
 for _ = 1, 24 do tick() end
 DamageFlag = {DAMAGE_FAKE = 1, DAMAGE_IV_BAG = 2}
 local dashAttacker = makeEntity('enemy', player.Position.X + 25, player.Position.Y, 89)
-castKey('KEY_Q')
+qTarget.Position = player.Position + Vector(25, 0)
+entities = {qTarget}
+local qAim = player.Position + Vector(120, 0)
+tick('KEY_Q', false, qAim)
+tick(nil, false, qAim)
 assert(packet.kind == 'q3', 'charged Q did not begin dash')
 for _ = 1, 7 do tick() end
 assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(dashAttacker)) == false,
@@ -349,7 +353,25 @@ assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(dashAttacker)) == false,
 tick()
 assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(dashAttacker)) == nil,
     'Q3 invulnerability lasted past the landing window')
-for _ = 1, 10 do tick() end
+assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(qTarget)) == false,
+    'lifted target dealt contact damage after the dash protection ended')
+local liftedShot = makeEntity(EntityType.ENTITY_PROJECTILE, player.Position.X, player.Position.Y, 92)
+liftedShot.SpawnerEntity = qTarget
+local liftedLaser = makeEntity('ENTITY_LASER', player.Position.X, player.Position.Y, 93)
+liftedLaser.Parent = qTarget
+assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(liftedShot)) == false,
+    'lifted target projectile dealt damage after the dash protection ended')
+assert(event('ENTITY_TAKE_DMG', player, 1, 0, nil, 0, EntityRef(liftedLaser)) == false,
+    'damage through REPENTOGON ExtraSource ignored knockup')
+assert(event('ENTITY_TAKE_DMG', player, 1, 0, nil) == nil, 'knockup blocked unrelated environmental damage')
+for _ = 1, 22 do tick() end
+assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(qTarget)) == false,
+    'knockup protection expired before one second')
+tick()
+assert(event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(qTarget)) == nil
+    and event('ENTITY_TAKE_DMG', player, 1, 0, EntityRef(liftedShot)) == nil,
+    'knockup protection outlasted landing')
+entities = {}
 player.Position = Vector(60, 100)
 
 input.ctrl = 'KEY_LEFT_CONTROL'
