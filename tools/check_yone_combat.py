@@ -48,6 +48,69 @@ function player:HasCollectible(id)
     return priorHasCollectible(self, id)
 end
 local aim = Vector(350, 100)
+do
+    local function bomb(x, y, id)
+        local entity = makeEntity(EntityType.ENTITY_BOMB, x, y, id)
+        entity.EntityCollisionClass, entity.countdown = EntityCollisionClass.ENTCOLL_ALL, 30
+        function entity:ToBomb() return self end
+        function entity:SetExplosionCountdown() error('melee changed the bomb fuse') end
+        return entity
+    end
+
+    for _, spec in ipairs({{'attack',4,135}, {'q',6,180}, {'q3',7,230}}) do
+        local kind, windup, x = table.unpack(spec)
+        local combatState = combat.new()
+        player.Position = Vector(60,100)
+        if kind == 'q3' then combat.chargeQ3(combatState, 1) end
+        local planted, troll = bomb(x,100,800), bomb(105,116,801)
+        local side, beyond = bomb(100,145,802), bomb(290,100,803)
+        local behind, dead = bomb(55,100,804), bomb(100,100,805)
+        local inactive, pickup = bomb(100,100,806), bomb(100,100,807)
+        local fetus, artifact = bomb(100,100,808), bomb(100,100,809)
+        planted.Velocity, troll.Variant = Vector(-1,2), 3
+        dead.dead, inactive.EntityCollisionClass = true, EntityCollisionClass.ENTCOLL_NONE
+        pickup.Type, fetus.IsFetus = EntityType.ENTITY_PICKUP, true
+        artifact.data.YoneArtifactBomb = {}
+        local missed = {side,beyond,behind,dead,inactive,pickup,fetus,artifact}
+        local entities = {planted,troll,table.unpack(missed)}
+        assert(combat.cast(combatState, kind == 'q3' and 'q' or kind, player, aim, 1, room) == kind)
+        combat.update(combatState, room, player, entities, windup)
+        assert(planted.Velocity.X == -1, 'bomb pushed before the strike landed')
+        combat.update(combatState, room, player, entities, 1 + windup)
+        assert(planted.Velocity.X > 0 and planted.Velocity.Y == 2 and troll.Velocity.X > 0,
+            'strike missed a bomb or replaced its lateral velocity')
+        assert(combatState.qStacks == 0 and #planted.damage == 0 and planted.countdown == 30
+            and not planted.dead and not planted.removed and planted.Position.X == x,
+            'bomb push altered its position, fuse, health or combat stacks')
+        local pushed = planted.Velocity
+        combat.update(combatState, room, player, entities, 2 + windup)
+        assert(planted.Velocity == pushed, 'the same strike pushed a bomb twice')
+        for _, entity in ipairs(missed) do
+            assert(entity.Velocity:Length() == 0, 'strike pushed an ineligible bomb')
+        end
+    end
+
+    player.Position = Vector(60,100)
+    local screened = bomb(140,100,810)
+    wall[room:GetGridIndex(Vector(120,100))] = GridCollisionClass.COLLISION_WALL
+    local combatState = combat.new()
+    assert(combat.cast(combatState, 'attack', player, aim, 1, room))
+    combat.update(combatState, room, player, {screened}, 5)
+    assert(screened.Velocity:Length() == 0, 'auto attack pushed a bomb through a wall')
+    combatState = combat.new()
+    assert(combat.cast(combatState, 'q', player, aim, 1, room))
+    combat.update(combatState, room, player, {screened}, 7)
+    assert(screened.Velocity.X > 0, 'Q did not use its through-wall strike footprint')
+    wall = {}
+
+    local diagonal = bomb(90,140,811)
+    combatState = combat.new()
+    assert(combat.cast(combatState, 'attack', player, Vector(90,140), 1, room))
+    combat.update(combatState, room, player, {diagonal}, 5)
+    assert(diagonal.Velocity.X > 0 and diagonal.Velocity.Y > 0
+        and math.abs(diagonal.Velocity.X * 4 - diagonal.Velocity.Y * 3) < .001,
+        'bomb impulse did not follow the strike direction')
+end
 -- First accepted impact emits a single splash even when its victim dies.
 for _, spec in ipairs({{'attack',4}, {'q',6}, {'q3',7}}) do
     state=combat.new(); player.Position=Vector(60,100); player.cricket=true

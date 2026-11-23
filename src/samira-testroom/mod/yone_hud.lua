@@ -1,7 +1,7 @@
 local HUD = {}
 local Progression = include('yone_progression')
 local abilities = {'q', 'w', 'e', 'r'}
-local width, height = 206, 39
+local width, combatHeight, progressHeight = 206, 39, 11
 local iconSize, iconStep, firstIcon = 26, 33, 76
 local cellWidth, cellHeight = 32, 10
 local ready = {.95, .91, .80, 1}
@@ -35,7 +35,8 @@ local statCells = {
 }
 local shieldMark = {{1, 1, 7, 1, 7, 5, 4, 8, 1, 5, 1, 1}}
 
-function HUD.bounds(requestedScale, backpack)
+function HUD.bounds(requestedScale, backpack, hasProgress)
+    local height = combatHeight + (hasProgress and progressHeight or 0)
     local screenWidth, screenHeight = Isaac.GetScreenWidth(), Isaac.GetScreenHeight()
     local scale = math.min(requestedScale, (screenWidth - 12) / width, (screenHeight - 10) / height)
     local x = (screenWidth - width * scale) / 2
@@ -201,8 +202,8 @@ local function panel(x, y, w, h, s, edge, body)
     fill(x + s, y + s, w - 2 * s, h - 2 * s, body)
 end
 
-function HUD.renderRunePicker(choices, selectedIndex, hudScale)
-    if #choices == 0 or not Isaac.DrawLine or not KColor then return end
+local function runePickerLayout(choices, hudScale)
+    if #choices == 0 then return end
     local cardWidth, gutter, padding, descriptionScale = 90, 4, 8, .78
     local descriptions, maxLines = {}, 0
     for i, choice in ipairs(choices) do
@@ -212,41 +213,67 @@ function HUD.renderRunePicker(choices, selectedIndex, hudScale)
     end
     local cardHeight = 24 + 10 * maxLines
     local width = 2 * padding + #choices * cardWidth + (#choices - 1) * gutter
-    local height = cardHeight + 44
+    local height = cardHeight + 63
     local screenWidth, screenHeight = Isaac.GetScreenWidth(), Isaac.GetScreenHeight()
     local s = math.min(hudScale or 1, (screenWidth - 16) / width, (screenHeight - 16) / height)
     if s <= 0 then return end
-    setup()
     local x, y = (screenWidth - width * s) / 2, (screenHeight - height * s) / 2
-    local center = screenWidth / 2
-    panel(x, y, width * s, height * s, s, palette.edge, palette.body)
-    centered('Choose a keystone', center, y + 7 * s, 1.23 * s, gold, (width - 16) * s)
-
-    local cardY = y + 24 * s
-    for i, choice in ipairs(choices) do
-        local cardX = x + (padding + (i - 1) * (cardWidth + gutter)) * s
-        local cardCenter = cardX + cardWidth * s / 2
-        local selected = i == selectedIndex
-        panel(cardX, cardY, cardWidth * s, cardHeight * s, s,
-            selected and palette.cap or palette.seam, selected and palette.hover or palette.rail)
-        centered(choice.name, cardCenter, cardY + 5 * s, s,
-            selected and gold or ready, (cardWidth - 10) * s)
-        for row, label in ipairs(descriptions[i]) do
-            centered(label, cardCenter, cardY + (17 + (row - 1) * 10) * s,
-                descriptionScale * s, selected and ready or cooling, (cardWidth - 10) * s)
-        end
+    local cards = {}
+    for i, lines in ipairs(descriptions) do
+        cards[i] = {x = x + (padding + (i - 1) * (cardWidth + gutter)) * s, y = y + 24 * s,
+            width = cardWidth * s, height = cardHeight * s, lines = lines}
     end
-    centered('Left / Right to select   Enter to confirm', center, y + (height - 14) * s,
-        .86 * s, ready, (width - 16) * s)
+    return {x = x, y = y, width = width * s, height = height * s, scale = s, cards = cards,
+        descriptionScale = descriptionScale, confirm = {x = screenWidth / 2 - 44 * s,
+            y = y + (cardHeight + 29) * s, width = 88 * s, height = 16 * s}}
 end
 
-function HUD.renderProgress(b, progress)
-    if not b or not progress or not Isaac.DrawLine or not KColor then return end
-    local x, s = b.x, b.scale
-    -- Tooltips occupy up to 17 scaled units immediately above the combat HUD.
-    local y = b.y - 43 * s
-    if y < 3 then return end
+local function pickerHit(layout, pointer)
+    for i, card in ipairs(layout.cards) do
+        if contains(pointer, card.x, card.y, card.width, card.height) then return i end
+    end
+    local button = layout.confirm
+    if contains(pointer, button.x, button.y, button.width, button.height) then return 'confirm' end
+end
+
+function HUD.runePickerHit(choices, hudScale)
+    local layout = runePickerLayout(choices, hudScale)
+    if layout then return pickerHit(layout, mousePosition()) end
+end
+
+function HUD.renderRunePicker(choices, selectedIndex, hudScale)
+    if not Isaac.DrawLine or not KColor then return end
+    local layout = runePickerLayout(choices, hudScale)
+    if not layout then return end
     setup()
+    local x, y, w, h, s = layout.x, layout.y, layout.width, layout.height, layout.scale
+    local center = x + w / 2
+    local hovered = pickerHit(layout, mousePosition())
+    panel(x, y, w, h, s, palette.edge, palette.body)
+    centered('Choose a keystone', center, y + 7 * s, 1.23 * s, gold, w - 16 * s)
+
+    for i, card in ipairs(layout.cards) do
+        local cardCenter = card.x + card.width / 2
+        local selected = i == selectedIndex
+        panel(card.x, card.y, card.width, card.height, s, selected and palette.cap or palette.seam,
+            (selected or hovered == i) and palette.hover or palette.rail)
+        centered(choices[i].name, cardCenter, card.y + 5 * s, s, selected and gold or ready, card.width - 10 * s)
+        for row, label in ipairs(card.lines) do
+            centered(label, cardCenter, card.y + (17 + (row - 1) * 10) * s,
+                layout.descriptionScale * s, selected and ready or cooling, card.width - 10 * s)
+        end
+    end
+    local button = layout.confirm
+    panel(button.x, button.y, button.width, button.height, s, palette.cap,
+        hovered == 'confirm' and palette.hover or palette.rail)
+    centered('Confirm', center, button.y + 3 * s, s, gold, button.width - 8 * s)
+    centered('Click or use Left / Right   Enter to confirm', center, y + h - 14 * s,
+        .86 * s, ready, w - 16 * s)
+end
+
+local function drawProgress(b, progress)
+    local x, s = b.x, b.scale
+    local y = b.y + combatHeight * s
     local runeName
     for _, choice in ipairs(Progression.choices) do
         if choice.id == progress.rune then runeName = choice.name; break end
@@ -261,20 +288,42 @@ function HUD.renderProgress(b, progress)
         ranks[#ranks + 1] = key:upper() .. Progression.rank(progress, key)
     end
 
-    panel(x, y, b.width, 24 * s, s, palette.edge, palette.body)
     centered(level .. (atMax and '  MAX' or ('  %d/%d XP'):format(progress.xp, required)),
-        x + 51 * s, y + 2 * s, .85 * s, gold, 93 * s)
-    if runeName then centered(runeName, x + 153 * s, y + 2 * s, .85 * s, ready, 93 * s) end
-    fill(x + 5 * s, y + 11 * s, b.width - 10 * s, 2 * s, palette.divider)
-    if fraction > 0 then fill(x + 5 * s, y + 11 * s, (b.width - 10 * s) * fraction, 2 * s, palette.wind) end
+        x + 36 * s, y, .73 * s, gold, 62 * s)
+    if runeName then centered(runeName, x + 92 * s, y, .73 * s, ready, 47 * s) end
+    fill(x + 5 * s, y + 8 * s, b.width - 10 * s, s, palette.divider)
+    if fraction > 0 then fill(x + 5 * s, y + 8 * s, (b.width - 10 * s) * fraction, s, palette.wind) end
     if points > 0 then
-        centered(('Alt+Q/W/E/R: %d pt'):format(points), x + 51 * s, y + 14 * s, .77 * s, gold, 93 * s)
+        centered(('Alt+QWER: %d pt'):format(points), x + 175 * s, y, .73 * s, gold, 50 * s)
     end
-    centered(table.concat(ranks, '  '), x + (points > 0 and 153 or 103) * s,
-        y + 14 * s, .77 * s, cooling, 93 * s)
+    centered(table.concat(ranks, ' '), x + (points > 0 and 132 or 157) * s,
+        y, .73 * s, cooling, (points > 0 and 34 or 79) * s)
 end
 
-function HUD.render(b, combat, clock, aiming, picture, stats, aimColors)
+local function upgradeBounds(b, index)
+    local s = b.scale
+    local center = b.x + (firstIcon + (index - 1) * iconStep + iconSize / 2) * s
+    return center - 10 * s, math.max(1, b.y - 8 * s), 20 * s, 11 * s
+end
+
+function HUD.upgradeHit(b, progress)
+    if not b then return end
+    local pointer = mousePosition()
+    for i, key in ipairs(abilities) do
+        if Progression.canUpgrade(progress, key) and contains(pointer, upgradeBounds(b, i)) then return key end
+    end
+end
+
+local function drawUpgrade(b, index, pointer)
+    local x, y, w, h = upgradeBounds(b, index)
+    local s, center = b.scale, x + w / 2
+    local hovered = contains(pointer, x, y, w, h)
+    panel(x, y, w, h, s, hovered and palette.cap or palette.edge, hovered and palette.hover or palette.body)
+    line(center - 4 * s, y + 7 * s, center, y + 3 * s, palette.cap, 1.5 * s)
+    line(center, y + 3 * s, center + 4 * s, y + 7 * s, palette.cap, 1.5 * s)
+end
+
+function HUD.render(b, combat, clock, aiming, picture, stats, aimColors, progress)
     if not b or not Isaac.DrawLine or not KColor then return end
     setup()
     local pointer = mousePosition()
@@ -318,7 +367,9 @@ function HUD.render(b, combat, clock, aiming, picture, stats, aimColors)
             status = ('%ds'):format(math.ceil(remaining / 30))
         end
         if status then centered(status, x + size / 2, y + 9 * s, 1.05 * s, spirit and recast or ready, size - 2 * s) end
+        if progress and Progression.canUpgrade(progress, key) then drawUpgrade(b, i, pointer) end
     end
+    if progress then drawProgress(b, progress) end
     drawTooltip(b, tooltip, anchor)
 end
 

@@ -58,8 +58,6 @@ function Yone.player(game)
     if Yone.is(player) then return player end
 end
 
-Yone.hudBounds = HUD.bounds
-
 local function pressed(key)
     return Input.IsButtonPressed(key, 0)
 end
@@ -624,21 +622,41 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
         return active and not active.rune
     end
 
-    local function sampleRunePicker()
+    function Yone.hudBounds(scale, backpack)
+        return HUD.bounds(scale, backpack, progress() ~= nil)
+    end
+
+    local function sampleRunePicker(allowed, clicked)
         local left, right, confirm = pressed(Keyboard.KEY_LEFT), pressed(Keyboard.KEY_RIGHT), pressed(Keyboard.KEY_ENTER)
-        local delta = (right and not state.runeRight and 1 or 0) - (left and not state.runeLeft and 1 or 0)
-        state.runeSelection = (state.runeSelection - 1 + delta) % #Progress.choices + 1
-        if confirm and not state.runeConfirm then items.chooseYoneRune(Progress.choices[state.runeSelection].id) end
+        if allowed then
+            local scale = readHudScale and readHudScale() or 1
+            local hit = clicked and HUD.runePickerHit(Progress.choices, scale)
+            local delta = (right and not state.runeRight and 1 or 0) - (left and not state.runeLeft and 1 or 0)
+            state.runeSelection = type(hit) == 'number' and hit
+                or (state.runeSelection - 1 + delta) % #Progress.choices + 1
+            if hit == 'confirm' or confirm and not state.runeConfirm then
+                items.chooseYoneRune(Progress.choices[state.runeSelection].id)
+            end
+        end
         state.runeLeft, state.runeRight, state.runeConfirm = left, right, confirm
     end
 
-    local function sampleUpgrades()
+    local function combatHudBounds(player, scale)
+        return Yone.hudBounds(scale, inventoryBounds and inventoryBounds(player, scale))
+    end
+
+    local function sampleUpgrades(clicked, player)
         local current = progress()
         if not current then return end
+        local hit
+        if clicked and Progress.points(current) > 0 then
+            local scale = readHudScale and readHudScale() or 1
+            hit = HUD.upgradeHit(combatHudBounds(player, scale), current)
+        end
         local modifier = upgrading()
         for _, key in ipairs({'q', 'w', 'e', 'r'}) do
             local down = modifier and pressed(upgradeKeys[key])
-            if down and not state.upgradeHeld[key] then Progress.upgrade(current, key) end
+            if hit == key or down and not state.upgradeHeld[key] then Progress.upgrade(current, key) end
             state.upgradeHeld[key] = down
         end
     end
@@ -687,7 +705,7 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
         Display.acquire('yone')
         state = {id = tostring(Isaac.GetNanoTime()) .. ':yone:' .. serial, room = 1, seq = 0,
             combat = Combat.new(items), emotes = Emotes.new(), commands = {}, held = {},
-            continuingRoom = continued == true, runeSelection = 1, runeConfirm = true, upgradeHeld = {}}
+            continuingRoom = continued == true, runeSelection = 1, runeConfirm = true, leftClick = true, upgradeHeld = {}}
         if Yone.isNative(player) and items and items.startYoneProgress then items.startYoneProgress(continued) end
         if items and items.activate then items.activate(player) end
         if continued and items and items.restoreCombatCooldowns then items.restoreCombatCooldowns() end
@@ -773,9 +791,12 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
         end
         if items and items.applyCooldownCheckpoint then items.applyCooldownCheckpoint(clock) end
         local allowed = canControl(game, state, player)
+        local mouse = Input.IsMouseBtnPressed(0)
+        local clicked = mouse and not state.leftClick
+        state.leftClick = mouse
         if selectionPending() then
             sampleInput(room, false)
-            if allowed then sampleRunePicker() end
+            sampleRunePicker(allowed, clicked)
             return
         end
         sampleInput(room, allowed)
@@ -789,7 +810,7 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
             return
         end
         if not state.floorPending then state.floorRebinding = nil end
-        sampleUpgrades()
+        sampleUpgrades(clicked, player)
 
         if inventory then inventory.update(player, clock) end
         if items and items.update then items.update(player, clock) end
@@ -892,10 +913,9 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
             drawAim(game:GetRoom(), state.combat, player, clock, state.aimAbility)
             drawRoomEffects(game, state, player, clock, picture)
             drawHeartsteel(game:GetRoom(), items)
-            local bounds = HUD.bounds(scale, inventoryBounds and inventoryBounds(player, scale))
+            local bounds = combatHudBounds(player, scale)
             HUD.render(bounds, state.combat, clock, state.aimAbility, picture,
-                Combat.hudStats(state.combat, player, clock), aimColors)
-            HUD.renderProgress(bounds, progress())
+                Combat.hudStats(state.combat, player, clock), aimColors, progress())
         end
         emit(game, state, player, false, picture)
     end)

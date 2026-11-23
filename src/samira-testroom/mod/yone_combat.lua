@@ -19,6 +19,7 @@ local spiritDuration, markDamage, wCosine, qStackDuration = 150, .30, .35, 180
 local spiritDash, q3Dash, spiritReturnFrames = 84, 156, 8
 local effectFrames, effectLimit, markerLimit = 21, 12, 24
 local airDuration, airHeight = 30, 24
+local bombImpulse = {attack = 8, q = 10, q3 = 12}
 
 local function progressOf(state)
     return state.items and state.items.yoneProgress and state.items.yoneProgress()
@@ -499,6 +500,14 @@ local function breakProps(room, start, facing, width, reach)
     end
 end
 
+local function withinStrikeLine(room, entity, area, side, throughWalls)
+    local delta = entity.Position - area.origin
+    local along = delta:Dot(area.facing)
+    local reach = area.reach + (throughWalls and 0 or entity.Size)
+    return along >= 0 and along <= reach and math.abs(delta:Dot(side)) <= area.width + entity.Size
+        and (throughWalls or room:CheckLine(area.origin, entity.Position, 3, 0, false, false))
+end
+
 -- Damage tear-collidable non-hostile NPCs separately so scenery cannot grant
 -- Q stacks, E marks, or consume first-target item effects.
 local function hitScenery(room, player, entities, area, multiplier, throughWalls, contacts)
@@ -508,15 +517,25 @@ local function hitScenery(room, player, entities, area, multiplier, throughWalls
         local tearCollision = EntityCollisionClass and (collision == EntityCollisionClass.ENTCOLL_ALL
             or collision == EntityCollisionClass.ENTCOLL_PLAYEROBJECTS)
         if activeTarget(entity) and not Combat.hostile(entity)
-            and (entity.Type == EntityType.ENTITY_FIREPLACE or entity:ToNPC() and tearCollision) then
-            local delta = entity.Position - area.origin
-            local along = delta:Dot(area.facing)
-            local reach = area.reach + (throughWalls and 0 or entity.Size)
-            if along >= 0 and along <= reach and math.abs(delta:Dot(side)) <= area.width + entity.Size
-                and (throughWalls or room:CheckLine(area.origin, entity.Position, 3, 0, false, false)) then
-                if entity:TakeDamage(player.Damage * multiplier, 0, EntityRef(player), 0) and contacts and #contacts < markerLimit then
-                    contacts[#contacts + 1] = Vector(entity.Position.X, entity.Position.Y)
-                end
+            and (entity.Type == EntityType.ENTITY_FIREPLACE or entity:ToNPC() and tearCollision)
+            and withinStrikeLine(room, entity, area, side, throughWalls) then
+            if entity:TakeDamage(player.Damage * multiplier, 0, EntityRef(player), 0) and contacts and #contacts < markerLimit then
+                contacts[#contacts + 1] = Vector(entity.Position.X, entity.Position.Y)
+            end
+        end
+    end
+end
+
+local function pushBombs(room, entities, area, kind, throughWalls)
+    local side = Vector(-area.facing.Y, area.facing.X)
+    local impulse = area.facing * bombImpulse[kind]
+    for _, entity in ipairs(entities) do
+        if entity.Type == EntityType.ENTITY_BOMB and entity:Exists() and not entity:IsDead()
+            and entity.EntityCollisionClass ~= EntityCollisionClass.ENTCOLL_NONE
+            and withinStrikeLine(room, entity, area, side, throughWalls) then
+            local bomb = entity:ToBomb()
+            if bomb and not bomb.IsFetus and not bomb:GetData().YoneArtifactBomb then
+                bomb.Velocity = bomb.Velocity + impulse
             end
         end
     end
@@ -624,6 +643,7 @@ local function resolve(state, room, player, enemies, strike, clock)
         local area = {origin = start, facing = facing, reach = reach, width = meleeHalfWidth}
         blade(state, room, player, enemies, strike, area.width, reach, multiplier)
         hitScenery(room, player, enemies, area, multiplier, false)
+        pushBombs(room, enemies, area, key, false)
         Artifacts.fire(player, strike, start, reach, clock)
         effect(state, clock, strike.clip, start, start + facing * reach, area)
     elseif key == 'q' then
@@ -632,6 +652,7 @@ local function resolve(state, room, player, enemies, strike, clock)
             state.qStacks, state.qExpires = math.min(2, state.qStacks + 1), clock + qStackDuration
         end
         hitScenery(room, player, enemies, footprint, 1.4, true, contacts)
+        pushBombs(room, enemies, footprint, key, true)
         breakProps(room, start, facing, footprint.width, reach)
         Artifacts.fire(player, strike, start, reach, clock)
         effect(state, clock, key, start, start + facing * reach, nil, nil, contacts)
@@ -641,6 +662,7 @@ local function resolve(state, room, player, enemies, strike, clock)
         blade(state, room, player, enemies, strike, footprint.width, reach, 1.6, false, targets, true, contacts)
         knockup(state, targets, clock)
         hitScenery(room, player, enemies, footprint, 1.6, true, contacts)
+        pushBombs(room, enemies, footprint, key, true)
         breakProps(room, start, facing, footprint.width, reach)
         Artifacts.fire(player, strike, start, reach, clock)
         teleport(player, q3Destination(room, player, start, start + facing * math.min(q3Dash, reach)))

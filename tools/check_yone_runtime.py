@@ -54,7 +54,7 @@ local function captureHud(cursor)
     local originalRender, originalScaled, originalLine = Isaac.RenderText, Isaac.RenderScaledText, Isaac.DrawLine
     local originalCursor = input.cursor
     if cursor then input.cursor = cursor end
-    local text = {pips = 0, ring = 0, qRing = 0, icons = {}, statMarks = {}, shield = 0}
+    local text = {pips = 0, ring = 0, qRing = 0, icons = {}, statMarks = {}, shield = 0, upgradeArrows = 0}
     draws = text.icons
     Isaac.RenderText = function(label, x, y, r, g, b, a)
         text[label] = {x = x, y = y, scale = 1, color = {r, g, b, a}}
@@ -81,6 +81,9 @@ local function captureHud(cursor)
             assert(a.X >= w.x + 17 * s and a.X <= w.x + w.size and a.Y >= w.y + 21 * s and a.Y <= w.y + 30 * s,
                 'shield marker fell outside the W corner badge')
             text.shield = text.shield + 1
+        end
+        if color[1] == .76 and color[2] == .57 and a.Y ~= b.Y then
+            text.upgradeArrows = text.upgradeArrows + 1
         end
     end
     event('POST_RENDER')
@@ -980,8 +983,8 @@ do
     noItems.onCast = function(_, key) casts[#casts + 1] = key end
     local function pickerText()
         local labels, original = {}, Isaac.RenderScaledText
-        Isaac.RenderScaledText = function(label, _, _, _, _, r, g)
-            labels[label] = {r, g}
+        Isaac.RenderScaledText = function(label, x, y, _, _, r, g)
+            labels[label] = {r, g, cursor = Vector(x + 2, y + 2) * (1 / projection)}
         end
         event('POST_RENDER')
         Isaac.RenderScaledText = original
@@ -1019,12 +1022,16 @@ do
     tick()
     assert(#casts == 0 and not pickerText()['Choose a keystone'], 'picker confirm leaked held Q or left the menu open')
     local startHud = captureHud()
-    assert(startHud['LVL 1  0/60 XP'] and startHud['Q1  W1  E1  R1'] and startHud.Conqueror,
+    assert(startHud['LVL 1  0/60 XP'] and startHud['Q1 W1 E1 R1'] and startHud.Conqueror and startHud.upgradeArrows == 0,
         'fresh progression HUD lost XP, rune name, or a starting rank')
 
     assert(progress.award(run, 65) == 1)
     local earned = captureHud()
-    assert(earned['LVL 2  5/72 XP'] and earned['Alt+Q/W/E/R: 1 pt'], 'HUD did not reflect earned XP and point')
+    local bounds = include('yone_hud').bounds(hudScale, include('samira_inventory_hud').bounds(player, hudScale), true)
+    assert(earned['LVL 2  5/72 XP'].y >= earned.icons[1].y + earned.icons[1].size
+        and earned['LVL 2  5/72 XP'].y < bounds.y + bounds.height
+        and earned['Alt+QWER: 1 pt'] and earned.upgradeArrows == 6,
+        'XP must stay inside the lower HUD strip with arrows on the three available upgrades')
     input.held = 'KEY_LEFT_ALT'
     tick('KEY_Q')
     tick('KEY_Q')
@@ -1032,7 +1039,7 @@ do
     tick('KEY_Q')
     tick()
     local ranked = captureHud()
-    assert(ranked['Q2  W1  E1  R1'] and not ranked['Alt+Q/W/E/R: 1 pt'] and #casts == 0,
+    assert(ranked['Q2 W1 E1 R1'] and not ranked['Alt+QWER: 1 pt'] and #casts == 0,
         'Alt+Q did not spend one point cleanly or leaked a cast')
 
     tick('KEY_A', false, target.Position)
@@ -1046,6 +1053,53 @@ do
     assert(casts[1] == 'q' and #target.damage == 2 and math.abs(target.damage[2] - expected) < .001,
         'the real Q impact did not combine skill rank with the prior rune stack')
     event('PRE_GAME_EXIT')
+
+    local nativeMouse = Input.IsMouseBtnPressed
+    local mouseDown = true
+    Input.IsMouseBtnPressed = function(button)
+        if button == 0 then return mouseDown end
+        return nativeMouse(button)
+    end
+    event('POST_GAME_STARTED', false)
+    event('POST_NEW_ROOM')
+    menu = pickerText()
+    tick(nil, false, menu.Confirm.cursor)
+    assert(not run.rune, 'held click from the previous menu confirmed a rune')
+    mouseDown = false
+    tick()
+    hudScale = 1.5
+    menu = pickerText()
+    mouseDown = true
+    tick(nil, false, menu['Lethal Tempo'].cursor)
+    assert(pickerText()['Lethal Tempo'][2] < pickerText().Conqueror[2] and not chosen,
+        'mouse click did not select the visible rune without committing it')
+    tick(nil, false, menu.Confirm.cursor)
+    assert(not chosen, 'holding a click across the picker confirmed the choice')
+    mouseDown = false
+    tick()
+    mouseDown = true
+    tick(nil, false, menu.Confirm.cursor)
+    assert(chosen == 'lethal_tempo' and not pickerText()['Choose a keystone'], 'mouse confirmation failed')
+    assert(progress.award(run, 132) == 2)
+    local upgraded = captureHud()
+    local q, r = upgraded.icons[1], upgraded.icons[4]
+    local function arrow(icon)
+        return Vector(icon.x + icon.size / 2, icon.y - 7 * icon.size / 26) * (1 / projection)
+    end
+    mouseDown = false
+    tick()
+    mouseDown = true
+    tick(nil, false, arrow(r))
+    assert(progress.rank(run, 'r') == 1 and progress.points(run) == 2, 'locked R accepted a click')
+    mouseDown = false
+    tick()
+    mouseDown = true
+    tick(nil, false, arrow(q))
+    tick(nil, false, arrow(q))
+    assert(progress.rank(run, 'q') == 2 and progress.points(run) == 1, 'Q arrow click did not spend exactly one point')
+    event('PRE_GAME_EXIT')
+    Input.IsMouseBtnPressed = nativeMouse
+    hudScale = 1
 end
 """)
     print("PASS Yone registration, input, emotes, leases, HUD, floor lifecycle, console and progression")
