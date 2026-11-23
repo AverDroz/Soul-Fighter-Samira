@@ -5,6 +5,8 @@ import json
 import hashlib
 from PIL import Image
 from xml.etree import ElementTree
+from build_item_components import component_icons
+from build_isaac_items import encode_png, render_legacy_icons
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'work/python-deps'))
@@ -17,8 +19,12 @@ assert native_items.attrib['gfxroot'] == 'gfx/items/'
 # The first 46 IDs and names are persistent save identifiers.
 lock = json.loads((ROOT / 'docs/components-data.lock.json').read_text(encoding='utf8'))
 icon_lock = json.loads((ROOT / 'docs/components-icons.lock.json').read_text(encoding='utf8'))
+component_art, styled_atlases = component_icons()
 assert len(native_items) == len(lock['entries']) == 73
 assert [int(item.attrib['id']) for item in native_items] == list(range(1, 74))
+assert styled_atlases == icon_lock['styled_atlases']
+assert set(component_art) == {icon['riot_id'] for icon in icon_lock['icons']}
+assert len({icon['output_sha256'] for icon in icon_lock['icons']}) == 27
 for index, riot_id in enumerate(lock['original_ids']):
     assert native_items[index].attrib['gfx'] == f'samira_item_{riot_id}.png'
     assert native_items[index].attrib['name'] == 'Samira: ' + lock['entries'][str(riot_id)]['name_en']
@@ -26,11 +32,15 @@ for icon in icon_lock['icons']:
     riot_id = icon['riot_id']
     source = ROOT / 'assets/samira-items/components' / f'{riot_id}.png'
     target = MOD / 'resources/gfx/items/collectibles' / f'samira_item_{riot_id}.png'
+    native_png, art_asset, art_cell = component_art[riot_id]
+    assert (icon['art_asset'], icon['art_cell']) == (art_asset, art_cell)
     assert hashlib.sha256(source.read_bytes()).hexdigest() == icon['source_sha256']
+    assert target.read_bytes() == native_png
     assert hashlib.sha256(target.read_bytes()).hexdigest() == icon['output_sha256']
     with Image.open(target) as image:
         assert image.size == (32, 32) and image.mode == 'RGBA'
-        assert image.getchannel('A').getbbox() is not None
+        bounds = image.getchannel('A').getbbox()
+        assert bounds is not None and bounds[0] >= 2 and bounds[1] >= 2 and bounds[2] <= 30 and bounds[3] <= 30
 for native_item in native_items:
     assert native_item.tag == 'passive'
     icon = MOD / 'resources' / native_items.attrib['gfxroot'] / 'collectibles' / native_item.attrib['gfx']
@@ -41,6 +51,13 @@ catalog = lua.execute((MOD / 'samira_items_data.lua').read_text(encoding='utf8')
 rows = {row['riotId']: row for row in catalog.values()}
 assert set(rows) == {int(key) for key in lock['entries']}
 original_ids = set(lock['original_ids'])
+legacy_icons = json.loads((ROOT / 'docs/items-icons.lock.json').read_bytes())
+legacy_tiles, legacy_atlas, legacy_digest, overrides = render_legacy_icons(lock['original_ids'])
+assert legacy_digest == legacy_icons['styled_atlas']['sha256']
+assert (MOD / legacy_icons['spritesheet']['output']).read_bytes() == encode_png(legacy_atlas)
+for icon, tile in zip(legacy_icons['icons'], legacy_tiles, strict=True):
+    assert (MOD / icon['output']).read_bytes() == encode_png(tile)
+    assert overrides.get(icon['riot_id'], {}).get('art_override') == icon.get('art_override')
 for key, entry in lock['entries'].items():
     riot_id = int(key)
     row = rows[riot_id]

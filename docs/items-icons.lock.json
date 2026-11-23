@@ -8,7 +8,7 @@
   },
   "spritesheet": {
     "output": "resources/gfx/items/samira_items_atlas.png",
-    "output_sha256": "e43b28f1065839e0e6068a6572b0c46356b5189bb1ba063e6f583a3671a80b21"
+    "output_sha256": "8c40324fb8597027a64d5f86e15f7ac2dd61ba3a3f005f436048cdf1b0172390"
   },
   "conversion": "Slice 8×6, trim the transparent fringe, fit and center in 32×32 RGBA tiles with 2px minimum padding using nearest-neighbor.",
   "icons": [
@@ -490,11 +490,15 @@
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/6696.png",
       "source_sha256": "386143abbbb1e6f6b06ee6ef1608d2722e3878319d62c0663f779fcc01387595",
       "output": "resources/gfx/items/collectibles/samira_item_6696.png",
-      "output_sha256": "c5cb1375ae86d9cf8966a54b65308a1c7e8eaf282d05049063405500bad433b6",
+      "output_sha256": "c4e244217e9e198a74328a14dd0a8074b848ab3942f899a258e2779519552f0a",
       "spritesheet_xy": [
         96,
         160
-      ]
+      ],
+      "art_override": {
+        "asset": "assets/samira-items/axiom-arc-stylized.png",
+        "sha256": "c4e244217e9e198a74328a14dd0a8074b848ab3942f899a258e2779519552f0a"
+      }
     },
     {
       "riot_id": 6697,

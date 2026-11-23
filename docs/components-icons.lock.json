@@ -1,169 +1,318 @@
 {
-  "source": "Riot Data Dragon",
+  "source": "Riot Data Dragon (original icon references)",
   "version": "16.22.1",
-  "conversion": "64x64 Riot PNG resized to 28x28 with Lanczos and centered in a transparent 32x32 RGBA tile",
+  "styled_atlases": [
+    {
+      "asset": "assets/samira-items/components-stylized-1.png",
+      "sha256": "8dbd95cca2bb7e6c811325e831db5d3c54e60bc84f5f480541f365fd73831874"
+    },
+    {
+      "asset": "assets/samira-items/components-stylized-2.png",
+      "sha256": "a902f241055d65c4bafb8bc894c14d00a4f62a59aaece8df69db22be337ddf22"
+    },
+    {
+      "asset": "assets/samira-items/components-stylized-3.png",
+      "sha256": "af45ce7674c02459842dd1e75a723ae4d8c410e2fbe399c6646028b14e134e52"
+    }
+  ],
+  "conversion": "Slice 3x3, trim the transparent fringe, and fit into 32x32 RGBA with 2px padding using nearest-neighbor.",
   "icons": [
     {
       "riot_id": 1006,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/1006.png",
       "source_sha256": "3134957f0fa11a6a0cf58d67d4ac140a711676c8150df5366502890c9382f3b6",
-      "output_sha256": "700784110d55204152a6c7513957352223b3e77869750d27f8814ad95f87c2ef"
+      "art_asset": "assets/samira-items/components-stylized-1.png",
+      "art_cell": [
+        0,
+        0
+      ],
+      "output_sha256": "f3d39378852fc6ac698ba28b4a3a0f9746d8bc133ab03653623bd776c85f5629"
     },
     {
       "riot_id": 1011,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/1011.png",
       "source_sha256": "6ab06d2a886760e535c8de8e8244ef626fff71a5d6adb9fd853006ff99d41351",
-      "output_sha256": "a5db1a2daf2fe2a9253e0e81cbe4e2c5d3623c8d9f3aea0950b84486483e3cdb"
+      "art_asset": "assets/samira-items/components-stylized-1.png",
+      "art_cell": [
+        1,
+        0
+      ],
+      "output_sha256": "32e856179d44763cd7f82c0dc466bf95b8f926c98a190118e861298c6fc0b940"
     },
     {
       "riot_id": 1018,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/1018.png",
       "source_sha256": "93891331d6641e612d4bf799009b7fcbc8de418d1bc6d8131283fe8332c9e9f4",
-      "output_sha256": "92da11409e1011c91a0e5eb9785dc9b7bd259ec3b23e81e735aa7eafa82265ba"
+      "art_asset": "assets/samira-items/components-stylized-1.png",
+      "art_cell": [
+        2,
+        0
+      ],
+      "output_sha256": "7de1f2972976f12d52f197653714104a5729f27bbb03373773cbc4a47bc8a4e0"
     },
     {
       "riot_id": 1028,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/1028.png",
       "source_sha256": "90f702e7d757914c96e546ae4076b624800dafc140edffac70733f104684b412",
-      "output_sha256": "55d1a13c28f4564e753355b34b5ef480a83dd1a0026aaa88548ffaa35dc3c04d"
+      "art_asset": "assets/samira-items/components-stylized-1.png",
+      "art_cell": [
+        0,
+        1
+      ],
+      "output_sha256": "9da831bcbf1956a01092390eab3879fc4b940e5eb8364492934398fd27d2ac6e"
     },
     {
       "riot_id": 1036,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/1036.png",
       "source_sha256": "c57b71ae65b3b38241f8ed97fe6fb5ae78db5a82002be392d91ebb6f5ffde8af",
-      "output_sha256": "c15f344dd71802e71018cdce04a177f45ac8e1e635addc7f3308c3e14ab02bfd"
+      "art_asset": "assets/samira-items/components-stylized-1.png",
+      "art_cell": [
+        1,
+        1
+      ],
+      "output_sha256": "8acf662147af83617921ee0e6d4597d84edccf5391317b66752bf7e2c4a57bf8"
     },
     {
       "riot_id": 1037,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/1037.png",
       "source_sha256": "427e176835357420964f6207baf2d07f9273e1f64d33a1d9854655e77ee8d230",
-      "output_sha256": "1f88731afa24caee62813d73ea7746b5fff9645413b8efc6dcff40a4eedab0ac"
+      "art_asset": "assets/samira-items/components-stylized-1.png",
+      "art_cell": [
+        2,
+        1
+      ],
+      "output_sha256": "ac18524778e073159b64513ba63ec541d3aeeeef664d277cc42555b0cd96aa90"
     },
     {
       "riot_id": 1038,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/1038.png",
       "source_sha256": "521ede3bac2e64d7b4dc5cc047c57abd7d17bb6a59ff0f6f24a569e41ab0cfe8",
-      "output_sha256": "3edcd05d7eb7f1503266f5b38536c8af8638959a4508ad4d07278bab56ea0fd4"
+      "art_asset": "assets/samira-items/components-stylized-1.png",
+      "art_cell": [
+        0,
+        2
+      ],
+      "output_sha256": "5fc5d1b8328abde0ecdf64bbfc29ca4ae022b311a6cd0d0e3e0f0a5233ac2cb8"
     },
     {
       "riot_id": 1042,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/1042.png",
       "source_sha256": "b62b8823a2728891fa67c83054f8ae1d2f7656424b84b5288a5900529cd8a264",
-      "output_sha256": "bcfd9d723ec069cb3888ca5d90f7bb42c25bc65c7fe1d882a544151fa96cbfdd"
+      "art_asset": "assets/samira-items/components-stylized-1.png",
+      "art_cell": [
+        1,
+        2
+      ],
+      "output_sha256": "f2e34f38bbc3d0e6da2471cd3d667e65d601a8a9d1e64c8b4bc407a4fa9772ea"
     },
     {
       "riot_id": 1043,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/1043.png",
       "source_sha256": "14b0096f1ecda8179ad0b067afee0fa4a39d80e70df4798c3eb3943f62b17a5c",
-      "output_sha256": "63399a96b0b0685a3e309030ebc52b3c39635fe1e1ed212e5f5b7f1acf16af68"
+      "art_asset": "assets/samira-items/components-stylized-1.png",
+      "art_cell": [
+        2,
+        2
+      ],
+      "output_sha256": "77d0fcca81b1d363a34506605da892d71a76f0df59cb7f688897b25decb99a94"
     },
     {
       "riot_id": 1053,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/1053.png",
       "source_sha256": "11f2467174e0faea759b8425cbf5e262164d50b9982265bf2c76c7955162199f",
-      "output_sha256": "6c0e45229be316365a19257e5afb1adfc5e38a8a0fbfdb9bf4671811529c4da8"
+      "art_asset": "assets/samira-items/components-stylized-2.png",
+      "art_cell": [
+        0,
+        0
+      ],
+      "output_sha256": "b3c0e430eb91c3b6d5c337ee9e2d69945450437ffa0bdec71ed92acec56ff240"
     },
     {
       "riot_id": 2020,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/2020.png",
       "source_sha256": "e3360135539e5b33e28201b6b3612d3d33bdfbdf915c7c77d4346905636192a7",
-      "output_sha256": "77a131902857bdecf657465c5644390c8a4ef339418b2629ec5ee845db1c0cf2"
+      "art_asset": "assets/samira-items/components-stylized-2.png",
+      "art_cell": [
+        1,
+        0
+      ],
+      "output_sha256": "ec813ad18b028ac5088cc9ad842e8063fc557a1ce193e5077b1dffe582d0c4db"
     },
     {
       "riot_id": 2021,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/2021.png",
       "source_sha256": "10a22de46eabda4f3bbadab153828d271405076b20af418fc775d205324d826b",
-      "output_sha256": "7c2a76821b32fec3634903148fde7b899ddf424a26e71335e33fed0f4c59322b"
+      "art_asset": "assets/samira-items/components-stylized-2.png",
+      "art_cell": [
+        2,
+        0
+      ],
+      "output_sha256": "ef0b4014525fde6f1c95db5f565a392f8e1a9b2a660867ae04951ae6a190c9a2"
     },
     {
       "riot_id": 2022,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/2022.png",
       "source_sha256": "88c238fd9146f4cf888d77f5d272ba7688e24bd2124bbfd4a8eede7fbc5f0f7c",
-      "output_sha256": "03ebbf823bfe2cfba309942311dc4c7df17ebbc3598dff7b1040151e011d0939"
+      "art_asset": "assets/samira-items/components-stylized-2.png",
+      "art_cell": [
+        0,
+        1
+      ],
+      "output_sha256": "0decf58293e44d6687af84e15dd5e2f6b9c5830e12107e9bc791859c17a5d908"
     },
     {
       "riot_id": 3035,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/3035.png",
       "source_sha256": "aff693b4ce1f2c625e6de6f8c358d8172a903da7e439d3a053a510c079326038",
-      "output_sha256": "bf9dd2195caab1a764d33604ee10526b869022d19d90a73b5a1ac0701c18043c"
+      "art_asset": "assets/samira-items/components-stylized-2.png",
+      "art_cell": [
+        1,
+        1
+      ],
+      "output_sha256": "506d760cfbbe889cdc48fb5b3de31ced8f1b98b5fd46230feab5f84a8ed2b4db"
     },
     {
       "riot_id": 3044,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/3044.png",
       "source_sha256": "ef03e1b8dc15170957306727eab5aba36b96cad62fbef130faa2f43c97740758",
-      "output_sha256": "6ed8009812259b1a86e15e01275967cb5ae9545c0b6cefda9c0f9d362c6bf68e"
+      "art_asset": "assets/samira-items/components-stylized-2.png",
+      "art_cell": [
+        2,
+        1
+      ],
+      "output_sha256": "d859000ae5863817adad26a0e5e1aaecb2beff3e31b102f6606d16f876926727"
     },
     {
       "riot_id": 3051,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/3051.png",
       "source_sha256": "14fabb078fa73f97745951ea865ec1bc7ea5b0cf2f3769c3917710b6a329b75f",
-      "output_sha256": "7b3880c7762a373de5f882a4deda653a284dc191aebcb21c185a37b4232e011e"
+      "art_asset": "assets/samira-items/components-stylized-2.png",
+      "art_cell": [
+        0,
+        2
+      ],
+      "output_sha256": "23364422228638b93b36ff36d60871165e9a48c907c976bbafe182076f7f6a07"
     },
     {
       "riot_id": 3057,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/3057.png",
       "source_sha256": "8e4f9dcf809b9e093c6883ae0c232c66abfa527a92899180dc9a4d6c44499c6a",
-      "output_sha256": "bb33ff7bbe42c3521d8da6ec4c3605c5f9df1d434f68726f824381610ec9f1b6"
+      "art_asset": "assets/samira-items/components-stylized-2.png",
+      "art_cell": [
+        1,
+        2
+      ],
+      "output_sha256": "eaee3669e0fab1a0136b7ab7196cdd755c9e4a190138433e8f4006c1adc4d8eb"
     },
     {
       "riot_id": 3066,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/3066.png",
       "source_sha256": "597665877e359e85bd07c24768a3da3982959c79f9a37b87d985ebbdc662244f",
-      "output_sha256": "e5a4490bd9d4e4259e46a2bc0ed2efcfc952ed83f6d52a5b3531f7c9c0bf3820"
+      "art_asset": "assets/samira-items/components-stylized-2.png",
+      "art_cell": [
+        2,
+        2
+      ],
+      "output_sha256": "1f73ebf77e64ac9a8cd23260af1f4056c52807608d12e8d229766f914f672989"
     },
     {
       "riot_id": 3067,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/3067.png",
       "source_sha256": "a0f2d23087b2777dbfd91ca48193457aac4b05bc29de6a311479ef4cb223bfa7",
-      "output_sha256": "5a883995ef787f18c563c077a5be87ed9959b600c3a966d98edb36f511d7de96"
+      "art_asset": "assets/samira-items/components-stylized-3.png",
+      "art_cell": [
+        0,
+        0
+      ],
+      "output_sha256": "6ede37e31ce47c50554638693d4aab896969b8612a0cce26e0d678cf649837d0"
     },
     {
       "riot_id": 3086,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/3086.png",
       "source_sha256": "c51146040b42ff44987e6268373c9e84daa6d59e9639efc0bf2a45c5d8cae5a0",
-      "output_sha256": "aee260608ac59910e9b7328941e288085ebeba0901c8c76beb9118d7f06e8bcd"
+      "art_asset": "assets/samira-items/components-stylized-3.png",
+      "art_cell": [
+        1,
+        0
+      ],
+      "output_sha256": "4a0f92550b33b4dae83f6c54646e80b87be23e04a8e02fa8a1d917af14bfc352"
     },
     {
       "riot_id": 3123,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/3123.png",
       "source_sha256": "23d5eaab8c6f8919b166bd2f194154f6b31c7694305dd54259ea6152f3f9dd4f",
-      "output_sha256": "19c0e5e83b7ffe4b73b78c45f6d401c69a4c4cb0f8a5da72fc54f7207eceaee4"
+      "art_asset": "assets/samira-items/components-stylized-3.png",
+      "art_cell": [
+        2,
+        0
+      ],
+      "output_sha256": "4d007a35b1e033aca806059a8da6f2bf991a32d17039ffe7cf1bd1e38bf9901d"
     },
     {
       "riot_id": 3133,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/3133.png",
       "source_sha256": "eb7ceda45c22ca6e7a59ed997d97426ec737c58d6fcd58340b22e690add0b0cd",
-      "output_sha256": "c572078eefdbbb4f507f709c0cea2419bdafcda368cddf10e8517722594cd56c"
+      "art_asset": "assets/samira-items/components-stylized-3.png",
+      "art_cell": [
+        0,
+        1
+      ],
+      "output_sha256": "347aa00269926a0b9a64706d0336bfcb6996a2bd45130e69e91670ffd299547a"
     },
     {
       "riot_id": 3134,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/3134.png",
       "source_sha256": "888376bfc419937c8c43fe193fbe90866403e965ae30f79a47da102631a59b0b",
-      "output_sha256": "e5188c3c14cc6a41166955abc7733ec8c6e1561a896c7832110171b686b4e854"
+      "art_asset": "assets/samira-items/components-stylized-3.png",
+      "art_cell": [
+        1,
+        1
+      ],
+      "output_sha256": "dbde40c4999b50f5261b4dfc72dbf273077956b2a6449acd949715cc8204ac35"
     },
     {
       "riot_id": 3144,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/3144.png",
       "source_sha256": "cd3a86400d92b14a692536a8cb61759e0fc49c4bfffb97eb6c1d9c3769817220",
-      "output_sha256": "020709be8480f8de7c38fabd1176f9137d7884dce62a39c667afb8df55fd38d9"
+      "art_asset": "assets/samira-items/components-stylized-3.png",
+      "art_cell": [
+        2,
+        1
+      ],
+      "output_sha256": "1eb066775825c468ff7b00fe1366a84d43d376f6bbb6c40c69115520d2b24fd1"
     },
     {
       "riot_id": 3801,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/3801.png",
       "source_sha256": "449ccfc10b96a5a077444df877016ac4a57217f04faa653564847e4780c9a78b",
-      "output_sha256": "31c388b28ca0f932f012655be36d70bcd41fb3254e547ed66a3102967cae4831"
+      "art_asset": "assets/samira-items/components-stylized-3.png",
+      "art_cell": [
+        0,
+        2
+      ],
+      "output_sha256": "b675d95ac0f0ea69813fe8a589f05c58160f1918a60912ea38bf120f0c975e6b"
     },
     {
       "riot_id": 6670,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/6670.png",
       "source_sha256": "b2b6ef03d54fdd03846c380b2089ab9781752a9d7300d90659bf3699c3a7d945",
-      "output_sha256": "cec86465e5dee521d809e8f9f24e24291e879a95cb5eef396161b1116c0d7733"
+      "art_asset": "assets/samira-items/components-stylized-3.png",
+      "art_cell": [
+        1,
+        2
+      ],
+      "output_sha256": "20487bfe400a1a1dd0b7cfb01f7e3dd42e80f0f331c5f6c5faab9245fe835ebf"
     },
     {
       "riot_id": 6690,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/6690.png",
       "source_sha256": "8f440c92b84b926a4879fac2b8b1d0d9b56077db1e1c1c7ae4ef508e00ecfc47",
-      "output_sha256": "1a93177776ac9c873986839e22db78902d8464f676025b71a6aae4d34454c330"
+      "art_asset": "assets/samira-items/components-stylized-3.png",
+      "art_cell": [
+        2,
+        2
+      ],
+      "output_sha256": "25065a2c1e7fffc2966f4030d6be1cdcb6ab8068037405387fa2d8dfdf4dcfdd"
     }
   ]
 }

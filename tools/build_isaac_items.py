@@ -22,6 +22,7 @@ ICON_CACHE = WORK / "icons"
 ICON_LOCK = ROOT / "docs/items-icons.lock.json"
 CATALOG = ROOT / "docs/items-catalog.json"
 STYLED_ATLAS = ROOT / "assets/samira-items/isaac-atlas.png"
+ART_OVERRIDES = {6696: ROOT / "assets/samira-items/axiom-arc-stylized.png"}
 SPRITESHEET = "resources/gfx/items/samira_items_atlas.png"
 COLUMNS, ROWS = 8, 6
 TILE_SIZE, PADDING = 32, 2
@@ -154,23 +155,23 @@ def encode_png(image):
     return buffer.getvalue()
 
 
-def slice_atlas():
-    source = STYLED_ATLAS.read_bytes()
+def slice_atlas(path, columns, rows, icon_count):
+    source = path.read_bytes()
     with Image.open(BytesIO(source)) as image:
         if image.format != "PNG" or "A" not in image.getbands():
             raise ValueError("The styled atlas must be a PNG with an alpha channel")
         atlas = image.convert("RGBA")
-    packed = Image.new("RGBA", (COLUMNS * TILE_SIZE, ROWS * TILE_SIZE))
+    packed = Image.new("RGBA", (columns * TILE_SIZE, rows * TILE_SIZE))
     tiles = []
-    for index in range(COLUMNS * ROWS):
-        column, row = index % COLUMNS, index // COLUMNS
-        left = round(atlas.width * column / COLUMNS)
-        top = round(atlas.height * row / ROWS)
-        right = round(atlas.width * (column + 1) / COLUMNS)
-        bottom = round(atlas.height * (row + 1) / ROWS)
+    for index in range(columns * rows):
+        column, row = index % columns, index // columns
+        left = round(atlas.width * column / columns)
+        top = round(atlas.height * row / rows)
+        right = round(atlas.width * (column + 1) / columns)
+        bottom = round(atlas.height * (row + 1) / rows)
         cell = atlas.crop((left, top, right, bottom))
         bounds = cell.getchannel("A").point(lambda alpha: 255 if alpha >= 128 else 0).getbbox()
-        if index >= 46:
+        if index >= icon_count:
             if bounds:
                 raise ValueError(f"Expected an empty styled atlas cell at index {index}")
             continue
@@ -190,6 +191,21 @@ def slice_atlas():
         tiles.append(tile)
     return tiles, packed, sha256(source).hexdigest()
 
+def render_legacy_icons(item_ids):
+    tiles, packed, atlas_hash = slice_atlas(STYLED_ATLAS, COLUMNS, ROWS, len(item_ids))
+    overrides = {}
+    for riot_id, asset in ART_OVERRIDES.items():
+        index = item_ids.index(riot_id)
+        raw = asset.read_bytes()
+        with Image.open(BytesIO(raw)) as replacement:
+            if replacement.format != "PNG" or replacement.mode != "RGBA" or replacement.size != (TILE_SIZE, TILE_SIZE):
+                raise ValueError(f"Expected a 32x32 RGBA override for item {riot_id}")
+            tiles[index] = replacement.copy()
+        packed.paste(tiles[index], ((index % COLUMNS) * TILE_SIZE, (index // COLUMNS) * TILE_SIZE))
+        overrides[riot_id] = {"art_override": {
+            "asset": asset.relative_to(ROOT).as_posix(), "sha256": sha256(raw).hexdigest()}}
+    return tiles, packed, atlas_hash, overrides
+
 
 def main():
     catalog = json.loads(CATALOG.read_bytes())
@@ -203,7 +219,7 @@ def main():
             raise ValueError("Existing icon lock uses a different version")
         expected = {entry["riot_id"]: entry for entry in existing["icons"]}
     ICON_CACHE.mkdir(parents=True, exist_ok=True)
-    tiles, packed, styled_atlas_hash = slice_atlas()
+    tiles, packed, styled_atlas_hash, overrides = render_legacy_icons([item["id"] for item in items])
     with ThreadPoolExecutor(max_workers=12) as pool:
         sources = list(pool.map(lambda item: fetch_source(item, expected.get(item["id"])), items))
     icons = []
@@ -211,7 +227,7 @@ def main():
         data = encode_png(tile)
         path = f"resources/{ICON_ROOT}/samira_item_{source['riot_id']}.png"
         icons.append(({
-            **source, "output": path, "output_sha256": sha256(data).hexdigest(),
+            **source, **overrides.get(source["riot_id"], {}), "output": path, "output_sha256": sha256(data).hexdigest(),
             "spritesheet_xy": [(index % COLUMNS) * TILE_SIZE, (index // COLUMNS) * TILE_SIZE],
         }, data))
     spritesheet = encode_png(packed)
