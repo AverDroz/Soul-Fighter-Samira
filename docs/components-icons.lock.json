@@ -13,9 +13,13 @@
     {
       "asset": "assets/samira-items/components-stylized-3.png",
       "sha256": "af45ce7674c02459842dd1e75a723ae4d8c410e2fbe399c6646028b14e134e52"
+    },
+    {
+      "asset": "assets/samira-items/components-stylized-vampiric.png",
+      "sha256": "461241010ec35d759efa1004a69198930d02e7d21ab38b995ffb59538641766e"
     }
   ],
-  "conversion": "Slice 3x3, trim the transparent fringe, and fit into 32x32 RGBA with 2px padding using nearest-neighbor.",
+  "conversion": "Slice the sprite sheets, trim the transparent fringe, and fit into 32x32 RGBA with 2px padding using nearest-neighbor.",
   "icons": [
     {
       "riot_id": 1006,
@@ -120,12 +124,12 @@
       "riot_id": 1053,
       "source_url": "https://ddragon.leagueoflegends.com/cdn/16.22.1/img/item/1053.png",
       "source_sha256": "11f2467174e0faea759b8425cbf5e262164d50b9982265bf2c76c7955162199f",
-      "art_asset": "assets/samira-items/components-stylized-2.png",
+      "art_asset": "assets/samira-items/components-stylized-vampiric.png",
       "art_cell": [
         0,
         0
       ],
-      "output_sha256": "b3c0e430eb91c3b6d5c337ee9e2d69945450437ffa0bdec71ed92acec56ff240"
+      "output_sha256": "f9150f60ae613c785b3cac9697a2f08da1ba066b65439c573f5eb4e56709b300"
     },
     {
       "riot_id": 2020,

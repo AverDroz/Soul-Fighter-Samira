@@ -1,7 +1,7 @@
 """Add pinned crafting dependencies to the 46-item native catalog.
 
-Run after build_isaac_items.py. Rendered icons come from three original,
-transparent 3x3 sheets. Riot metadata and reference icons remain pinned.
+Run after build_isaac_items.py. Rendered icons come from original transparent
+sprite sheets. Riot metadata and reference icons remain pinned.
 """
 from pathlib import Path
 from xml.etree import ElementTree as ET
@@ -63,13 +63,15 @@ def adaptation(item_id, entry):
 
 def component_icons():
     art, atlases = {}, []
-    for sheet, ids in enumerate(SHEETS, 1):
-        path = SOURCES.parent / f'components-stylized-{sheet}.png'
-        tiles, _, digest = slice_atlas(path, 3, 3, len(ids))
+    sources = [(f'components-stylized-{sheet}.png', 3, ids) for sheet, ids in enumerate(SHEETS, 1)]
+    sources.append(('components-stylized-vampiric.png', 1, (1053,)))
+    for filename, columns, ids in sources:
+        path = SOURCES.parent / filename
+        tiles, _, digest = slice_atlas(path, columns, columns, len(ids))
         asset = path.relative_to(ROOT).as_posix()
         atlases.append({'asset': asset, 'sha256': digest})
         for index, (riot_id, tile) in enumerate(zip(ids, tiles, strict=True)):
-            art[riot_id] = (encode_png(tile), asset, [index % 3, index // 3])
+            art[riot_id] = (encode_png(tile), asset, [index % columns, index // columns])
     return art, atlases
 
 def main():
@@ -119,7 +121,7 @@ def main():
         'source': 'Riot Data Dragon (original icon references)',
         'version': '16.22.1',
         'styled_atlases': atlases,
-        'conversion': 'Slice 3x3, trim the transparent fringe, and fit into 32x32 RGBA with 2px padding using nearest-neighbor.',
+        'conversion': 'Slice the sprite sheets, trim the transparent fringe, and fit into 32x32 RGBA with 2px padding using nearest-neighbor.',
         'icons': icons,
     }
     (ROOT/'docs/components-icons.lock.json').write_text(json.dumps(icon_lock, indent=2)+'\n', encoding='utf8')
