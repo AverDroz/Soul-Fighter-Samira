@@ -556,6 +556,39 @@ state = combat.new(); state.qStacks = 2; player.Position = Vector(60,100); entit
 cast('q',1); resolve(8); lifted.InitSeed = lifted.InitSeed + 1
 assert(not combat.preNpcRender(state,lifted,Vector(0,0),9), 'reused entity inherited lift')
 
+local progression = include('yone_progression')
+local progress = progression.restore()
+assert(progression.choose(progress, 'electrocute', 1))
+state = combat.new({yoneProgress=function() return progress end})
+player.Position, player.MaxFireDelay = Vector(60,100), 9
+local runeTarget = enemy(90,100,860)
+entities = {runeTarget}
+state.spirit = {anchor=player.Position, face=Vector(1,0), untilFrame=150, marks={}}
+cast('w', 1); resolve(9); cast('attack', 10); resolve(14); cast('q', 16); resolve(22)
+assert(#runeTarget.damage == 4 and math.abs(runeTarget.damage[4] - player.Damage * .45) < .0001,
+    'Electrocute did not proc exactly once on the third distinct hit')
+local expectedMark = .30 * (runeTarget.damage[1] + runeTarget.damage[2] + runeTarget.damage[3])
+assert(math.abs(state.spirit.marks[runeTarget.InitSeed].amount - expectedMark) < .0001,
+    'Electrocute damage reentered the E mark')
+local runeFX = combat.visual(state,22).fx
+assert(runeFX[#runeFX].kind == 'electrocute')
+progress = progression.restore()
+assert(progression.choose(progress, 'electrocute', 1))
+state = combat.new({yoneProgress=function() return progress end})
+player.Position = Vector(60,100)
+runeTarget = enemy(90,100,861)
+entities = {runeTarget}
+state.spirit = {anchor=player.Position, face=Vector(1,0), untilFrame=150, recastAt=1, marks={}}
+cast('w', 1); resolve(9); cast('attack', 10); resolve(14); cast('e', 16); resolve(16); resolve(24)
+assert(#runeTarget.damage == 4 and math.abs(runeTarget.damage[4] - player.Damage * .45) < .0001,
+    'accepted E echo did not count as a distinct strike')
+progress = progression.restore()
+assert(progression.choose(progress, 'lethal_tempo', 1))
+for tick = 1, 6 do progression.onStrike(progress, 'attack', tick) end
+state = combat.new({yoneProgress=function() return progress end})
+cast('q', 11)
+assert(state.ready.q == 63, 'Lethal Tempo did not apply to Q attack-speed scaling')
+
 """)
     print("PASS Yone strikes, spirit presentation, accepted damage marks, transitions and R line/pull")
 

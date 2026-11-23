@@ -10,17 +10,23 @@ MODULE = ROOT / 'src/samira-testroom/mod/yone_artifacts.lua'
 def main():
     lua = LuaRuntime()
     lua.globals().source = MODULE.read_text(encoding='utf-8')
+    lua.globals().weaponsSource = MODULE.with_name('yone_artifact_weapons.lua').read_text(encoding='utf-8')
     lua.execute(r"""
+function include(name)
+    assert(name == 'yone_artifact_weapons')
+    return assert(load(weaponsSource))()
+end
 local a = assert(load(source))()
 CollectibleType = {COLLECTIBLE_20_20=1, COLLECTIBLE_INNER_EYE=2, COLLECTIBLE_MUTANT_SPIDER=3,
     COLLECTIBLE_MOMS_KNIFE=4, COLLECTIBLE_EYE_SORE=5, COLLECTIBLE_CRICKETS_BODY=6}
 TrinketType = {TRINKET_RAINBOW_WORM=64}
 TearVariant = {BLUE=0, BLOOD=1, TOOTH=2}
 TearFlags = {TEAR_NORMAL=0, TEAR_WIGGLE=1, TEAR_PULSE=2, TEAR_SPIRAL=4, TEAR_SQUARE=8, TEAR_FLAT=16,
-    TEAR_BIG_SPIRAL=32, TEAR_HOMING=64, TEAR_QUADSPLIT=128, TEAR_UNRECOGNIZED=1<<55}
+    TEAR_BIG_SPIRAL=32, TEAR_HOMING=64, TEAR_QUADSPLIT=128, TEAR_POISON=256, TEAR_SLOW=512,
+    TEAR_UNRECOGNIZED=1<<55}
 WeaponType = {WEAPON_TEARS=1, WEAPON_BRIMSTONE=2, WEAPON_LASER=3, WEAPON_TECH_X=9}
 LaserOffset = {LASER_TECH1_OFFSET=0}
-ModCallbacks = {MC_POST_TEAR_UPDATE=1, MC_POST_LASER_UPDATE=2}
+ModCallbacks = {MC_POST_TEAR_UPDATE=1, MC_POST_LASER_UPDATE=2, MC_POST_FIRE_SPLIT_TEAR=3}
 local methods = {}
 local meta = {__index=methods}
 function Vector(x,y) return setmetatable({X=x,Y=y}, meta) end
@@ -42,9 +48,13 @@ function p:GetMultiShotParams(kind)
         GetSpreadAngle=function() return 10 end,
         IsCrossEyed=function() return false end,
         IsShootingBackwards=function() return self.backwards end,
-        IsShootingSideways=function() return false end,
-        GetNumRandomDirTears=function() return 0 end,
+        IsShootingSideways=function() return self.sideways end,
+        GetNumRandomDirTears=function() return self.randomShots or 0 end,
     }
+end
+function p:GetCollectibleRNG(id)
+    assert(id == CollectibleType.COLLECTIBLE_EYE_SORE)
+    return {RandomInt=function(_,limit) assert(limit==360); return 140 end}
 end
 function p:GetWeapon(slot)
     assert(slot==1)
@@ -88,13 +98,34 @@ end
 
 local callbacks={}
 a.init({AddCallback=function(_, which, callback) callbacks[which]=callback end})
-local function fire(kind, clock, reach)
+local function fire(kind, clock, reach, target)
     p.fired={}
-    a.fire(p, {kind=kind, facing=facing}, origin, reach or 70, clock)
+    local strike = {kind=kind, facing=facing}
+    if target then a.acceptHit(strike, target) end
+    a.fire(p, strike, origin, reach or 70, clock)
     return p.fired
 end
 local base = fire('attack', 0)
 assert(#base==1 and base[1].removed, 'ordinary blade left an extra tear')
+local target = entity()
+target.Position = Vector(25, 1)
+function target:ToNPC() return self end
+function target:IsDead() return self.dead end
+function target:ApplyTearflagEffects(at, flags, owner, damage)
+    assert(at == self.Position and flags == (TearFlags.TEAR_POISON | TearFlags.TEAR_SLOW))
+    assert(owner == p and math.abs(damage - p.Damage * .28) < .0001)
+    self.procs = (self.procs or 0) + 1
+end
+p.flags = TearFlags.TEAR_HOMING | TearFlags.TEAR_POISON | TearFlags.TEAR_SLOW
+for _, kind in ipairs({'attack', 'q', 'q3'}) do
+    local carrier = fire(kind, 1, 124, target)[1]
+    assert(carrier:Exists() and carrier.TearFlags == TearFlags.TEAR_HOMING,
+        'transferred flags were duplicated or unrelated native flag was stripped')
+end
+assert(target.procs == 3)
+assert(fire('q', 1)[1].TearFlags == p.flags and target.procs == 3, 'miss transferred its flags')
+target.dead = true
+assert(fire('attack', 1, 124, target)[1].TearFlags == p.flags and target.procs == 3, 'hit status was applied to a corpse')
 p.owned[6]=true; p.flags=TearFlags.TEAR_QUADSPLIT
 assert(fire('attack',0)[1].removed, 'Cricket alone created an extra straight tear')
 p.flags=TearFlags.TEAR_QUADSPLIT | TearFlags.TEAR_HOMING
@@ -126,6 +157,11 @@ assert(not flagged.died, 'bounded projectile cancelled a stuck native effect')
 flagged.StickTarget = nil
 callbacks[1](nil,flagged)
 assert(flagged.died, 'range cap did not end the extra shot')
+local child = entity()
+child.Position = Vector(126,1)
+callbacks[3](nil,child,flagged)
+callbacks[1](nil,child)
+assert(child.removed and not child.died, 'projectile descendant ignored range or triggered a synthetic split')
 p.flags, p.variant=0, TearVariant.TOOTH
 assert(fire('q3',0)[1]:Exists(), 'tear variant effect was discarded')
 p.shots, p.variant, p.backwards=4,TearVariant.BLUE,true
@@ -138,6 +174,10 @@ end
 assert(math.abs(total / p.Damage - .20)<.00001, 'multi-shot blew past the aggregate damage budget')
 p.shots=20
 assert(#fire('q',0)==6, 'volley cap ignored')
+p.sideways, p.randomShots = true, 1
+volley = fire('q',0)
+assert(#volley==6 and volley[3].Velocity.X<0 and volley[4].Velocity.Y<0 and volley[5].Velocity.Y>0
+    and volley[6].Velocity.X<0, 'full volley dropped direction modifiers')
 for _, kind in ipairs({WeaponType.WEAPON_BRIMSTONE, WeaponType.WEAPON_LASER}) do
     p.weapon = kind
     local laser = fire('q',0,124)

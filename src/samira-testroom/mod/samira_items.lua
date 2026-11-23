@@ -1,5 +1,6 @@
 local Items = {}
 local catalog = include('samira_items_data')
+local YoneProgress = include('yone_progression')
 local json = require('json')
 
 local mod, game, getPlayer, combat, weapons, kills, attachSettings, yone
@@ -190,6 +191,7 @@ local function resetRoom()
         actionSequence = 0, spellblade = false, combatSeen = not game:GetRoom():IsClear(),
         bossesDefeated = {}, bastionBosses = {}, skyBosses = {},
     }
+    room.yoneSawCombat = room.combatSeen
     room.combatSeen = room.combatSeen and not floor.cleared[room.key]
     if run.current and run.current.key == room.key then
         room.damaged, room.executed, room.skyHeal, room.yunTal = run.current.damaged,
@@ -201,6 +203,7 @@ local function resetRoom()
         room.bastionBosses = run.current.bastionBosses or {}
         room.skyBosses = run.current.skyBosses or {}
         room.combatSeen = run.current.combatSeen or room.combatSeen
+        room.yoneSawCombat = run.current.yoneSawCombat or room.yoneSawCombat
         for _, key in ipairs(roomCarry) do
             if run.current[key] ~= nil then room[key] = clone(run.current[key]) end
         end
@@ -232,12 +235,14 @@ local function save(shouldSave)
             key = room.key, damaged = room.damaged, executed = room.executed, skyHeal = room.skyHeal,
             yunTal = room.yunTal, edge = room.edge, edgeTicks = room.edgeTicks, enemies = enemies,
             bossesDefeated = room.bossesDefeated, combatSeen = room.combatSeen, bloodShield = room.bloodShield,
+            yoneSawCombat = room.yoneSawCombat,
             bastionBosses = room.bastionBosses, skyBosses = room.skyBosses,
         }
         for _, key in ipairs(roomCarry) do run.current[key] = clone(room[key]) end
         for key, time in pairs(run.current.effects) do run.current.effects[key] = math.max(0, time - clock) end
     end
     local saved = clone(run)
+    if run.yoneProgress then saved.yoneProgress = YoneProgress.snapshot(run.yoneProgress, game:GetFrameCount()) end
     saved.cooldownCheckpoints = cooldownCheckpoints
     local driver = itemCombat(getPlayer())
     if driver and driver.exportCooldowns then saved.combatCooldowns = driver.exportCooldowns(clock) end
@@ -268,6 +273,9 @@ local function newRun(continued)
                 if saved[key] ~= nil then initial[key] = saved[key] end
             end
             initial.floorKey, initial.current, initial.enabled = saved.floorKey, saved.current, saved.enabled
+            if type(saved.yoneProgress) == 'table' and saved.yoneProgress.version == YoneProgress.VERSION then
+                initial.yoneProgress = YoneProgress.restore(saved.yoneProgress, game:GetFrameCount())
+            end
             if type(saved.cooldownCheckpoints) == 'table' then cooldownCheckpoints = saved.cooldownCheckpoints end
         end
     end
@@ -276,6 +284,21 @@ local function newRun(continued)
     directContext, activeStats = nil, false
     vampProbe = {hits = 0, dummyHits = 0, dummyUnmatched = 0, rolls = 0, heals = 0, shields = 0}
     resetRng()
+end
+
+function Items.startYoneProgress(continued)
+    if not run then newRun(false) end
+    local legacyContinue = continued and not run.yoneProgress
+    run.yoneProgress = run.yoneProgress or YoneProgress.restore()
+    if legacyContinue then YoneProgress.choose(run.yoneProgress, 'conqueror', run.seed) end
+end
+
+function Items.yoneProgress()
+    return run and run.yoneProgress
+end
+
+function Items.chooseYoneRune(key)
+    if run and run.yoneProgress then return YoneProgress.choose(run.yoneProgress, key, run.seed) end
 end
 
 local function ready(key)
@@ -323,12 +346,18 @@ local function saveCooldownCheckpoint(_, slot)
     local p = getPlayer()
     local driver = itemCombat(p)
     if not run or not p or not driver or not driver.exportCooldowns then return end
+    local floor = ensureFloor()
     local claims = {}
-    for key, record in pairs(run.floor.rooms) do
+    for key, record in pairs(floor.rooms) do
         if key:sub(1, #resetPrefix) == resetPrefix and record.used then claims[key] = true end
     end
-    cooldownCheckpoints['slot' .. slot] = {remaining = driver.exportCooldowns(game:GetFrameCount()),
-        floorKey = run.floorKey, claims = claims}
+    local frame = game:GetFrameCount()
+    local snap = {remaining = driver.exportCooldowns(frame), floorKey = run.floorKey, claims = claims}
+    if isYone(p) and run.yoneProgress then
+        snap.yoneProgress = YoneProgress.snapshot(run.yoneProgress, frame)
+        snap.yoneClearXP = clone(floor.yoneClearXP or {})
+    end
+    cooldownCheckpoints['slot' .. slot] = snap
 end
 
 -- Slot snapshots are independent of the ordinary run save and of one
@@ -337,10 +366,19 @@ function Items.applyCooldownCheckpoint(frame)
     local snap = pendingCheckpoint
     pendingCheckpoint = nil
     if type(snap) ~= 'table' or type(snap.remaining) ~= 'table' then return end
-    local driver = itemCombat(getPlayer())
+    local p = getPlayer()
+    local driver = itemCombat(p)
     if not driver or not driver.reset or not driver.restoreCooldowns then return end
     driver.reset(true)
     driver.restoreCooldowns(snap.remaining, frame)
+    if isYone(p) and type(snap.yoneProgress) == 'table' then
+        local selected = run.yoneProgress and run.yoneProgress.rune
+        run.yoneProgress = YoneProgress.restore(snap.yoneProgress, frame)
+        if selected and not run.yoneProgress.rune then YoneProgress.choose(run.yoneProgress, selected, run.seed) end
+        if snap.floorKey == floorKey() and type(snap.yoneClearXP) == 'table' then
+            ensureFloor().yoneClearXP = clone(snap.yoneClearXP)
+        end
+    end
     if snap.floorKey == floorKey() and type(snap.claims) == 'table' then
         local rooms = ensureFloor().rooms
         for key in pairs(rooms) do
@@ -1131,6 +1169,29 @@ function Items.activate(p)
     reevaluate(p, statFlags)
 end
 
+local function yoneXPKey()
+    local descriptor = game:GetLevel():GetCurrentRoomDesc()
+    if descriptor.ListIndex and descriptor.ListIndex >= 0 then return 'list:' .. descriptor.ListIndex end
+    if descriptor.SafeGridIndex < 0 and descriptor.SpawnSeed then return room.key .. ':' .. descriptor.SpawnSeed end
+    return room.key
+end
+
+local function awardYoneClearXP(p, isCombat, pendingExecution)
+    local progress = run.yoneProgress
+    if not progress or not progress.rune or not isYone(p) then return end
+    if isCombat then room.yoneSawCombat = true; return end
+    if pendingExecution or not room.yoneSawCombat then return end
+    room.yoneSawCombat = false
+    local floor = ensureFloor()
+    floor.yoneClearXP = floor.yoneClearXP or {}
+    local key = yoneXPKey()
+    if floor.yoneClearXP[key] then return end
+    floor.yoneClearXP[key] = true
+    local current = game:GetRoom()
+    local isBossRoom = RoomType and current.GetType and current:GetType() == RoomType.ROOM_BOSS
+    YoneProgress.award(progress, isBossRoom and 75 or 25)
+end
+
 function Items.update(p, tick)
     if not run then newRun(false) end
     if not room then resetRoom() end
@@ -1149,6 +1210,7 @@ function Items.update(p, tick)
 
     local confirmingExecution = processQueued(p, owned)
     local isCombat = not game:GetRoom():IsClear()
+    awardYoneClearXP(p, isCombat, confirmingExecution)
     if isCombat and not ensureFloor().cleared[room.key] then room.combatSeen = true end
     if isCombat and owned[3814] and not room.edge then
         room.edgeTicks = room.edgeTicks + 1
@@ -1219,8 +1281,13 @@ local function newRoom()
     if not run then return end
     local old = room
     if rewindRoom then
+        local selected = run.yoneProgress and run.yoneProgress.rune
         run, old = rewindRoom, nil
         rewindRoom = nil
+        if selected then
+            run.yoneProgress = run.yoneProgress or YoneProgress.restore()
+            if not run.yoneProgress.rune then YoneProgress.choose(run.yoneProgress, selected, run.seed) end
+        end
         resetRng()
     end
     if old then run.current = nil end

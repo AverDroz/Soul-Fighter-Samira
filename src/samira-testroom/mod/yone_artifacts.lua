@@ -1,7 +1,10 @@
 -- Blade damage stays immediate. A short native volley carries the effects
 -- which Isaac applies to tears, including luck rolls and third-party flags.
 local Artifacts = {}
+local Weapons = include('yone_artifact_weapons')
 local rainbowMotion = {'TEAR_WIGGLE', 'TEAR_PULSE', 'TEAR_SPIRAL', 'TEAR_SQUARE', 'TEAR_FLAT'}
+local impactFlags = {'TEAR_SLOW', 'TEAR_POISON', 'TEAR_FREEZE', 'TEAR_CHARM', 'TEAR_CONFUSION',
+    'TEAR_PERMANENT_CONFUSION', 'TEAR_BURN', 'TEAR_FEAR', 'TEAR_GODS_FLESH', 'TEAR_MIDAS'}
 local volleyBudget, volleyLimit = .28, 6
 
 local function owns(player, name)
@@ -35,15 +38,23 @@ function Artifacts.multiplier(player, hit)
     return 1 + math.min(.75, bonus)
 end
 
-function Artifacts.acceptHit(hit)
-    if eligible(hit) then hit.artifactHit = true end
+function Artifacts.acceptHit(hit, target)
+    if eligible(hit) then
+        hit.artifactHit = true
+        hit.artifactTarget = target
+    end
 end
 
 local function shotAngles(player)
     if not player.GetMultiShotParams or not WeaponType then return {0} end
     local params = player:GetMultiShotParams(WeaponType.WEAPON_TEARS)
     if not params then return {0} end
-    local count = math.max(1, math.min(volleyLimit, params:GetNumTears()))
+    local backwards, sideways = params:IsShootingBackwards(), params:IsShootingSideways()
+    local eyeSore = CollectibleType.COLLECTIBLE_EYE_SORE
+    local reserved = (backwards and 1 or 0) + (sideways and 2 or 0)
+    local randomShots = eyeSore and player.GetCollectibleRNG
+        and math.min(params:GetNumRandomDirTears(), volleyLimit - reserved - 1) or 0
+    local count = math.max(1, math.min(volleyLimit - reserved - randomShots, params:GetNumTears()))
     local step = math.max(5, math.min(18, params:GetSpreadAngle(WeaponType.WEAPON_TEARS)))
     local angles = {}
     for shot = 1, count do
@@ -51,13 +62,12 @@ local function shotAngles(player)
         if params:IsCrossEyed() then angle = angle + (shot % 2 == 1 and -30 or 30) end
         angles[#angles + 1] = angle
     end
-    if params:IsShootingBackwards() then angles[#angles + 1] = 180 end
-    if params:IsShootingSideways() then
+    if backwards then angles[#angles + 1] = 180 end
+    if sideways then
         angles[#angles + 1], angles[#angles + 2] = -90, 90
     end
-    local randomShots = math.min(params:GetNumRandomDirTears(), volleyLimit - #angles)
     if randomShots > 0 then
-        local rng = player:GetCollectibleRNG(CollectibleType.COLLECTIBLE_EYE_SORE)
+        local rng = player:GetCollectibleRNG(eyeSore)
         for _ = 1, randomShots do angles[#angles + 1] = rng:RandomInt(360) end
     end
     return angles
@@ -81,6 +91,21 @@ local function modifiedTear(player, tear, damageScale)
     return tear.TearFlags ~= TearFlags.TEAR_NORMAL
         or tear.Variant ~= TearVariant.BLUE and tear.Variant ~= TearVariant.BLOOD
         or math.abs(tear.CollisionDamage - player.Damage * damageScale) > .01
+end
+
+local function applyImpactFlags(player, target, tear)
+    if not target or not target:Exists() or target:IsDead() or not tear.ClearTearFlags then return end
+    local npc = target:ToNPC()
+    if not npc or not npc.ApplyTearflagEffects then return end
+    local flags = TearFlags.TEAR_NORMAL
+    for _, name in ipairs(impactFlags) do
+        local flag = TearFlags[name]
+        if flag and tear:HasTearFlags(flag) then flags = flags | flag end
+    end
+    if flags ~= TearFlags.TEAR_NORMAL then
+        npc:ApplyTearflagEffects(target.Position, flags, player, tear.CollisionDamage)
+        tear:ClearTearFlags(flags)
+    end
 end
 
 local function fireLaser(player, origin, facing, reach)
@@ -108,6 +133,13 @@ end
 function Artifacts.fire(player, strike, origin, reach, clock)
     if not player.FireTear or not TearFlags or not TearVariant or reach <= 0 then return end
     if fireLaser(player, origin, strike.facing, reach) then return end
+    local function track(entity)
+        entity:GetData().YoneTearRange = {origin = origin, reach = reach}
+    end
+    if Weapons.fire(player, strike, origin, reach, function(tear)
+        applyImpactFlags(player, strike.artifactTarget, tear)
+        track(tear)
+    end) then return end
     local rainbow = hasRainbow(player)
     local angles = shotAngles(player)
     local count = math.min(volleyLimit, #angles)
@@ -123,9 +155,10 @@ function Artifacts.fire(player, strike, origin, reach, clock)
                 and tear.ClearTearFlags then
                 tear:ClearTearFlags(TearFlags.TEAR_QUADSPLIT)
             end
+            if index == 1 then applyImpactFlags(player, strike.artifactTarget, tear) end
             if rainbow then addRainbowMotion(player, tear, clock) end
             if rainbow or #angles > 1 or modifiedTear(player, tear, multiplier) then
-                tear:GetData().YoneTearRange = {origin = origin, reach = reach}
+                track(tear)
             else
                 tear:Remove()
             end
@@ -135,10 +168,13 @@ end
 
 local function boundProjectile(entity)
     local range = entity:GetData().YoneTearRange
-    if range and entity.Position:Distance(range.origin) > range.reach then entity:Die() end
+    if range and entity.Position:Distance(range.origin) > range.reach then
+        if range.derived then entity:Remove() else entity:Die() end
+    end
 end
 
 function Artifacts.init(mod)
+    Weapons.init(mod)
     if ModCallbacks.MC_POST_TEAR_UPDATE then
         mod:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, function(_, tear)
             if not tear.StickTarget then boundProjectile(tear) end
@@ -146,6 +182,14 @@ function Artifacts.init(mod)
     end
     if ModCallbacks.MC_POST_LASER_UPDATE then
         mod:AddCallback(ModCallbacks.MC_POST_LASER_UPDATE, function(_, laser) boundProjectile(laser) end)
+    end
+    if ModCallbacks.MC_POST_FIRE_SPLIT_TEAR then
+        mod:AddCallback(ModCallbacks.MC_POST_FIRE_SPLIT_TEAR, function(_, tear, parent)
+            local range = parent and parent:GetData().YoneTearRange
+            if range then
+                tear:GetData().YoneTearRange = {origin = range.origin, reach = range.reach, derived = true}
+            end
+        end)
     end
 end
 

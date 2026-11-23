@@ -4,6 +4,7 @@ local Debug = include('yone_debug')
 local Emotes = include('yone_emotes')
 local Navigation = include('samira_navigation')
 local HUD = include('yone_hud')
+local Progress = include('yone_progression')
 local json = require('json')
 local playerType
 local testMode = false
@@ -18,6 +19,7 @@ local aimColors = {
     q = {.60, .93, 1}, w = {.99, .49, .60}, e = {.99, .39, .65}, r = {1, .53, .73},
 }
 local numberKeys = {Keyboard.KEY_1, Keyboard.KEY_2, Keyboard.KEY_3, Keyboard.KEY_4, Keyboard.KEY_5, Keyboard.KEY_6}
+local upgradeKeys = {q = Keyboard.KEY_Q, w = Keyboard.KEY_W, e = Keyboard.KEY_E, r = Keyboard.KEY_R}
 local controls = {
     {'q', Keyboard.KEY_Q}, {'w', Keyboard.KEY_W}, {'e', Keyboard.KEY_E}, {'r', Keyboard.KEY_R},
     {'attack', Keyboard.KEY_A}, {'stop', Keyboard.KEY_S}, {'mouse'},
@@ -59,6 +61,10 @@ Yone.hudBounds = HUD.bounds
 
 local function pressed(key)
     return Input.IsButtonPressed(key, 0)
+end
+
+local function upgrading()
+    return pressed(Keyboard.KEY_LEFT_ALT) or pressed(Keyboard.KEY_RIGHT_ALT)
 end
 
 local function packet(payload)
@@ -474,11 +480,18 @@ local function drawNativeEffects(room, player, picture, x, y, geometry, clock)
             end
         end
     end
-    if not geometry then return end
     for _, event in ipairs(picture.fx) do
-        if event.age < .28 then
+        if event.age < .28 and (geometry or event.kind == 'electrocute') then
             local opacity = 1 - event.age / .28
-            if event.kind == 'w' and event.footprint then
+            if event.kind == 'electrocute' then
+                local center = point(event.origin) + Vector(0, -10)
+                local forks = {center + Vector(5, -24), center + Vector(-3, -13),
+                    center + Vector(3, -11), center + Vector(-5, 1)}
+                for step = 2, #forks do
+                    line(forks[step - 1], forks[step], 4, .95, .26, .47, opacity * .7)
+                    line(forks[step - 1], forks[step], 1, 1, .87, .92, opacity)
+                end
+            elseif event.kind == 'w' and event.footprint then
                 local arc = sectorArc(event.footprint, point)
                 for i = 2, #arc do
                     line(arc[i - 1], arc[i], 5, .81, .09, .24, opacity * .65)
@@ -596,11 +609,39 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
     end
 
     local function sampleInput(room, allowed)
-        sampleCommands(state, room, allowed, readR() == true)
+        sampleCommands(state, room, allowed and not upgrading(), readR() == true)
+    end
+
+    local function progress()
+        return items and items.yoneProgress and items.yoneProgress()
+    end
+
+    local function selectionPending()
+        local active = progress()
+        return active and not active.rune
+    end
+
+    local function sampleRunePicker()
+        local left, right, confirm = pressed(Keyboard.KEY_LEFT), pressed(Keyboard.KEY_RIGHT), pressed(Keyboard.KEY_ENTER)
+        local delta = (right and not state.runeRight and 1 or 0) - (left and not state.runeLeft and 1 or 0)
+        state.runeSelection = (state.runeSelection - 1 + delta) % #Progress.choices + 1
+        if confirm and not state.runeConfirm then items.chooseYoneRune(Progress.choices[state.runeSelection].id) end
+        state.runeLeft, state.runeRight, state.runeConfirm = left, right, confirm
+    end
+
+    local function sampleUpgrades()
+        local current = progress()
+        if not current then return end
+        local modifier = upgrading()
+        for _, key in ipairs({'q', 'w', 'e', 'r'}) do
+            local down = modifier and pressed(upgradeKeys[key])
+            if down and not state.upgradeHeld[key] then Progress.upgrade(current, key) end
+            state.upgradeHeld[key] = down
+        end
     end
 
     function Yone.canUseItems(player)
-        return state ~= nil and canControl(game, state, player)
+        return state ~= nil and not selectionPending() and canControl(game, state, player)
     end
 
     function Yone.exportCooldowns(clock)
@@ -643,7 +684,8 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
         Display.acquire('yone')
         state = {id = tostring(Isaac.GetNanoTime()) .. ':yone:' .. serial, room = 1, seq = 0,
             combat = Combat.new(items), emotes = Emotes.new(), commands = {}, held = {},
-            continuingRoom = continued == true}
+            continuingRoom = continued == true, runeSelection = 1, runeConfirm = true, upgradeHeld = {}}
+        if Yone.isNative(player) and items and items.startYoneProgress then items.startYoneProgress(continued) end
         if items and items.activate then items.activate(player) end
         if continued and items and items.restoreCombatCooldowns then items.restoreCombatCooldowns() end
         sampleExpressions(state, game:GetFrameCount(), false, false)
@@ -728,6 +770,11 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
         end
         if items and items.applyCooldownCheckpoint then items.applyCooldownCheckpoint(clock) end
         local allowed = canControl(game, state, player)
+        if selectionPending() then
+            sampleInput(room, false)
+            if allowed then sampleRunePicker() end
+            return
+        end
         sampleInput(room, allowed)
         if not allowed then
             sampleExpressions(state, clock, false, player:IsDead())
@@ -739,6 +786,7 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
             return
         end
         if not state.floorPending then state.floorRebinding = nil end
+        sampleUpgrades()
 
         if inventory then inventory.update(player, clock) end
         if items and items.update then items.update(player, clock) end
@@ -787,13 +835,14 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
 
     mod:AddCallback(ModCallbacks.MC_INPUT_ACTION, function(_, entity, hook, action)
         local direction, key = axes[action], rebound[action]
-        if not direction and not key and not blocked[action] then return end
+        local pickerAction = (action == ButtonAction.ACTION_ITEM or action == ButtonAction.ACTION_DROP) and selectionPending()
+        if not direction and not key and not blocked[action] and not pickerAction then return end
         local player = state and driver()
         local owner = entity and entity:ToPlayer()
         if not player or entity and (not owner or owner.Index ~= player.Index)
             or (player.ControllerIndex or 0) ~= 0 then return end
         local value = 0
-        local allowed = canControl(game, state, player)
+        local allowed = canControl(game, state, player) and not selectionPending()
         if action == ButtonAction.ACTION_PILLCARD then
             local clock = game:GetFrameCount()
             local combatAction = Combat.presentation(state.combat, clock)
@@ -827,7 +876,11 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
         local player = state and driver()
         if not player then return end
         local clock = game:GetFrameCount()
-        local allowed = canControl(game, state, player)
+        local selectable = canControl(game, state, player)
+        local picking = selectionPending()
+        local allowed = selectable and not picking
+        local scale = readHudScale and readHudScale() or 1
+        if selectable and picking then HUD.renderRunePicker(Progress.choices, state.runeSelection, scale) end
         sampleInput(game:GetRoom(), allowed)
         local action = Combat.presentation(state.combat, clock)
         sampleExpressions(state, clock, allowed, action ~= nil or player.Velocity:Length() > .6)
@@ -836,10 +889,10 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
             drawAim(game:GetRoom(), state.combat, player, clock, state.aimAbility)
             drawRoomEffects(game, state, player, clock, picture)
             drawHeartsteel(game:GetRoom(), items)
-            local scale = readHudScale and readHudScale() or 1
             local bounds = HUD.bounds(scale, inventoryBounds and inventoryBounds(player, scale))
             HUD.render(bounds, state.combat, clock, state.aimAbility, picture,
-                Combat.hudStats(state.combat, player), aimColors)
+                Combat.hudStats(state.combat, player, clock), aimColors)
+            HUD.renderProgress(bounds, progress())
         end
         emit(game, state, player, false, picture)
     end)

@@ -1,5 +1,6 @@
 local Combat = {}
 local Artifacts = include('yone_artifacts')
+local Progress = include('yone_progression')
 
 -- Timings are Isaac update frames (30 Hz).
 local skills = {
@@ -18,6 +19,10 @@ local spiritDuration, markDamage, wCosine, qStackDuration = 150, .30, .35, 180
 local spiritDash, q3Dash, spiritReturnFrames = 84, 156, 8
 local effectFrames, effectLimit, markerLimit = 21, 12, 24
 local airDuration, airHeight = 30, 24
+
+local function progressOf(state)
+    return state.items and state.items.yoneProgress and state.items.yoneProgress()
+end
 
 function Combat.new(items)
     return {ready = {}, qStacks = 0, secondBlade = false, face = Vector(0, 1),
@@ -166,8 +171,8 @@ function Combat.clearSegment(room, player, start, goal)
     return safeDestination(room, player, start, goal):Distance(goal) < .5
 end
 
-local function attackDelay(player)
-    return math.max(8, math.ceil((player.MaxFireDelay + 1) * 1.5))
+local function attackDelay(player, speed)
+    return math.max(8, math.ceil((player.MaxFireDelay + 1) * 1.5 / speed))
 end
 
 local function releaseReturn(state, relocate)
@@ -184,6 +189,8 @@ end
 
 function Combat.resetRoom(state, clock, relocate)
     releaseReturn(state, relocate)
+    local progress = progressOf(state)
+    if progress then Progress.resetRoom(progress) end
     state.pending, state.action, state.spirit, state.shieldUntil = nil, nil, nil, nil
     state.directImpact, state.effects, state.airborne = nil, {}, {}
     state.q3InvulnerableUntil, state.rInvulnerableUntil = nil, nil
@@ -258,11 +265,15 @@ function Combat.cast(state, input, player, aim, clock, room)
         state.pending.footprint = footprint
     end
     if key ~= 'e_return' then
-        local cooldown = skill.cooldown or attackDelay(player)
+        local progress = progressOf(state)
+        local speed = progress and Progress.attackSpeed(progress, clock) or 1
+        local cooldown = skill.cooldown or attackDelay(player, speed)
         if input == 'q' then
-            local bonus = math.max(0, 10 / math.max(1, player.MaxFireDelay + 1) - 1)
+            local bonus = math.max(0, 10 * speed / math.max(1, player.MaxFireDelay + 1) - 1)
             local reduction = math.min(2 / 3, .6 * bonus)
             cooldown = math.ceil(skills.q.cooldown * (1 - reduction) - .000001)
+        elseif progress and input ~= 'attack' then
+            cooldown = math.ceil(cooldown * Progress.cooldown(progress, input) - .000001)
         end
         if input ~= 'attack' and state.items then
             if input ~= 'q' and state.items.cooldown then cooldown = math.max(12, state.items.cooldown(player, input, cooldown)) end
@@ -347,12 +358,21 @@ local function damage(state, player, enemy, amount, strike)
         if applied > 0 then
             local id = impact.target
             local mark = spirit.marks[id] or {entity = enemy, amount = 0}
-            mark.amount = mark.amount + applied * markDamage
+            local rank = strike and strike.progress and Progress.rank(strike.progress, 'e') or 1
+            mark.amount = mark.amount + applied * markDamage * (1 + .08 * (rank - 1))
             spirit.marks[id] = mark
         end
     end
     if strike then
-        Artifacts.acceptHit(strike)
+        Artifacts.acceptHit(strike, enemy)
+        if strike.progress and not strike.runeUsed then
+            strike.runeUsed = true
+            local bonus = Progress.onStrike(strike.progress, strike.kind, state.lastClock)
+            if bonus and enemy:Exists() and not enemy:IsDead() then
+                strike.runeImpact = Vector(enemy.Position.X, enemy.Position.Y)
+                enemy:TakeDamage(player.Damage * bonus, 0, source, 0)
+            end
+        end
         if state.items and state.items.onMelee and strike.kind == 'attack' and not strike.itemMelee then
             strike.itemMelee = true
             state.items.onMelee(player, nil, enemy)
@@ -379,6 +399,8 @@ end
 
 local function blade(state, room, player, enemies, strike, width, reach, multiplier, sweep, hitTargets, throughWalls, contacts)
     local hit, furthest = false, 0
+    local damageScale = strike.progress and Progress.damage(strike.progress, strike.kind, state.lastClock) or 1
+    local amount = player.Damage * multiplier * damageScale
     local cricketImpact
     local cricket = Artifacts.cricket(player, strike)
     local directHits = cricket and {} or nil
@@ -410,7 +432,7 @@ local function blade(state, room, player, enemies, strike, width, reach, multipl
     for _, candidate in ipairs(candidates) do
         local enemy = candidate.entity
         local position = Vector(enemy.Position.X, enemy.Position.Y)
-        if Combat.hostile(enemy) and damage(state, player, enemy, player.Damage * multiplier, strike) then
+        if Combat.hostile(enemy) and damage(state, player, enemy, amount, strike) then
             if cricket then
                 cricketImpact = cricketImpact or position
                 directHits[GetPtrHash(enemy)] = true
@@ -541,16 +563,22 @@ local function advanceReturn(state, room, player, clock)
         return
     end
     releaseReturn(state, true)
-    local contacts = {}
+    local contacts, marks = {}, {}
+    local echo = {kind = 'e_return', progress = progressOf(state)}
     for _, mark in pairs(recall.spirit.marks) do
+        if Combat.hostile(mark.entity) then marks[#marks + 1] = mark end
+    end
+    table.sort(marks, function(a, b) return a.entity.InitSeed < b.entity.InitSeed end)
+    for _, mark in ipairs(marks) do
         if Combat.hostile(mark.entity) then
             local point = Vector(mark.entity.Position.X, mark.entity.Position.Y)
-            if damage(state, player, mark.entity, mark.amount) and #contacts < markerLimit then
+            if damage(state, player, mark.entity, mark.amount, echo) and #contacts < markerLimit then
                 contacts[#contacts + 1] = point
             end
         end
     end
     if #contacts > 0 then effect(state, clock, 'e_echo', player.Position, player.Position, nil, nil, contacts) end
+    if echo.runeImpact then effect(state, clock, 'electrocute', echo.runeImpact, echo.runeImpact) end
 end
 
 local function pullFoes(room, enemies, pull)
@@ -567,12 +595,16 @@ local function attackReach(player, items)
     return reach
 end
 
-function Combat.hudStats(state, player)
+function Combat.hudStats(state, player, clock)
     local crit, haste = 0, 0
     if state.items and state.items.combatStats then crit, haste = state.items.combatStats(player) end
+    local progress = progressOf(state)
+    clock = clock or state.lastClock or 0
+    local speed = progress and Progress.attackSpeed(progress, clock) or 1
+    local power = progress and Progress.damage(progress, 'attack', clock) or 1
     return {
-        crit = crit, haste = haste, damage = player.Damage, move = player.MoveSpeed,
-        attacks = 30 / attackDelay(player), range = attackReach(player, state.items),
+        crit = crit, haste = haste, damage = player.Damage * power, move = player.MoveSpeed,
+        attacks = 30 / attackDelay(player, speed), range = attackReach(player, state.items),
     }
 end
 
@@ -581,6 +613,7 @@ local function resolve(state, room, player, enemies, strike, clock)
     local footprint = strike.footprint
     local start = footprint and footprint.origin or player.Position
     local items = state.items
+    strike.progress = progressOf(state)
     if items and items.newAttack and (key == 'attack' or key == 'q' or key == 'q3' or key == 'w' or key == 'r') then
         strike.itemContext = items.newAttack(player, key == 'q3' and 'q' or key, clock)
     end
@@ -639,6 +672,7 @@ local function resolve(state, room, player, enemies, strike, clock)
         end
         effect(state, clock, key, start, start + facing * footprint.reach, footprint, destination, contacts)
     end
+    if strike.runeImpact then effect(state, clock, 'electrocute', strike.runeImpact, strike.runeImpact) end
 end
 
 function Combat.update(state, room, player, enemies, clock)

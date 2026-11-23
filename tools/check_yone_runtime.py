@@ -962,8 +962,93 @@ for _ = 1, 5 do tick() end
 assert(packet.session == recoveredSession and packet.room == recoveredRoom + 2 and not packet.occluded,
     'floor recovery required a room callback despite observing the new room')
 event('PRE_GAME_EXIT')
+
+-- Use the production progression module behind the items boundary. Run-save
+-- and Hourglass ownership are tested with the real Items module elsewhere.
+do
+    local progress = include('yone_progression')
+    local run, chosen, casts
+    noItems.startYoneProgress = function(continued)
+        assert(not continued)
+        run, chosen = progress.restore(), nil
+    end
+    noItems.yoneProgress = function() return run end
+    noItems.chooseYoneRune = function(key)
+        chosen = key
+        return progress.choose(run, key, 0)
+    end
+    noItems.onCast = function(_, key) casts[#casts + 1] = key end
+    local function pickerText()
+        local labels, original = {}, Isaac.RenderScaledText
+        Isaac.RenderScaledText = function(label, _, _, _, _, r, g)
+            labels[label] = {r, g}
+        end
+        event('POST_RENDER')
+        Isaac.RenderScaledText = original
+        return labels
+    end
+
+    casts, ack, roomClear, playerAnimation = {}, nil, true, 'Walk'
+    player.Position, player.Velocity, wall, doors = Vector(60, 100), Vector.Zero, {}, {}
+    local target = makeEntity('enemy', 91, 100, 901)
+    entities = {target}
+    event('POST_GAME_STARTED', false)
+    event('POST_NEW_ROOM')
+    tick('KEY_ENTER')
+    assert(run.rune == nil, 'held menu confirmation chose a rune on entry')
+    tick()
+    local menu = pickerText()
+    assert(menu['Choose a keystone'] and menu.Conqueror and menu['Lethal Tempo']
+        and menu.Electrocute and menu.Random and not menu.Q,
+        'spawn-room picker did not render all choices or concealed the regular HUD incorrectly')
+    local before = player.Position
+    tick('KEY_A', false, target.Position)
+    tick('KEY_Q', false, target.Position)
+    tick(nil, true, Vector(200, 100))
+    tick('KEY_LEFT')
+    menu = pickerText()
+    assert(menu.Random[2] < menu.Conqueror[2], 'left did not wrap the highlight to Random')
+    assert(callAction('ACTION_LEFT') == 0 and player.Position:Distance(before) == 0
+        and #casts == 0 and #target.damage == 0, 'picker leaked movement or combat input')
+    assert(callAction('ACTION_ITEM', 'IS_ACTION_TRIGGERED') == false
+        and callAction('ACTION_DROP', 'IS_ACTION_PRESSED') == false, 'picker leaked a native item action')
+    input.held = 'KEY_Q'
+    tick('KEY_ENTER')
+    assert(chosen == 'random' and run.rune == 'conqueror', 'Enter did not lock the seeded Random choice')
+    input.held = nil
+    tick()
+    assert(#casts == 0 and not pickerText()['Choose a keystone'], 'picker confirm leaked held Q or left the menu open')
+    local startHud = captureHud()
+    assert(startHud['LVL 1  0/60 XP'] and startHud['Q1  W1  E1  R1'] and startHud.Conqueror,
+        'fresh progression HUD lost XP, rune name, or a starting rank')
+
+    assert(progress.award(run, 65) == 1)
+    local earned = captureHud()
+    assert(earned['LVL 2  5/72 XP'] and earned['Alt+Q/W/E/R: 1 pt'], 'HUD did not reflect earned XP and point')
+    input.held = 'KEY_LEFT_ALT'
+    tick('KEY_Q')
+    tick('KEY_Q')
+    input.held = nil
+    tick('KEY_Q')
+    tick()
+    local ranked = captureHud()
+    assert(ranked['Q2  W1  E1  R1'] and not ranked['Alt+Q/W/E/R: 1 pt'] and #casts == 0,
+        'Alt+Q did not spend one point cleanly or leaked a cast')
+
+    tick('KEY_A', false, target.Position)
+    for _ = 1, 16 do tick() end
+    assert(#target.damage == 1 and progress.damage(run, 'attack', frame) > 1,
+        'the first accepted autoattack did not grant a Conqueror stack')
+    tick('KEY_Q', false, target.Position)
+    tick(nil, false, target.Position)
+    for _ = 1, 7 do tick() end
+    local expected = player.Damage * 1.4 * 1.08 * 1.02
+    assert(casts[1] == 'q' and #target.damage == 2 and math.abs(target.damage[2] - expected) < .001,
+        'the real Q impact did not combine skill rank with the prior rune stack')
+    event('PRE_GAME_EXIT')
+end
 """)
-    print("PASS Yone registration, input, emotes, leases, HUD, floor lifecycle and console commands")
+    print("PASS Yone registration, input, emotes, leases, HUD, floor lifecycle, console and progression")
 
 
 if __name__ == "__main__":

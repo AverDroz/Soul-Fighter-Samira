@@ -1,4 +1,5 @@
 local HUD = {}
+local Progression = include('yone_progression')
 local abilities = {'q', 'w', 'e', 'r'}
 local width, height = 206, 39
 local iconSize, iconStep, firstIcon = 26, 33, 76
@@ -178,6 +179,99 @@ local function drawTooltip(b, label, anchor)
     fill(x, y, w, h, palette.edge)
     fill(x + s, y + s, w - 2 * s, h - 2 * s, palette.body)
     text(label, x + 6 * s, y + 2 * s, textScale, ready)
+end
+
+local function wrap(label, maxWidth)
+    local lines, row = {}, ''
+    for word in label:gmatch('%S+') do
+        local nextRow = row == '' and word or row .. ' ' .. word
+        if row ~= '' and Isaac.GetTextWidth(nextRow) > maxWidth then
+            lines[#lines + 1] = row
+            row = word
+        else
+            row = nextRow
+        end
+    end
+    if row ~= '' then lines[#lines + 1] = row end
+    return lines
+end
+
+local function panel(x, y, w, h, s, edge, body)
+    fill(x, y, w, h, edge)
+    fill(x + s, y + s, w - 2 * s, h - 2 * s, body)
+end
+
+function HUD.renderRunePicker(choices, selectedIndex, hudScale)
+    if #choices == 0 or not Isaac.DrawLine or not KColor then return end
+    local cardWidth, gutter, padding, descriptionScale = 90, 4, 8, .78
+    local descriptions, maxLines = {}, 0
+    for i, choice in ipairs(choices) do
+        local lines = wrap(choice.description, (cardWidth - 10) / descriptionScale)
+        descriptions[i] = lines
+        maxLines = math.max(maxLines, #lines)
+    end
+    local cardHeight = 24 + 10 * maxLines
+    local width = 2 * padding + #choices * cardWidth + (#choices - 1) * gutter
+    local height = cardHeight + 44
+    local screenWidth, screenHeight = Isaac.GetScreenWidth(), Isaac.GetScreenHeight()
+    local s = math.min(hudScale or 1, (screenWidth - 16) / width, (screenHeight - 16) / height)
+    if s <= 0 then return end
+    setup()
+    local x, y = (screenWidth - width * s) / 2, (screenHeight - height * s) / 2
+    local center = screenWidth / 2
+    panel(x, y, width * s, height * s, s, palette.edge, palette.body)
+    centered('Choose a keystone', center, y + 7 * s, 1.23 * s, gold, (width - 16) * s)
+
+    local cardY = y + 24 * s
+    for i, choice in ipairs(choices) do
+        local cardX = x + (padding + (i - 1) * (cardWidth + gutter)) * s
+        local cardCenter = cardX + cardWidth * s / 2
+        local selected = i == selectedIndex
+        panel(cardX, cardY, cardWidth * s, cardHeight * s, s,
+            selected and palette.cap or palette.seam, selected and palette.hover or palette.rail)
+        centered(choice.name, cardCenter, cardY + 5 * s, s,
+            selected and gold or ready, (cardWidth - 10) * s)
+        for row, label in ipairs(descriptions[i]) do
+            centered(label, cardCenter, cardY + (17 + (row - 1) * 10) * s,
+                descriptionScale * s, selected and ready or cooling, (cardWidth - 10) * s)
+        end
+    end
+    centered('Left / Right to select   Enter to confirm', center, y + (height - 14) * s,
+        .86 * s, ready, (width - 16) * s)
+end
+
+function HUD.renderProgress(b, progress)
+    if not b or not progress or not Isaac.DrawLine or not KColor then return end
+    local x, s = b.x, b.scale
+    -- Tooltips occupy up to 17 scaled units immediately above the combat HUD.
+    local y = b.y - 43 * s
+    if y < 3 then return end
+    setup()
+    local runeName
+    for _, choice in ipairs(Progression.choices) do
+        if choice.id == progress.rune then runeName = choice.name; break end
+    end
+    local atMax = progress.level == Progression.MAX_LEVEL
+    local required = Progression.required(progress.level)
+    local fraction = atMax and 1 or math.min(1, math.max(0, progress.xp / required))
+    local level = ('LVL %d'):format(progress.level)
+    local points = Progression.points(progress)
+    local ranks = {}
+    for _, key in ipairs(abilities) do
+        ranks[#ranks + 1] = key:upper() .. Progression.rank(progress, key)
+    end
+
+    panel(x, y, b.width, 24 * s, s, palette.edge, palette.body)
+    centered(level .. (atMax and '  MAX' or ('  %d/%d XP'):format(progress.xp, required)),
+        x + 51 * s, y + 2 * s, .85 * s, gold, 93 * s)
+    if runeName then centered(runeName, x + 153 * s, y + 2 * s, .85 * s, ready, 93 * s) end
+    fill(x + 5 * s, y + 11 * s, b.width - 10 * s, 2 * s, palette.divider)
+    if fraction > 0 then fill(x + 5 * s, y + 11 * s, (b.width - 10 * s) * fraction, 2 * s, palette.wind) end
+    if points > 0 then
+        centered(('Alt+Q/W/E/R: %d pt'):format(points), x + 51 * s, y + 14 * s, .77 * s, gold, 93 * s)
+    end
+    centered(table.concat(ranks, '  '), x + (points > 0 and 153 or 103) * s,
+        y + 14 * s, .77 * s, cooling, 93 * s)
 end
 
 function HUD.render(b, combat, clock, aiming, picture, stats, aimColors)

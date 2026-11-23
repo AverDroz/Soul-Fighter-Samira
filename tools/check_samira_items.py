@@ -76,13 +76,18 @@ lua.globals().catalogSource = (MOD / 'samira_items_data.lua').read_text(encoding
 lua.globals().styleSource = (MOD / 'samira_style.lua').read_text(encoding='utf8')
 lua.globals().yoneCombatSource = (MOD / 'yone_combat.lua').read_text(encoding='utf8')
 lua.globals().yoneArtifactsSource = (MOD / 'yone_artifacts.lua').read_text(encoding='utf8')
+lua.globals().yoneWeaponArtifactsSource = (MOD / 'yone_artifact_weapons.lua').read_text(encoding='utf8')
+lua.globals().yoneProgressSource = (MOD / 'yone_progression.lua').read_text(encoding='utf8')
 lua.execute(r'''
 local catalog = assert(load(catalogSource))()
 local byRiot = {}
 for _, row in ipairs(catalog) do assert(not byRiot[row.riotId]); byRiot[row.riotId] = row end
 local Style = assert(load(styleSource))()
+local Progress = assert(load(yoneProgressSource))()
 function include(name)
     if name == 'samira_items_data' then return catalog end
+    if name == 'yone_artifact_weapons' then return assert(load(yoneWeaponArtifactsSource))() end
+    if name == 'yone_progression' then return Progress end
     assert(name == 'yone_artifacts')
     return assert(load(yoneArtifactsSource))()
 end
@@ -890,6 +895,60 @@ for _, pair in ipairs({{1006, 4}, {3801, 3}, {3083, 2}}) do
         assert(p.hp == (i == pair[2] and 3 or 2), 'shared clean-room regeneration')
     end
 end
+
+-- Rune, XP and level ranks travel with the existing item save and rewind slots.
+start({})
+p.yone = true
+Items.startYoneProgress(false)
+local progress = Items.yoneProgress()
+assert(progress.level == 1 and not progress.rune)
+fire('MC_POST_GLOWING_HOURGLASS_SAVE', 0)
+local _, chosen = Items.chooseYoneRune('random')
+assert(chosen and progress.rune == chosen and not Items.chooseYoneRune('lethal_tempo'))
+clear = true; step(2)
+assert(progress.xp == 25, 'a regular clear was missed or counted more than once')
+enter(2); clear = true; step()
+assert(progress.xp == 50)
+fire('MC_POST_GLOWING_HOURGLASS_SAVE', 1)
+local originalGetRoom = game.GetRoom
+RoomType = {ROOM_BOSS = 5}
+game.GetRoom = function()
+    local current = originalGetRoom()
+    current.GetType = function() return index == 3 and RoomType.ROOM_BOSS or 1 end
+    return current
+end
+enter(3); clear = true; step()
+assert(progress.level == 2 and progress.xp == 65 and Progress.upgrade(progress, 'q'), 'boss room XP or rank was lost')
+fire('MC_PRE_GAME_EXIT', true)
+fire('MC_POST_GAME_STARTED', true)
+Items.startYoneProgress(true)
+progress = Items.yoneProgress()
+assert(progress.level == 2 and progress.ranks.q == 2 and progress.rune == chosen, 'continue lost Yone progression')
+step()
+assert(progress.xp == 65, 'continue rewarded an already cleared room')
+fire('MC_PRE_GLOWING_HOURGLASS_LOAD', 1)
+index, clear = 2, true
+fire('MC_POST_NEW_ROOM')
+fire('MC_POST_GLOWING_HOURGLASS_LOAD', 1)
+Items.applyCooldownCheckpoint(clock)
+progress = Items.yoneProgress()
+assert(progress.level == 1 and progress.xp == 50 and progress.ranks.q == 1 and progress.rune == chosen)
+step()
+assert(progress.xp == 50, 'Hourglass duplicated XP for a room already cleared at the snapshot')
+enter(3); clear = true; step()
+assert(progress.level == 2 and progress.xp == 65, 'Hourglass prevented legitimate XP after clearing again')
+fire('MC_PRE_GLOWING_HOURGLASS_LOAD', 0)
+index, clear = 1, false
+fire('MC_POST_NEW_ROOM')
+fire('MC_POST_GLOWING_HOURGLASS_LOAD', 0)
+Items.applyCooldownCheckpoint(clock)
+progress = Items.yoneProgress()
+assert(progress.level == 1 and progress.xp == 0 and progress.rune == chosen, 'pre-choice slot reopened the picker')
+game.GetRoom = originalGetRoom
+start({})
+p.yone = true
+Items.startYoneProgress(true)
+assert(Items.yoneProgress().rune == 'conqueror', 'legacy continue did not get a usable rune')
 
 print('Passed item stat checks, component effects, native weapon damage and Style, combat scenarios, and persistence.')
 ''')
