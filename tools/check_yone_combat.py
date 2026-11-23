@@ -149,11 +149,11 @@ end
 do
     local oldRange = player.TearRange
     player.TearRange = 260
-    local edge, outside = enemy(147,100,900), enemy(148,100,901)
+    local edge, outside = enemy(165,100,900), enemy(166,100,901)
     edge.Size, outside.Size = 0, 0
     local melee = combat.hudStats(state, player).range
-    assert(melee == 87 and math.abs(melee / combat.footprint(state,player,'q',aim,room).reach - .7) < .01,
-        'base melee range is not seventy percent of Q')
+    assert(math.abs(melee / combat.footprint(state,player,'q',aim,room).reach - .85) < .0001,
+        'base melee range is not eighty-five percent of Q')
     assert(combat.inMeleeRange(room,player,edge), 'click attack cannot acquire the extended range')
     assert(not combat.inMeleeRange(room,player,outside), 'click attack acquired a foe beyond the extended range')
     local sideEdge, sideOutside = enemy(121,117,904), enemy(121,118,905)
@@ -161,6 +161,11 @@ do
     state=combat.new(); entities={edge, outside, sideEdge, sideOutside}; cast('attack',1); resolve(5)
     assert(#edge.damage==1 and #outside.damage==0, 'direct attack disagrees with click range on axis')
     assert(#sideEdge.damage==1 and #sideOutside.damage==0, 'direct attack missed its widened flank')
+    player.TearRange = 610
+    local rangeState = combat.new({attackRange=function(_, reach) return reach end})
+    assert(math.abs(combat.hudStats(rangeState,player).range /
+        combat.footprint(rangeState,player,'q',aim,room).reach - .85) < .0001,
+        'the bonus cap cut into native range scaling')
     player.TearRange = oldRange
     state=combat.new({cooldown=function(_,key,base) return key=='r' and base/2 or base end})
     player.Position=Vector(60,100); entities={}; cast('r',1)
@@ -186,12 +191,13 @@ cast('q', 40); resolve(50)
 assert(state.qStacks == 1, 'Q did not stack on hit')
 local qfx = combat.visual(state, 50).fx
 assert(#qfx[#qfx].contacts == 1 and qfx[#qfx].contacts[1].X == 96, 'Q contact incorrect')
-cast('q', 80); resolve(90)
+assert(not combat.cast(state, 'q', player, aim, 99, room), 'stock Q became ready before two seconds')
+cast('q', 100); resolve(110)
 assert(state.qStacks == 2, 'second Q did not stack')
-assert(math.abs(combat.visual(state,90).qRemaining - 1)<.0001, 'Q3 timer is not full on the second hit')
-assert(math.abs(combat.visual(state,180).qRemaining - .5)<.0001, 'Q3 timer did not count down')
+assert(math.abs(combat.visual(state,110).qRemaining - 1)<.0001, 'Q3 timer is not full on the second hit')
+assert(math.abs(combat.visual(state,200).qRemaining - .5)<.0001, 'Q3 timer did not count down')
 wall[2 * room:GetGridWidth() + 3] = GridCollisionClass.COLLISION_WALL
-cast('q', 120); resolve(130)
+cast('q', 160); resolve(170)
 assert(state.qStacks == 0 and player.Position.X > 60 and player.Position.X < 120,
     'Q3 must stop before a wall')
 assert(#front.damage == 5 and #behind.damage == 0)
@@ -203,24 +209,24 @@ local wEdge, wOutside = enemy(177,100,902), enemy(183,100,903)
 wEdge.Size, wOutside.Size = 0, 0
 entities = {front, wide, wEdge, wOutside}
 assert(combat.footprint(state, player, 'w', aim, room).reach == 122)
-cast('w', 155)
-assert(combat.invulnerable(state,155) and combat.invulnerable(state,163), 'W windup was vulnerable')
-resolve(167)
-assert(not combat.invulnerable(state,167), 'W recovery kept immunity instead of using its shield')
+cast('w', 195)
+assert(combat.invulnerable(state,195) and combat.invulnerable(state,203), 'W windup was vulnerable')
+resolve(207)
+assert(not combat.invulnerable(state,207), 'W recovery kept immunity instead of using its shield')
 assert(#wide.damage == 1, 'W failed to reach a target within its wider sector')
 assert(#wEdge.damage == 1 and #wOutside.damage == 0, 'W hit disagrees with its extended indicator')
-local wfx = combat.visual(state, 167).fx[#combat.visual(state, 167).fx]
+local wfx = combat.visual(state, 207).fx[#combat.visual(state, 207).fx]
 assert(wfx.footprint.reach == 122 and wfx.target.X == 182 and #wfx.contacts == 3, 'W grouped contacts incorrect')
-assert(combat.absorb(state, 168) and not combat.absorb(state, 169), 'W shield must stop one hit')
+assert(combat.absorb(state, 208) and not combat.absorb(state, 209), 'W shield must stop one hit')
 state = combat.new()
 entities = {}
 cast('w', 1); resolve(20)
-assert(state.ready.w==181, 'W cooldown must be 180 frames')
+assert(state.ready.w==211, 'W cooldown must be 210 frames')
 assert(not combat.absorb(state, 21), 'W miss granted a shield')
 local wBase
 local hasteState=combat.new({cooldown=function(_, key, base) wBase=base; return base/2 end})
-assert(combat.cast(hasteState,'w',player,aim,1,room) and wBase==180 and hasteState.ready.w==91,
-    'W haste must apply to the six-second base cooldown')
+assert(combat.cast(hasteState,'w',player,aim,1,room) and wBase==210 and hasteState.ready.w==106,
+    'W haste must apply to the seven-second base cooldown')
 cast('q', 21); resolve(31)
 assert(state.qStacks == 0, 'Q miss granted a stack')
 local miss = combat.visual(state, 31).fx
@@ -307,14 +313,16 @@ assert(player.Position.X == 60 and #front.damage == 0, 'a windup hit from the E 
 
 state = combat.new()
 player.Position = Vector(60,100)
-local far, aside, boss = enemy(200,100,10), enemy(190,150,11), enemy(165,100,12)
+local far, aside, boss = enemy(262,100,10), enemy(190,150,11), enemy(165,100,12)
+local beyond = enemy(263,100,29)
+far.Size, beyond.Size = 0, 0
 boss.boss = true
-entities = {far, aside, boss}
-cast('r', 1); assert(combat.activeFootprint(state, player).reach == 168); resolve(24)
-assert(#far.damage == 1 and #boss.damage == 1 and #aside.damage == 0)
+entities = {far, aside, boss, beyond}
+cast('r', 1); assert(combat.activeFootprint(state, player).reach == 202); resolve(24)
+assert(#far.damage == 1 and #boss.damage == 1 and #aside.damage == 0 and #beyond.damage == 0)
 assert(player.Position.X > 200 and far.Position.X > 200 and boss.Position.X == 165)
 visual = combat.visual(state, 24)
-assert(visual.fx[1].kind == 'r' and visual.fx[1].origin.X == 60 and visual.fx[1].target.X > 200)
+assert(visual.fx[1].kind == 'r' and visual.fx[1].origin.X == 60 and visual.fx[1].target.X == 262)
 assert(#visual.fx[1].contacts == 2 and visual.fx[1].contacts[1].X == boss.Position.X
     and visual.fx[1].contacts[2].X == far.Position.X and visual.fx[1].landing.X == player.Position.X,
     'R contacts or landing did not reflect pull')
@@ -445,23 +453,25 @@ wall[2 * room:GetGridWidth() + 3] = GridCollisionClass.COLLISION_WALL
 cast('q', 1); resolve(7); assert(props[1].destroyed, 'Q did not break poop behind wall')
 wall = {}; props = {}
 state = combat.new(); player.Position = Vector(60,100); player.MaxFireDelay = 9; player.TearRange = 260
-cast('q', 1); assert(state.ready.q == 31 and combat.activeFootprint(state, player).reach==124,
+cast('q', 1); assert(state.ready.q == 61 and combat.activeFootprint(state, player).reach==124,
     'base Q cooldown or footprint range incorrect')
 state = combat.new(); state.qStacks = 2; player.Position = Vector(60,100)
 local waveTarget = enemy(267, 100, 377)
 entities = {waveTarget}
-cast('q', 1); assert(combat.activeFootprint(state, player).reach == 212); resolve(8)
+cast('q', 1); assert(state.ready.q == 61 and combat.activeFootprint(state, player).reach == 212); resolve(8)
 assert(#waveTarget.damage == 1 and player.Position.X == 216, 'the Q3 whirlwind fell short of its preview')
-state = combat.new(); player.MaxFireDelay = 4
-cast('q', 1); assert(state.ready.q == 13, 'bonus attack speed did not reduce Q cooldown')
+state = combat.new(); player.MaxFireDelay = 10 / 1.5 - 1
+cast('q', 1); assert(state.ready.q == 43, '50 percent bonus attack speed must give a 1.4 second Q')
+state = combat.new(); state.qStacks = 2; player.MaxFireDelay = 4
+cast('q', 1); assert(state.ready.q == 25, '100 percent bonus attack speed must give a .8 second Q3')
 state = combat.new(); player.MaxFireDelay = 0
-cast('q', 1); assert(state.ready.q == 11, 'Q cooldown floor wrong')
+cast('q', 1); assert(state.ready.q == 21, 'Q cooldown floor wrong')
 player.MaxFireDelay = 9
 local castCount, cooldownCount = 0, 0
 state = combat.new({onCast=function() castCount = castCount + 1 end,
     cooldown=function() cooldownCount = cooldownCount + 1; return 1 end})
 cast('q', 1)
-assert(state.ready.q == 31 and castCount == 1 and cooldownCount == 0,
+assert(state.ready.q == 61 and castCount == 1 and cooldownCount == 0,
     'Q incorrectly used ability haste or skipped on-cast items')
 local baseInside = room.IsPositionInRoom
 function room:IsPositionInRoom(point, margin)

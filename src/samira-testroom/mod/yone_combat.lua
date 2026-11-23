@@ -4,15 +4,15 @@ local Artifacts = include('yone_artifacts')
 -- Timings are Isaac update frames (30 Hz).
 local skills = {
     attack = {windup = 4, duration = 14},
-    q = {windup = 6, duration = 16},
+    q = {windup = 6, duration = 16, cooldown = 60},
     q3 = {windup = 7, duration = 22},
-    w = {windup = 8, duration = 22, cooldown = 180},
+    w = {windup = 8, duration = 22, cooldown = 210},
     e = {windup = 3, duration = 14, cooldown = 450},
     e_return = {windup = 0, duration = 13},
     r = {windup = 23, duration = 40, cooldown = 900},
 }
-local qRange, q3Range, ultRange, wRange = 124, 212, 168, 122
-local meleeRange, maxMeleeRange, meleeHalfWidth = math.floor(qRange * .7 + .5), 120, 17
+local qRange, q3Range, ultRange, wRange = 124, 212, 202, 122
+local meleeRange, maxMeleeRange, meleeHalfWidth = qRange * .85, 145, 17
 local ultHalfWidth = 28
 local spiritDuration, markDamage, wCosine, qStackDuration = 150, .30, .35, 180
 local spiritDash, q3Dash, spiritReturnFrames = 84, 156, 8
@@ -245,7 +245,8 @@ function Combat.cast(state, input, player, aim, clock, room)
         local cooldown = skill.cooldown or attackDelay(player)
         if input == 'q' then
             local bonus = math.max(0, 10 / math.max(1, player.MaxFireDelay + 1) - 1)
-            cooldown = math.max(10, math.ceil(30 * (1 - math.min(2 / 3, .6 * bonus)) - .000001))
+            local reduction = math.min(2 / 3, .6 * bonus)
+            cooldown = math.ceil(skills.q.cooldown * (1 - reduction) - .000001)
         end
         if input ~= 'attack' and state.items then
             if input ~= 'q' and state.items.cooldown then cooldown = math.max(12, state.items.cooldown(player, input, cooldown)) end

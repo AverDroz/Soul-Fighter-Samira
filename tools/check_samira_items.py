@@ -520,7 +520,7 @@ close(second.hits[2], p.Damage * 1.4 * 1.5, 'Yone Q procs Heartsteel on its firs
 close(third.hits[1], p.Damage * 1.4, 'Yone Q does not proc Heartsteel twice')
 assert(sounds == 2)
 second.Position = Vector(78, 90)
-step(30)
+step(60)
 fight.qStacks = 2
 strike('q', 7, 'q3')
 close(third.hits[2], p.Damage * 1.6 * 1.5, 'Yone Q3 procs Heartsteel')

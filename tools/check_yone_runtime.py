@@ -164,7 +164,7 @@ local readyHud = captureHud(Vector(0, 0))
 assert(glyphLines >= 8, 'ability panel did not draw its plate')
 assert(readyHud.icons[1].name == 'Q' and readyHud.icons[2].name == 'W'
     and readyHud.icons[3].name == 'E' and readyHud.icons[4].name == 'R' and readyHud.pips == 0)
-checkStatGrid(readyHud, {'4.00', '0%', '2.00', '0', '1.00', '86'})
+checkStatGrid(readyHud, {'4.00', '0%', '2.00', '0', '1.00', '104'})
 assert(not readyHud.CRIT and not readyHud.DMG and not readyHud['Critical strike chance'] and readyHud.shield == 0,
     'idle HUD leaked labels or a W shield indicator')
 noItems.combatStats = function(owner)
@@ -173,7 +173,7 @@ noItems.combatStats = function(owner)
 end
 player.MaxFireDelay, player.Damage, player.MoveSpeed, player.TearRange = 5, 7.25, 1.23, 365
 local boosted = captureHud(Vector(0, 0))
-checkStatGrid(boosted, {'7.25', '52%', '3.33', '17', '1.23', '96'})
+checkStatGrid(boosted, {'7.25', '52%', '3.33', '17', '1.23', '116'})
 assert(not boosted['0%'] and boosted['52%'].color[1] > readyHud['0%'].color[1],
     'current critical chance did not update or pick up its accent')
 noItems.combatStats = nil
@@ -182,7 +182,7 @@ Isaac.DrawLine = function() end
 do
     local width, height = Isaac.GetScreenWidth, Isaac.GetScreenHeight
     local inventoryBounds = include('samira_inventory_hud').bounds
-    local values = {'4.00', '0%', '2.00', '0', '1.00', '86'}
+    local values = {'4.00', '0%', '2.00', '0', '1.00', '104'}
     local statLabels = {'Attack damage', 'Critical strike chance', 'Attacks per second',
         'Ability haste', 'Movement speed', 'Attack range'}
     local function checkHover(hud, i)
@@ -209,7 +209,7 @@ do
     hudScale = .75
     noItems.combatStats = function() return 1, 17.5 end
     local saturated = captureHud(Vector(0, 0))
-    checkStatGrid(saturated, {'4.00', '100%', '2.00', '17.5', '1.00', '86'})
+    checkStatGrid(saturated, {'4.00', '100%', '2.00', '17.5', '1.00', '104'})
     assert(saturated.icons[1].size == 19.5 and saturated['100%'].scale > .5)
     noItems.combatStats, hudScale = nil, 1
     Isaac.GetScreenWidth, Isaac.GetScreenHeight = function() return 688 end, function() return 288 end
@@ -312,10 +312,10 @@ assert(callAction('ACTION_RIGHT') == 0 and player.Position:Distance(committedPos
 for _ = 1, 7 do tick() end
 local stackedHud = captureHud()
 sameSlots(readyHud, stackedHud)
-assert(stackedHud.pips == 0 and stackedHud.qRing == 0 and statusOver(stackedHud, '1s', 1),
+assert(stackedHud.pips == 0 and stackedHud.qRing == 0 and statusOver(stackedHud, '2s', 1),
     'Q one-stack HUD had charge markers or lost its cooldown')
 assert(stackedHud.Q.color[1] < readyHud.Q.color[1], 'cooldown did not dim the ability key')
-for _ = 1, 24 do tick() end
+for _ = 1, 54 do tick() end
 castKey('KEY_Q')
 for _ = 1, 7 do tick() end
 local doubleStackHud = captureHud()
@@ -327,6 +327,7 @@ entities = {}
 for _ = 1, 30 do tick() end
 local fadingQ = captureHud()
 assert(fadingQ.qRing > 0 and fadingQ.qRing < doubleStackHud.qRing, 'Q3 duration outline did not shrink')
+for _ = 1, 24 do tick() end
 DamageFlag = {DAMAGE_FAKE = 1, DAMAGE_IV_BAG = 2}
 local dashAttacker = makeEntity('enemy', player.Position.X + 25, player.Position.Y, 89)
 castKey('KEY_Q')
@@ -421,7 +422,7 @@ assert(math.abs(cleave.arc[7][1] - cleave.target[1]) < .001
     and math.abs(cleave.arc[7][2] - cleave.target[2]) < .001, 'W arc and axial endpoint disagreed')
 local shieldHud = captureHud()
 sameSlots(readyHud, shieldHud)
-assert(statusOver(shieldHud, '6s', 2) and shieldHud.shield > 0,
+assert(statusOver(shieldHud, '7s', 2) and shieldHud.shield > 0,
     'W lost its cooldown or shield display')
 do
     local w = shieldHud.icons[2]
@@ -644,18 +645,18 @@ assert(packet.clip == 'idle', 'held E leaked into the new room')
 assert(attacker:Exists() and attacker.HitPoints == hpOnEntry, 'room transition removed or damaged returning enemy')
 assert(claimed[2] and not captureHud()['30s'], 'first combat in a new room did not refresh R')
 castKey('KEY_W')
-assert(captureHud()['6s'], 'fresh W did not go on cooldown')
+assert(captureHud()['7s'], 'fresh W did not go on cooldown')
 event('PRE_CHANGE_ROOM')
 event('POST_NEW_ROOM')
 tick()
-assert(captureHud()['6s'], 're-entering an already claimed room refreshed W again')
+assert(captureHud()['7s'], 're-entering an already claimed room refreshed W again')
 
 event('POST_GAME_STARTED', false)
 player.Position, player.Velocity, wall = Vector(60, 100), Vector.Zero, {}
 entities = {makeEntity('enemy', 91, 100, 751)}
 for _ = 1, 2 do
     castKey('KEY_Q')
-    for _ = 1, 30 do tick() end
+    for _ = 1, 60 do tick() end
 end
 assert(packet.yone.qReady, 'E-Q3 integration could not charge Q')
 local comboOrigin = player.Position
@@ -835,7 +836,7 @@ local nativeSession = packet.session
 castKey('KEY_W')
 event('EXECUTE_CMD', 'yonetest', '')
 tick()
-assert(packet.session == nativeSession and captureHud()['6s'],
+assert(packet.session == nativeSession and captureHud()['7s'],
     'yonetest reset the selected hero or discarded cooldowns')
 event('PRE_GAME_EXIT')
 
