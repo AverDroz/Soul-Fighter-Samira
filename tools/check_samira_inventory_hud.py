@@ -14,7 +14,8 @@ frame = ElementTree.parse(ASSET).find('.//LayerAnimation/Frame')
 assert (frame.get('Width'), frame.get('Height'), frame.get('XPivot'), frame.get('YPivot')) == ('32', '32', '16', '16')
 lua.globals().sources = lua.table_from({name: (MOD / f'{name}.lua').read_text(encoding='utf-8')
                                       for name in ('samira_inventory_hud', 'samira_item_icons',
-                                                   'samira_item_description', 'samira_items_data')})
+                                                   'samira_item_description', 'samira_items_data',
+                                                   'samira_crafting_ui', 'samira_shop_crafting')})
 lua.globals().texture_exists = lambda path: (MOD / 'resources' / path).is_file()
 lua.execute(r'''
 function include(name) return assert(load(sources[name], name))() end
@@ -219,5 +220,75 @@ xKey = true
 hud.input(player, true)
 hud.input(player, true)
 assert(#drops == 1 and drops[1] == 4 and not slots[4])
+
+do
+    local craft = include('samira_shop_crafting')
+    local rows = {}
+    for _, row in ipairs(include('samira_items_data')) do rows[row.riotId] = row end
+    local coins, hasSword, purchases = 3, true, 0
+    function player:GetNumCoins() return coins end
+    inventory.recipes = function(owner)
+        assert(owner == player)
+        local recipes = {}
+        for _, id in ipairs({6696, 1053, 3133, 2020, 3031, 3046, 6673}) do
+            local row = rows[id]
+            recipes[#recipes + 1] = {row = row, combinePrice = row.combinePrice,
+                missing = id == 1053 and hasSword and {} or row.components}
+        end
+        return recipes
+    end
+    inventory.craft = function(owner, id)
+        assert(owner == player and id == 1053 and coins == 4 and hasSword)
+        coins, hasSword, purchases = 0, false, purchases + 1
+        return true
+    end
+    width, height, left = 640, 270, false
+    local shop, scale = player, 1
+    local function render()
+        words, rectangles = {}, {}
+        craft.render(shop, hud.bounds(player, scale), nil, inventory)
+    end
+    local function find(label)
+        for _, row in ipairs(words) do
+            if row[1]:find(label, 1, true) then return row end
+        end
+    end
+    local function click(label)
+        left = false
+        render()
+        local target = assert(find(label), label)
+        mouse = Vector((target[2] + 1) / .35, (target[3] + 1) / .4)
+        left = true
+        render()
+    end
+    render()
+    assert(find('Сборка') and not craft.isOpen())
+    click('Сборка')
+    assert(craft.isOpen() and find('Рецепты') and find('1 / 2'))
+    click('>')
+    assert(find('2 / 2'), 'second recipe page is unreachable')
+    click('<')
+    click('Вампирский скипетр')
+    assert(find('Все детали в рюкзаке') and find('Доплата: 4 мон. · Есть: 3'))
+    click('Собрать')
+    assert(purchases == 0, 'unaffordable recipe was submitted')
+    coins = 4
+    click('Собрать')
+    assert(purchases == 1 and find('Собран предмет'))
+    render()
+    assert(purchases == 1, 'held mouse submitted twice')
+    click('Собрать')
+    assert(purchases == 1, 'missing material allowed another purchase')
+    shop = nil
+    render()
+    assert(not craft.isOpen() and not find('Сборка'))
+    shop = player
+    width, height, scale = 240, 120, 1.5
+    click('Сборка')
+    assert(craft.isOpen() and find('Собрать'), 'scaled compact shop lost crafting controls')
+    for _, row in ipairs(rectangles) do
+        assert(row[1] >= 0 and row[2] >= 0 and row[3] <= width and row[4] <= height)
+    end
+end
 ''')
-print('Passed selected slot stats, hover details, six-slot totals, duplicate items, input and trinket clearance.')
+print('Passed inventory HUD, scaling, input and mouse-driven shop crafting.')

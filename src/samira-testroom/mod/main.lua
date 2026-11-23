@@ -13,6 +13,7 @@ local Items = include('samira_items')
 local ItemRoom = include('samira_items_room')
 local Inventory = include('samira_inventory')
 local InventoryHUD = include('samira_inventory_hud')
+local ShopCrafting = include('samira_shop_crafting')
 local StyleHUD = include('samira_style_hud')
 local Character = include('samira_character')
 local Weapons = include('samira_weapons')
@@ -305,19 +306,23 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
     local owner = p or Yone.player(game)
     local actionable = p and canControl(p) or not p and owner and Yone.canUseItems(owner) or false
     local scale = ControlsSettings.hudScale()
-    InventoryHUD.input(owner, actionable, scale)
+    InventoryHUD.input(owner, actionable and not ShopCrafting.isOpen(), scale)
     if p then Combat.sampleInput(game:GetRoom(), game:GetFrameCount(), actionable, readR() == true) end
+    local shopOwner, backpack, avoid
     if actionable then
-        local backpack = InventoryHUD.bounds(owner, scale)
+        backpack = InventoryHUD.bounds(owner, scale)
         local style = p and StyleHUD.bounds(scale, backpack)
         local yoneHud = not p and Yone.hudBounds(scale, backpack) or nil
+        avoid = style or yoneHud
         InventoryHUD.render(owner, scale, yoneHud)
-        ItemRoom.render(owner, backpack, style or yoneHud)
+        if not ShopCrafting.isOpen() then ItemRoom.render(owner, backpack, avoid) end
+        if game:GetRoom():GetType() == RoomType.ROOM_SHOP then shopOwner = owner end
         if p then
             StyleHUD.render(p, Combat.styleStatus(game:GetFrameCount()),
                 ackStyleHud and ackAt and Isaac.GetTime() - ackAt < leaseMs, style)
         end
     end
+    ShopCrafting.render(shopOwner, backpack, avoid, Inventory)
     if active then emit(false) end
 end)
 
@@ -504,4 +509,4 @@ Yone.init(mod, game, Items, Inventory, InventoryHUD.bounds, Display, ControlsSet
     elseif not active and Character.player(game) then
         start()
     end
-end)
+end, ShopCrafting.isOpen)

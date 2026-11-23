@@ -34,7 +34,7 @@ function InventoryHUD.bounds(player, scale)
     }
 end
 
-local function mousePosition()
+function InventoryHUD.mousePosition()
     -- Keep HUD hitboxes in render coordinates, including in a mirror room.
     local raw = Input.GetMousePosition(false)
     local span = Isaac.ScreenToWorld(Vector(10000, 10000)) - Isaac.ScreenToWorld(Vector.Zero)
@@ -43,7 +43,7 @@ local function mousePosition()
 end
 
 local function hoveredSlot(bounds)
-    local cursor = mousePosition()
+    local cursor = InventoryHUD.mousePosition()
     local localX, localY = cursor.X - bounds.x, cursor.Y - bounds.y
     if localX < 0 or localX >= bounds.width or localY < 0 or localY >= bounds.height then return nil end
     local step = (SLOT_SIZE + SLOT_GAP) * bounds.scale

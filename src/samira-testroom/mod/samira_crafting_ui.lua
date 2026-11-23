@@ -11,7 +11,7 @@ local failures = {
 }
 for _, row in ipairs(catalog) do names[row.riotId] = row.name end
 
-local function describe(ids)
+function Crafting.describe(ids)
     local counts, order, text = {}, {}, {}
     for _, id in ipairs(ids) do
         if not counts[id] then order[#order + 1], counts[id] = id, 0 end
@@ -22,6 +22,11 @@ local function describe(ids)
         text[#text + 1] = counts[id] > 1 and (counts[id] .. '× ' .. label) or label
     end
     return table.concat(text, ', ')
+end
+
+function Crafting.result(recipe, ok, reason)
+    return ok and ('Собран предмет «' .. names[recipe] .. '».')
+        or failures[reason] or 'Сборка недоступна.'
 end
 
 function Crafting.init(window, player, inventory)
@@ -37,8 +42,7 @@ function Crafting.init(window, player, inventory)
     ImGui.AddButton(menu, 'samiraCraftApply', 'Собрать', function()
         if not selected then return end
         local ok, reason = inventory.craft(player(), selected)
-        ImGui.UpdateText(feedback, ok and ('Собран предмет «' .. names[selected] .. '».')
-            or failures[reason] or 'Сборка недоступна.')
+        ImGui.UpdateText(feedback, Crafting.result(selected, ok, reason))
     end)
     ImGui.AddText(menu, '', true, feedback)
     ImGui.AddCallback(info, ImGuiCallback.Render, function()
@@ -62,10 +66,10 @@ function Crafting.init(window, player, inventory)
 
         local text = 'Выбери Самиру или Ёнэ.'
         if recipe then
-            local requirements = 'Нужно: ' .. describe(recipe.row.components)
+            local requirements = 'Нужно: ' .. Crafting.describe(recipe.row.components)
             local cost = ('Доплата: %d мон. У тебя: %d.'):format(recipe.combinePrice, owner:GetNumCoins())
             local available = #recipe.missing == 0 and 'Все компоненты в рюкзаке.'
-                or 'Не хватает: ' .. describe(recipe.missing)
+                or 'Не хватает: ' .. Crafting.describe(recipe.missing)
             local place = Game():GetRoom():GetType() == RoomType.ROOM_SHOP and '' or '\nСобирается в магазине.'
             text = requirements .. '\n' .. cost .. '\n' .. available .. place
         end

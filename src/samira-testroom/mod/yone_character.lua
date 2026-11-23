@@ -592,7 +592,7 @@ local function drawRoomEffects(game, state, player, clock, picture)
     end
 end
 
-function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHudScale, readR, switchTestHero)
+function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHudScale, readR, switchTestHero, isCrafting)
     Display = display
     local state, serial = nil, 0
 
@@ -810,7 +810,7 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
             return
         end
         if not state.floorPending then state.floorRebinding = nil end
-        sampleUpgrades(clicked, player)
+        sampleUpgrades(clicked and not (isCrafting and isCrafting()), player)
 
         if inventory then inventory.update(player, clock) end
         if items and items.update then items.update(player, clock) end
