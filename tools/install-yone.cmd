@@ -404,7 +404,7 @@ function Test-PresentedFrame([string]$Log) {
 if ($LibraryOnly) { return }
 
 $releaseHash = '__YONE_RELEASE_SHA256__'
-$releaseUrl = 'https://github.com/N1kromant/Soul-Fighter-Samira/releases/download/yone-immersion-v24/Soul-Fighter-Samira-Yone-v24-Windows.zip'
+$releaseUrl = 'https://github.com/N1kromant/Soul-Fighter-Samira/releases/download/yone-immersion-v25/Soul-Fighter-Samira-Yone-v25-Windows.zip'
 $launcherHash = '7e4a45d8b9f099ea79e42f86bc24c2a05b35e239d7bc4d597c11b5bceaccfd6a'
 $launcherUrl = 'https://github.com/TeamREPENTOGON/Launcher/releases/download/v0.4.9-beta/REPENTOGONLauncher.zip'
 $cache = Join-Path $env:LOCALAPPDATA 'YoneInstaller'
@@ -453,7 +453,7 @@ try {
     Write-Host "Папка обмена Companion: $($paths.Status)"
     Assert-ModDestination (Join-Path $paths.Mods $modDirectory)
 
-    $releaseZip = Join-Path $cache 'Yone-v24.zip'
+    $releaseZip = Join-Path $cache 'Yone-v25.zip'
     $launcherZip = Join-Path $cache 'REPENTOGONLauncher-0.4.9-beta.zip'
     Get-VerifiedFile $releaseUrl $releaseZip $releaseHash
     Get-VerifiedFile $launcherUrl $launcherZip $launcherHash

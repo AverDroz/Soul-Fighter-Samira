@@ -97,7 +97,10 @@ local room = {
     GetGridSize = function() return 91 end,
     GetGridPosition = function(_, index) return Vector(80 + index % 13 * 40, 80 + index // 13 * 40) end,
     IsPositionInRoom = function(_, p) return p.X > 80 and p.X < 560 and p.Y > 80 and p.Y < 320 end,
-    GetGridCollision = function(_, index) return cramped and 1 or 0 end,
+    GetGridCollision = function(_, index)
+        if type(cramped) == 'table' then return cramped[index] and 0 or 1 end
+        return cramped and 1 or 0
+    end,
     GetGridEntity = function(_, index) if index == 15 then return {} end end,
     GetDoor = function(_, slot) if slot == 0 then return {Position = Vector(80, 200)} end end,
     IsMirrorWorld = function() return mirror end,
@@ -225,7 +228,7 @@ for _, item in ipairs(catalog) do
         if not item.components then basic = basic + 1 end
     end
 end
-assert(table.concat(rngBounds, ',') == table.concat({basic, buyable - 1, buyable - 2, buyable - 3}, ','))
+assert(table.concat(rngBounds, ',') == table.concat({basic, basic - 1, buyable - 2, buyable - 3, buyable - 4, buyable - 5}, ','))
 local firstShop, ids, slots = {}, {}, {[0] = true, [1] = true, [8] = true}
 for _, e in ipairs(roomEntities()) do
     if byId[e.SubType] then
@@ -242,8 +245,9 @@ for _, e in ipairs(roomEntities()) do
         ids[e.SubType], slots[e.ShopItemId] = true, true
     end
 end
-assert(#firstShop == 4)
-assert(not byId[firstShop[1].SubType].components, 'stock did not reserve a basic component')
+assert(#firstShop == 6)
+assert(not byId[firstShop[1].SubType].components and not byId[firstShop[2].SubType].components,
+    'stock did not reserve two basic components')
 
 EID = {}
 shop.render(player)
@@ -275,16 +279,25 @@ firstShop[2].Price = 99
 visit = false
 enter(1)
 update()
-assert(spawnedCount == 4 and firstShop[2].Price == byId[firstShop[2].SubType].price)
+assert(spawnedCount == 6 and firstShop[2].Price == byId[firstShop[2].SubType].price)
 callbacks[4](mod, true)
 update()
-assert(spawnedCount == 4 and not normal.removed and not heart.removed)
+assert(spawnedCount == 6 and not normal.removed and not heart.removed)
 
 enter(2)
 entities, visit, cramped = {}, true, true
 local crampedOffer = fakeVanilla()
 update()
-assert(not crampedOffer.removed and spawnedCount == 4)
+assert(not crampedOffer.removed and spawnedCount == 6)
+
+enter(8)
+entities, cramped = {}, {[20] = true, [48] = true, [66] = true}
+local narrowOffer = fakeVanilla()
+update()
+assert(not narrowOffer.removed and #roomEntities() == 5, 'narrow shop did not use its three free positions')
+enter(8)
+update()
+assert(#roomEntities() == 5, 'narrow shop regenerated its stock on re-entry')
 
 enter(3)
 entities, cramped = {}, false
@@ -302,7 +315,7 @@ local different = 0
 for _, e in ipairs(roomEntities()) do
     if byId[e.SubType] and not ids[e.SubType] then different = different + 1 end
 end
-assert(#roomEntities() == 6 and different > 0 and not secondShop.removed)
+assert(#roomEntities() == 8 and different > 0 and not secondShop.removed)
 
 enter(6)
 entities = {}
@@ -342,7 +355,7 @@ for _, e in ipairs(roomEntities()) do
         assert(item.component and dependencies[item.riotId]); curated[#curated + 1] = e
     end
 end
-assert(#curated == 4 and not vanillaYone.removed and not heartYone.removed)
+assert(#curated == 6 and not vanillaYone.removed and not heartYone.removed)
 runtime.shopEligible = function() return false end
 curated[1].Price = 99
 visit = false
@@ -378,16 +391,16 @@ local single
 for _, e in ipairs(roomEntities()) do if byId[e.SubType] then single = e end end
 assert(#roomEntities() == 3 and byId[single.SubType].riotId == 3031)
 run('samirashop', '')
-assert(#roomEntities() == 6 and single.removed)
+assert(#roomEntities() == 8 and single.removed)
 assert(not unrelated.removed and not foe.removed)
-assert(printed[#printed]:find('4 Samira offers', 1, true))
+assert(printed[#printed]:find('6 Samira offers', 1, true))
 run('yoneitem', '3084')
 for _, e in ipairs(roomEntities()) do if byId[e.SubType] then single = e end end
 assert(#roomEntities() == 3 and byId[single.SubType].riotId == 3084)
 run('yoneitems', '1')
 assert(#roomEntities() == 14 and single.removed)
 run('yoneshop', '')
-assert(#roomEntities() == 6)
+assert(#roomEntities() == 8)
 
 local backpack = {x = 86, width = 147, y = 244, height = 22}
 for _, width in ipairs({480, 640}) do

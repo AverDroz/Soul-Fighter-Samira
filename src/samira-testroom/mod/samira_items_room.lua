@@ -5,7 +5,7 @@ local Description = include('samira_item_description')
 
 local PAGE_SIZE = 12
 local CARDS_PER_PAGE = 3
-local SHOP_BONUS_COUNT = 4
+local SHOP_BONUS_COUNT = 6
 local pickupType = EntityType.ENTITY_PICKUP
 local collectibleVariant = PickupVariant.PICKUP_COLLECTIBLE
 
@@ -129,11 +129,15 @@ local function shopInventory(seed, player, count, reserved)
     if count == 0 then return nil end
     local rng = RNG()
     rng:SetSeed(math.max(1, seed), 35)
-    local selected, basic = {}, {}
-    for index, entry in ipairs(pool) do
-        if not entry.item.components then basic[#basic + 1] = index end
+    local selected = {}
+    for i = 1, (count == SHOP_BONUS_COUNT and 2 or 1) do
+        local basic = {}
+        for index, entry in ipairs(pool) do
+            if not entry.item.components then basic[#basic + 1] = index end
+        end
+        if #basic == 0 then break end
+        selected[i] = table.remove(pool, basic[rng:RandomInt(#basic) + 1])
     end
-    if #basic > 0 then selected[1] = table.remove(pool, basic[rng:RandomInt(#basic) + 1]) end
     for i = #selected + 1, count do
         selected[i] = table.remove(pool, rng:RandomInt(#pool) + 1)
     end
@@ -176,10 +180,11 @@ local function spawn(entriesToSpawn, positions, slots)
     return spawned
 end
 
-local function placePedestals(player, selected, previous, ignored, priced)
+local function placePedestals(player, selected, previous, ignored, priced, allowPartial)
     if not selected then return nil end
     local positions = placement(game:GetRoom(), player, ignored, #selected, #selected == 1)
-    if #positions < #selected then return nil end
+    if #positions == 0 or (not allowPartial and #positions < #selected) then return nil end
+    for i = #selected, #positions + 1, -1 do selected[i] = nil end
     local spawned = spawn(selected, positions, priced and shopSlots(#selected, ignored))
     if not spawned then return nil end
     for _, pickup in ipairs(previous) do pickup:Remove() end
@@ -228,9 +233,9 @@ local function updateShop()
     end
     checkedRoom = key
     if not room:IsFirstVisit() then return end
-    state.stocked = placePedestals(player, shopInventory(room:GetSpawnSeed(), player), {}, {}, true)
+    state.stocked = placePedestals(player, shopInventory(room:GetSpawnSeed(), player), {}, {}, true, true)
     if not state.stocked then
-        Isaac.DebugString('[Samira] Could not place the four bonus offers in this shop.')
+        Isaac.DebugString('[Samira] Could not place component offers in this shop.')
     end
 end
 
