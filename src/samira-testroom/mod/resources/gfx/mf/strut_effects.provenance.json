@@ -1,0 +1,178 @@
+{
+  "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip",
+  "archive_sha256": "602f11876a05c99b310c9e5caa1b21ff19bb9d48cdc10ea6139ae0d5db877e24",
+  "gun2025_effect_definitions": {
+    "path": "data/characters/missfortune/missfortune_multi_skins_skin69_skins_skin70_skins_skin71_skins_skin72_skins_skin73_skins_skin74_skins_skin75.bin",
+    "sha256": "96d063b26fc113ae9ad3824b9c0346e2d5f2865c117a76de088d92a97f7d5ba7"
+  },
+  "conversion": "CDTB TEX to DDS and Pillow to RGBA, alpha crop and resize",
+  "crop_format": "Source pixel bounds with exclusive right and bottom",
+  "pivot_format": "Sprite-local pixels from top-left",
+  "sprites": {
+    "Feather": {
+      "source": {
+        "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_feather01.skins_missfortune_skin69.tex",
+        "sha256": "4e7d09fa392859b70c17230bea5db1ba851f14fb3ca2ea7c6f58699b6c1f70a5"
+      },
+      "effect": "MissFortune_Skin69_W_Max00 (7f0ed6f7)",
+      "emitter": "Ascended_Feathers",
+      "source_texture_size": [
+        128,
+        128
+      ],
+      "crop_bounds": [
+        26,
+        20,
+        102,
+        108
+      ],
+      "sprite_size": [
+        38,
+        44
+      ],
+      "pivot": [
+        19,
+        22
+      ],
+      "runtime_tint_and_peak_alpha": [
+        0.92,
+        0.72,
+        0.4,
+        0.6
+      ],
+      "transform": "Project feather texture as a camera-facing sprite"
+    },
+    "GroundWisp": {
+      "source": {
+        "path": "assets/characters/missfortune/skins/skin69/particles/zoe_skin20_wisps_white_01.skins_missfortune_skin69.tex",
+        "sha256": "9889b0e6a187b1ebfd0cfc55b7e27b6e76f22c4460b089765ca8f1083ef34075"
+      },
+      "effect": "MissFortune_Skin69_W_Max00 (7f0ed6f7)",
+      "emitter": "Trail5",
+      "source_texture_size": [
+        128,
+        64
+      ],
+      "crop_bounds": [
+        0,
+        0,
+        128,
+        64
+      ],
+      "sprite_size": [
+        128,
+        64
+      ],
+      "pivot": [
+        64,
+        32
+      ],
+      "runtime_tint_and_peak_alpha": [
+        0.953,
+        0.717,
+        0.238,
+        0.7
+      ],
+      "transform": "Horizontal source strip. Flatten Y at render time"
+    },
+    "GunTrail": {
+      "source": {
+        "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_trail.skins_missfortune_skin69.tex",
+        "sha256": "8782d2e0ee70ab90a7064c266c8598672502a4d16c75abed453557615a6b54ee"
+      },
+      "effect": "MissFortune_Skin69_W_Buf_RWeapon00 (f6610439), LWeapon00 (ce40f9f3)",
+      "emitter": "Trail1 / Trail2",
+      "source_texture_size": [
+        256,
+        64
+      ],
+      "crop_bounds": [
+        0,
+        0,
+        256,
+        64
+      ],
+      "sprite_size": [
+        128,
+        32
+      ],
+      "pivot": [
+        64,
+        16
+      ],
+      "runtime_tint_and_peak_alpha": [
+        0.932,
+        0.654,
+        0.26,
+        0.6
+      ],
+      "transform": "Horizontal source strip. Flatten Y at render time"
+    },
+    "GunSpark": {
+      "source": {
+        "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin50_ba_flash_sharp_01.skins_missfortune_skin69.tex",
+        "sha256": "f0f0a424afb52d7409ba5e83a4a1da2d6b40260f6c90ddc44dff806bcbfd25b5"
+      },
+      "effect": "MissFortune_Skin69_W_Buf_RWeapon00 (f6610439), LWeapon00 (ce40f9f3)",
+      "emitter": "Basic",
+      "source_texture_size": [
+        128,
+        128
+      ],
+      "crop_bounds": [
+        8,
+        8,
+        124,
+        120
+      ],
+      "sprite_size": [
+        32,
+        32
+      ],
+      "pivot": [
+        16,
+        16
+      ],
+      "runtime_tint_and_peak_alpha": [
+        0.718,
+        0.046,
+        0.0,
+        0.502
+      ],
+      "transform": "Convert additive RGB to straight RGBA"
+    },
+    "Activation": {
+      "source": {
+        "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_base_clone_glow.skins_missfortune_skin69.tex",
+        "sha256": "8ee21b71477ac4ddf1090f51e9a855a90db7392fe88583faa1caf71d307918ce"
+      },
+      "effect": "MissFortune_Skin69_W_Max00 (7f0ed6f7)",
+      "emitter": "Flash_Glow_CameraFace",
+      "source_texture_size": [
+        128,
+        128
+      ],
+      "crop_bounds": [
+        0,
+        0,
+        128,
+        128
+      ],
+      "sprite_size": [
+        48,
+        48
+      ],
+      "pivot": [
+        24,
+        24
+      ],
+      "runtime_tint_and_peak_alpha": [
+        0.864,
+        0.126,
+        0.184,
+        0.6
+      ],
+      "transform": "Place near the torso. Fade in and out over 0.8 seconds"
+    }
+  }
+}

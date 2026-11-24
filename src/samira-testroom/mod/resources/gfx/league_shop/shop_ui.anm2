@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='utf-8'?>
+<AnimatedActor>
+    <Info Version="1" Fps="30" />
+    <Content>
+        <Spritesheets>
+            <Spritesheet Path="shop_ui.png" Id="0" />
+        </Spritesheets>
+        <Layers>
+            <Layer Name="Sprite" Id="0" SpritesheetId="0" />
+        </Layers>
+        <Nulls />
+        <Events />
+    </Content>
+    <Animations DefaultAnimation="Panel">
+        <Animation Name="Panel" FrameNum="1" Loop="false">
+            <RootAnimation>
+                <Frame XPosition="0" YPosition="0" XScale="100" YScale="100" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" Delay="1" />
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XPosition="0" YPosition="0" XScale="100" YScale="100" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" Delay="1" XCrop="0" YCrop="0" Width="320" Height="252" XPivot="160" YPivot="126" />
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations />
+            <Triggers />
+        </Animation>
+        <Animation Name="Coin" FrameNum="1" Loop="false">
+            <RootAnimation>
+                <Frame XPosition="0" YPosition="0" XScale="100" YScale="100" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" Delay="1" />
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XPosition="0" YPosition="0" XScale="100" YScale="100" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" Delay="1" XCrop="0" YCrop="254" Width="16" Height="15" XPivot="8" YPivot="7" />
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations />
+            <Triggers />
+        </Animation>
+        <Animation Name="Shop" FrameNum="1" Loop="false">
+            <RootAnimation>
+                <Frame XPosition="0" YPosition="0" XScale="100" YScale="100" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" Delay="1" />
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XPosition="0" YPosition="0" XScale="100" YScale="100" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" Delay="1" XCrop="18" YCrop="254" Width="18" Height="18" XPivot="9" YPivot="9" />
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations />
+            <Triggers />
+        </Animation>
+    </Animations>
+</AnimatedActor>

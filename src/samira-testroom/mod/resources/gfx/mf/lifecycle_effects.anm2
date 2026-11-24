@@ -1,0 +1,88 @@
+<?xml version='1.0' encoding='utf-8'?>
+<AnimatedActor>
+    <Info Version="1" Fps="30" />
+    <Content>
+        <Spritesheets>
+            <Spritesheet Path="lifecycle_effects.png" Id="0" />
+        </Spritesheets>
+        <Layers>
+            <Layer Name="Particle" Id="0" SpritesheetId="0" />
+        </Layers>
+        <Nulls />
+        <Events />
+    </Content>
+    <Animations DefaultAnimation="DeathRibbon">
+        <Animation Name="DeathRibbon" FrameNum="1" Loop="true">
+            <RootAnimation>
+                <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" />
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" XCrop="0" YCrop="0" Width="21" Height="70" XPivot="10" YPivot="35" />
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations />
+            <Triggers />
+        </Animation>
+        <Animation Name="DeathBand" FrameNum="1" Loop="true">
+            <RootAnimation>
+                <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" />
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" XCrop="23" YCrop="0" Width="20" Height="85" XPivot="10" YPivot="42" />
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations />
+            <Triggers />
+        </Animation>
+        <Animation Name="DeathEmbers" FrameNum="1" Loop="true">
+            <RootAnimation>
+                <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" />
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" XCrop="45" YCrop="0" Width="76" Height="106" XPivot="38" YPivot="53" />
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations />
+            <Triggers />
+        </Animation>
+        <Animation Name="DeathGroundFlash" FrameNum="1" Loop="true">
+            <RootAnimation>
+                <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" />
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" XCrop="123" YCrop="0" Width="54" Height="52" XPivot="27" YPivot="26" />
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations />
+            <Triggers />
+        </Animation>
+        <Animation Name="RespawnMuzzle" FrameNum="1" Loop="true">
+            <RootAnimation>
+                <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" />
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" XCrop="179" YCrop="0" Width="120" Height="105" XPivot="60" YPivot="52" />
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations />
+            <Triggers />
+        </Animation>
+        <Animation Name="RespawnFlash" FrameNum="1" Loop="true">
+            <RootAnimation>
+                <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" />
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" XCrop="301" YCrop="0" Width="124" Height="124" XPivot="62" YPivot="62" />
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations />
+            <Triggers />
+        </Animation>
+    </Animations>
+</AnimatedActor>

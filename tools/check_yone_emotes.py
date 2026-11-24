@@ -44,6 +44,13 @@ def main():
         tick(state, 378, 3, true)
         assert(Emotes.action(state, 378) == nil, 'Interrupting must not rearm a held chord')
 
+        local finite = Emotes.new({{action='recall', duration=3, toggle=true}})
+        tick(finite, 0, 1, true)
+        tick(finite, 1, nil, false)
+        tick(finite, 3, 1, true)
+        action, age = Emotes.action(finite, 3)
+        assert(action == 'recall' and age == 0, 'A finished toggle must restart on the first new press')
+
         state = Emotes.new()
         tick(state, 162, 4, true)
         assert(Emotes.action(state, 162) == 'laugh' and Emotes.blocksPocket(state))

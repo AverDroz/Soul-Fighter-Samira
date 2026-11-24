@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='utf-8'?>
+<AnimatedActor>
+    <Info Version="1" Fps="30" />
+    <Content>
+        <Spritesheets>
+            <Spritesheet Path="projectiles.png" Id="0" />
+        </Spritesheets>
+        <Layers>
+            <Layer Name="Particle" Id="0" SpritesheetId="0" />
+        </Layers>
+        <Nulls />
+        <Events />
+    </Content>
+    <Animations DefaultAnimation="Bullet">
+        <Animation Name="Ring" FrameNum="1" Loop="true">
+            <RootAnimation>
+                <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" />
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" XCrop="0" YCrop="0" Width="170" Height="170" XPivot="85" YPivot="85" />
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations />
+            <Triggers />
+        </Animation>
+        <Animation Name="Bullet" FrameNum="1" Loop="true">
+            <RootAnimation>
+                <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" />
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" XCrop="172" YCrop="0" Width="28" Height="10" XPivot="14" YPivot="5" />
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations />
+            <Triggers />
+        </Animation>
+        <Animation Name="Trail" FrameNum="1" Loop="true">
+            <RootAnimation>
+                <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" />
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" XCrop="202" YCrop="0" Width="53" Height="10" XPivot="26" YPivot="5" />
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations />
+            <Triggers />
+        </Animation>
+        <Animation Name="Rain" FrameNum="1" Loop="true">
+            <RootAnimation>
+                <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" />
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" XCrop="0" YCrop="172" Width="39" Height="7" XPivot="19" YPivot="3" />
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations />
+            <Triggers />
+        </Animation>
+        <Animation Name="Impact" FrameNum="1" Loop="true">
+            <RootAnimation>
+                <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" />
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" XCrop="41" YCrop="172" Width="24" Height="26" XPivot="12" YPivot="13" />
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations />
+            <Triggers />
+        </Animation>
+        <Animation Name="Muzzle" FrameNum="1" Loop="true">
+            <RootAnimation>
+                <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" />
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" XCrop="67" YCrop="172" Width="32" Height="22" XPivot="16" YPivot="11" />
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations />
+            <Triggers />
+        </Animation>
+        <Animation Name="Sparkles" FrameNum="1" Loop="true">
+            <RootAnimation>
+                <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" />
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" XCrop="101" YCrop="172" Width="32" Height="32" XPivot="16" YPivot="16" />
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations />
+            <Triggers />
+        </Animation>
+    </Animations>
+</AnimatedActor>

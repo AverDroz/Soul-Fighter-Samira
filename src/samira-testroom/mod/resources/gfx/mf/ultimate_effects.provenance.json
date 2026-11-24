@@ -1,0 +1,170 @@
+{
+  "archives": {
+    "MVP-T1-Miss-Fortune-Skin69-Abilities.zip": "602f11876a05c99b310c9e5caa1b21ff19bb9d48cdc10ea6139ae0d5db877e24",
+    "PBE MissFortune.wad.client": "ec155cda0e61f3cea58d2fb775746b0143d5c12b9d9da80b60618889f4b4d362"
+  },
+  "missile_effects": {
+    "MissFortuneBulletTime": "285ccd33 -> MissFortune_Skin69_R_mis",
+    "MissFortuneBullets": "285ccd33 -> MissFortune_Skin69_R_mis",
+    "MissFortuneRShotExtra": "5c7810ca -> MissFortune_Skin69_Q_Mis",
+    "MissFortune_Skin69_R_mis/Bullets": "d2d2c9bc -> MissFortune_Skin69_R_MisChild01"
+  },
+  "conversion": "CDTB TEX to DDS and Pillow to RGBA",
+  "crop_format": "Source pixel bounds with exclusive right and bottom",
+  "pivot_format": "Sprite-local pixels from top-left. RCone starts left-center and opens right.",
+  "sprites": {
+    "RCone": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_r_aoe_indicator_projection1.skins_missfortune_skin69.tex",
+          "sha256": "80e99829f2bd2727ddd2bc70ebd43bc805da091a6351b8e7c95a7cafe9c08e24",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        }
+      ],
+      "effect_key": "35f92a49",
+      "emitter": "AOE_Indicator15",
+      "source_texture_size": [
+        512,
+        1024
+      ],
+      "crop_bounds": [
+        0,
+        35,
+        512,
+        929
+      ],
+      "transform": "Rotate clockwise 90 degrees to open toward positive X",
+      "authored_projector_scale_xyz": [
+        420,
+        0,
+        880
+      ],
+      "sprite_size": [
+        894,
+        512
+      ],
+      "pivot": [
+        0,
+        256
+      ]
+    },
+    "RBullet": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_q_bullet01.skins_missfortune_skin69.tex",
+          "sha256": "fd3cc36bfa96ced8cd3d7328eb7c75806500af37e68b9bec9ed3b5bc50aa502e",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        },
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_q_bullet01.skins_missfortune_skin69.scb",
+          "sha256": "ca36190ff3b591e2446857c108c37241e93fa4ee438df480256a04250a7bcbf1",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        }
+      ],
+      "effect_key": "d2d2c9bc",
+      "emitter": "bullets",
+      "source_texture_size": [
+        64,
+        64
+      ],
+      "transform": "Right-facing side projection of the shared R/Q/AA bullet mesh",
+      "sprite_size": [
+        28,
+        10
+      ],
+      "pivot": [
+        14,
+        5
+      ]
+    },
+    "RTrail": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_trail02.skins_missfortune_skin69.tex",
+          "sha256": "e28aa38a0928bc1a1b0973600f1737dbdbe96ba6c07b7e6f8d2e658f88efe1dc",
+          "archive": "PBE MissFortune.wad.client"
+        }
+      ],
+      "effect_key": "d2d2c9bc",
+      "emitter": "ActualTrail",
+      "source_texture_size": [
+        128,
+        64
+      ],
+      "crop_bounds": [
+        0,
+        0,
+        128,
+        64
+      ],
+      "transform": "Use the source horizontal ribbon UV strip",
+      "sprite_size": [
+        128,
+        64
+      ],
+      "pivot": [
+        64,
+        32
+      ]
+    },
+    "RMuzzle": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin40_z_bullet02.skins_missfortune_skin69.tex",
+          "sha256": "92c316af0261f387990cf7f904a629703b8a8835e08c634632b862f059ed1917",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        }
+      ],
+      "effect_key": "eba2d71b",
+      "emitter": "Muzzle_Add_Vert1",
+      "source_texture_size": [
+        128,
+        128
+      ],
+      "crop_bounds": [
+        8,
+        23,
+        128,
+        128
+      ],
+      "sprite_size": [
+        120,
+        105
+      ],
+      "pivot": [
+        60,
+        52
+      ]
+    },
+    "RImpact": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin50_ba_flash_sharp_01.skins_missfortune_skin69.tex",
+          "sha256": "f0f0a424afb52d7409ba5e83a4a1da2d6b40260f6c90ddc44dff806bcbfd25b5",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        }
+      ],
+      "effect_key": "6b7cadd7",
+      "emitter": "Basic3",
+      "source_texture_size": [
+        128,
+        128
+      ],
+      "transform": "Convert additive RGB to straight RGBA",
+      "crop_bounds": [
+        8,
+        8,
+        124,
+        120
+      ],
+      "sprite_size": [
+        116,
+        112
+      ],
+      "pivot": [
+        58,
+        56
+      ]
+    }
+  }
+}

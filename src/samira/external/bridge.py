@@ -23,7 +23,7 @@ def parse(line):
             if not coordinates(value[key]):return None
         if min(value['screen'])<=0 or not isinstance(value['kind'],str):return None
         if not math.isfinite(value['phase']) or not math.isfinite(value['time']):return None
-        if value.get('hero')=='yone':
+        if value.get('hero') in ('yone','mf'):
             frame=value.get('actionFrame',0);badge=value.get('mastery')
             if not math.isfinite(frame) or frame<0:return None
             if badge is not None:
@@ -64,7 +64,7 @@ class Tail:
         # During the engine's blocking room load, hold only the acknowledged HUD.
         # No extrapolation of the actor, particles or new gameplay state.
         timeout=.5
-        if self.latest.get('hero')!='yone':
+        if self.latest.get('hero') not in ('yone','mf'):
             if self.latest.get('presentation',0)>=2:timeout=3
             elif self.latest.get('transition') and self.latest.get('hudVisible'):timeout=2
         if now-self.received>timeout:return None

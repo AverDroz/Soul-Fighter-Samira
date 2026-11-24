@@ -1,0 +1,28 @@
+{
+  "skin_id": 21069,
+  "artwork_owner": "Riot Games",
+  "sources": {
+    "MVP-T1-Miss-Fortune-Skin69-Abilities.zip": "602f11876a05c99b310c9e5caa1b21ff19bb9d48cdc10ea6139ae0d5db877e24",
+    "MissFortune.wad.client (League of Legends PBE)": "ec155cda0e61f3cea58d2fb775746b0143d5c12b9d9da80b60618889f4b4d362",
+    "Global.wad.client (League of Legends PBE)": "6df47a43b52619ce28f3032b50660e85a4f44e26057e8506cce8e8536a3b8042"
+  },
+  "members": {
+    "assets/characters/missfortune/hud/missfortune_circle_69.skins_missfortune_skin69.tex": "3089a9ee6d894a457ce162f47ca954dacbcc6721a29811c10c394cd7debf04b6",
+    "assets/characters/missfortune/hud/icons2d/missfortune_q.dds": "36b2f3f71104677fbbc2a7504e95cf3bef652e2743d6cc98ffe7cb263635e26e",
+    "assets/characters/missfortune/hud/icons2d/missfortune_w.dds": "a38c35cd59e4f185d0faeb975f371a08bed8a2be1d4ad7012c5cfb2efaf0f1ff",
+    "assets/characters/missfortune/hud/icons2d/missfortune_e.dds": "99ec130c67a2fcdca17afcb6659105083994b39508670d83adc8725d93af8ba6",
+    "assets/characters/missfortune/hud/icons2d/missfortune_r.dds": "fb1562634bc29a4d31424fad780e14c09a06258cf5c9e87c9d9f76de603f2355",
+    "assets/perks/styles/precision/conqueror/conqueror.tex": "81d8482346407a9442aaa8ff1544a272796e526f768e9040aed903857b55dcc5",
+    "assets/perks/styles/precision/lethaltempo/lethaltempotemp.tex": "0aa155a68b0e45d8fcc60742f04bd26d4b4f650710e4cc9a861fe2b3a13da94a",
+    "assets/perks/styles/domination/electrocute/electrocute.tex": "b7609b121412f41743841d68270d7e29cf48a450339378335c5c2c5f7a5d927c",
+    "assets/perks/styles/precision/presstheattack/presstheattack.tex": "b562c8fe9661c7a77a112ffe8e6c3b6ff3e2ed3ed83f64e966c3dbf2e50ff33e",
+    "assets/perks/styles/sorcery/arcanecomet/arcanecomet.tex": "a8acb5766b940fc0ec92fe4f0c76b25ff96bdbce8cc6198f47851e90316fc33c",
+    "assets/perks/styles/inspiration/firststrike/firststrike.tex": "06484df3c7ac06474054d13aa03cc795a32c31d61e03a50dd894fdbd0e105fe4"
+  },
+  "outputs": {
+    "src/samira-testroom/mod/resources/gfx/mf/hud_icons.png": "95569fb7094ec314be1d0083c3abe311ff5882a2e25c7c27be743cef27609130",
+    "src/samira-testroom/mod/resources/gfx/mf/hud_icons.anm2": "b1e83bf6abc4025938721d33a7188190bea65bd1559d844200ea8cc67faef88a"
+  },
+  "conversion": "tools/build_miss_fortune_hud.py",
+  "notes": "Portrait from the supplied Skin69 ZIP. Q/W/E/R from the local PBE MissFortune WAD. W is identical in both sources. All rune icons come from the local PBE Global WAD. The atlas preserves the source artwork, downsizing the portrait and rune icons to 64 px."
+}

@@ -1,6 +1,7 @@
 """Isaac-scale Yone effects. All positions and damage marks come from Lua."""
 
 import math
+from pathlib import Path
 
 from samira_vfx import CombatCanvas, direction
 
@@ -12,6 +13,7 @@ IVORY = (.91, .98, 1.)
 SHADE = (.10, .025, .09)
 DURATIONS = {'attack': .22, 'attack2': .22, 'q': .27, 'q3': .47, 'w': .38, 'cricket': .25,
              'e': .36, 'e_return': .42, 'e_echo': .31, 'r': .57, 'shield': .31}
+SOURCE_TEXTURES = ('q_slash', 'q3_wind', 'w_sweep', 'w_shield', 'e_flash', 'e_mark', 'e_timer', 'r_ground')
 
 
 def number(value):
@@ -44,8 +46,13 @@ def countdown_pulse(remaining):
 
 
 class YoneVFX:
-    def __init__(self, ctx):
+    def __init__(self, ctx, assets=None):
         self.canvas = CombatCanvas(ctx)
+        if assets is not None:
+            for name in SOURCE_TEXTURES:
+                path = Path(assets) / f'{name}.png'
+                if path.is_file():
+                    self.canvas.load(name, path)
 
     def close(self):
         canvas = self.canvas
@@ -70,8 +77,14 @@ class YoneVFX:
             if number(remaining) and 0 <= remaining <= 1:
                 self.spirit = spirit
                 self.tether(spirit)
-        if state.get('kind') == 'r' and number(state.get('phase')) and 0 <= state['phase'] < 23 / 40:
-            self.anticipation(state['phase'] / (23 / 40))
+        timing = state.get('yoneTiming')
+        hit_phase = 23 / 40
+        if isinstance(timing, dict) and number(timing.get('hit')) and number(timing.get('length')):
+            if 0 < timing['hit'] <= timing['length']:
+                hit_phase = timing['hit'] / timing['length']
+        phase = state.get('phase')
+        if state.get('kind') == 'r' and number(phase) and 0 <= phase < hit_phase:
+            self.anticipation(phase / hit_phase)
         if self.payload.get('qReady') is True:
             self.gathering_storm()
         if self.payload.get('shield') is True:
@@ -128,6 +141,10 @@ class YoneVFX:
         # Bound each geometry batch to the shared canvas buffer capacity.
         self.canvas.flush()
 
+    def source(self, name, center, size, hue, opacity, face=(1, 0), *, add=False):
+        if name in self.canvas.textures and min(size) > 0 and opacity > 0:
+            self.canvas.sprite(name, center, size, (*hue, opacity), face, add=add)
+
     def sparks(self, center, hue, progress, opacity, seed, count=7, reach=12):
         for i in range(count):
             theta = (i / count + seed * .3819) * math.tau
@@ -157,6 +174,7 @@ class YoneVFX:
         if remaining > 0:
             center = (x, y + 2)
             pulse = countdown_pulse(remaining)
+            self.source('e_timer', center, (34, 14), RUBY, .36 + .25 * pulse, add=True)
             self.canvas.lines(ellipse(center, (16, 6.4)), 1, (.55, .20, .30, .40))
             ring = ellipse(center, (16 * remaining, 6.4 * remaining))
             self.canvas.lines(ring, 3, (.30, .04, .09, .90))
@@ -172,13 +190,17 @@ class YoneVFX:
         halo = [(x, y - 6.5), (x + 6, y), (x, y + 6.5), (x - 6, y)]
         self.canvas.polygon(halo, (*SHADE, .92))
         hue = (1., .84, .55) if lethal else RUBY
-        self.canvas.lines([*halo, halo[0]], 1.8, (*hue, pulse))
-        self.canvas.line((x - 2, y + 2.5), (x + 2, y - 2.5), 1.8, (*ROSE, .95))
+        if 'e_mark' in self.canvas.textures:
+            self.source('e_mark', (x, y), (21, 21), hue, pulse)
+        else:
+            self.canvas.lines([*halo, halo[0]], 1.8, (*hue, pulse))
+            self.canvas.line((x - 2, y + 2.5), (x + 2, y - 2.5), 1.8, (*ROSE, .95))
         if lethal:
             self.canvas.line((x - 4, y - 9), (x + 4, y - 9), 2, (*hue, .98))
 
     def shield(self, center, progress, opacity):
         radii = (17 + progress * 11, 19 + progress * 13)
+        self.source('w_shield', center, tuple(2.5 * radius for radius in radii), ROSE, opacity, add=True)
         for start, end in ((-.96, .97), (2.17, 4.10)):
             arc = ellipse(center, radii, start, end, 12)
             self.ribbon(arc, 5.2, RUBY, opacity * .65)
@@ -253,12 +275,28 @@ class YoneVFX:
     def anticipation(self, progress):
         x, y = self.position
         pulse = .45 + .45 * progress
+        telegraph = self.payload.get('rTelegraph')
+        if isinstance(telegraph, dict):
+            corners = telegraph.get('corners')
+            if isinstance(corners, (tuple, list)) and len(corners) == 4 and all(map(point, corners)):
+                self.canvas.polygon(corners, self.telegraph_color(progress))
+                if 'r_ground' in self.canvas.textures:
+                    self.canvas.polygon(corners, (*ROSE, pulse), 'r_ground',
+                                        [(0, 0), (1, 0), (1, 1), (0, 1)], add=True, brightness=True)
+                else:
+                    self.canvas.lines((*corners, corners[0]), 1.7, (*RUBY, pulse))
         self.ribbon(ellipse((x, y + 1), (12 + 7 * progress, 5 + 3 * progress)),
                     2.5, RUBY, pulse, tapered=False)
         for side, hue in ((-1, WIND), (1, RUBY)):
             a = offset((x, y - 12), self.facing, -10, side * (8 + progress * 6))
             b = offset((x, y - 12), self.facing, 12, side * (8 + progress * 6))
             self.ribbon([a, ((a[0]+b[0])/2, (a[1]+b[1])/2), b], 2, hue, pulse)
+
+    @staticmethod
+    def telegraph_color(progress):
+        near = (*SHADE, .23 + .17 * progress)
+        far = (*RUBY, .07 + .13 * progress)
+        return (near, far, far, near)
 
     def sweep(self, start, face, length, progress, alpha, arc=None):
         # Ease along the swing and keep the arc on the attack side of the actor.
@@ -270,6 +308,13 @@ class YoneVFX:
         else:
             boundary = [offset(origin, face, math.cos(a) * radius, math.sin(a) * radius)
                         for a in (-1.213 + 2.426 * i / 18 for i in range(19))]
+        if 'w_sweep' in self.canvas.textures and length > 0:
+            sector = [origin, *boundary]
+            dx, dy = face
+            uv = [(((px - origin[0]) * dx + (py - origin[1]) * dy) / length,
+                   .5 + (-(px - origin[0]) * dy + (py - origin[1]) * dx) / (1.87 * length))
+                  for px, py in sector]
+            self.canvas.polygon(sector, (*RUBY, alpha * .76), 'w_sweep', uv, add=True)
         # Broad tapered crescent inside the actual cone, with a bright sector
         # that travels from one edge to the other during the fast swing.
         center = min(1., progress * 3.3) * (len(boundary) - 1)
@@ -293,6 +338,8 @@ class YoneVFX:
         origin = start[0], start[1] - 7
         head = min(1., .14 + progress * 2.7)
         tail = max(0., head - .72)
+        self.source('q3_wind', offset(origin, face, length * (tail + head) / 2, 0),
+                    (length * (head - tail), 31), WIND, alpha * .85, face, add=True)
         for side, hue in ((-1, WIND), (1, IVORY)):
             points = []
             for i in range(17):
@@ -313,6 +360,8 @@ class YoneVFX:
 
     def ultimate(self, start, face, length, progress, alpha, half_width):
         origin = start[0], start[1] - 7
+        self.source('r_ground', offset(start, face, length * .5, 0),
+                    (length, half_width * 2), RUBY, alpha * .88, face, add=True)
         core = [offset(origin, face, length * t, 0) for t in (0, .5, 1)]
         for side, hue in ((-1, WIND), (1, RUBY)):
             converge = [offset(origin, face, length * t, side * half_width * (1 - t)) for t in (0, .25, .5, .75, 1)]
@@ -348,6 +397,8 @@ class YoneVFX:
             self.ribbon(points, 4.3, RUBY, alpha * .81)
         head = min(1., progress * 3 + .12)
         tip = offset(origin, face, length * head, 0)
+        self.source('e_flash', tip, (29 if returning else 23, 17), ROSE if returning else RUBY,
+                    alpha * .78, face, add=True)
         for side in (-1, 1):
             streak = [offset(tip, face, -length * .25 * t, side * (2 + 6 * t)) for t in (0, .3, .7, 1)]
             self.ribbon(streak, 3, ROSE if returning else RUBY, alpha * .8)
@@ -357,6 +408,8 @@ class YoneVFX:
     def strike(self, start, face, length, kind, progress, alpha, half_width):
         origin = start[0], start[1] - 8
         if kind == 'q':
+            self.source('q_slash', offset(origin, face, length * .5, 0),
+                        (length, 16), WIND, alpha, face, add=True)
             points = [offset(origin, face, length * t, 0) for t in (0, .25, .5, .75, 1)]
             self.ribbon(points, 3.6, WIND, alpha * .8)
             self.ribbon(points, 1.2, IVORY, alpha)

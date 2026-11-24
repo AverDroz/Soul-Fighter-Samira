@@ -1,0 +1,267 @@
+{
+  "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip",
+  "sha256": "602f11876a05c99b310c9e5caa1b21ff19bb9d48cdc10ea6139ae0d5db877e24",
+  "graph_sha256": "d502b4fb9ee4a66a3da2ca6e5f38a0bd4ce06d24f398346b84141e2f9f352c8c",
+  "clip_group": "f815289c",
+  "clips": [
+    "Dance_In",
+    "Dance"
+  ],
+  "start_frame": 0,
+  "attachment": "C_BUFFBONE_GLB_LAYOUT_LOC",
+  "conversion": "Original TEX and feather SCB with source tint. Particle layout adapted to Isaac.",
+  "sprites": {
+    "DanceLogoGold": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/r_t1logo_1_01.skins_missfortune_skin69.tex",
+          "sha256": "1070f26ffddd69e661cfc74bf436a04dbd3bf558dc1ce9cc643f44e119d78abb"
+        }
+      ],
+      "effect_chain": [
+        "MissFortune_Skin69_Emote_Dance_In",
+        "MissFortune_Skin69_Emote_Dance_InChild02"
+      ],
+      "resource": "2636a78f",
+      "emitter": "Temp_GroundGlow_Constant9",
+      "birth_rgba": [
+        1.0,
+        0.7100023031234741,
+        0.31000229716300964,
+        0.7000076174736023
+      ],
+      "particle_lifetime_seconds": 2.0,
+      "alpha_curve": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.5,
+          1.0
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "sheet_grid": [
+        1,
+        1
+      ],
+      "sprite_size": [
+        112,
+        52
+      ]
+    },
+    "DanceLogoRed": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/r_t1logo_1_02.skins_missfortune_skin69.tex",
+          "sha256": "4ecef97380fdc98d5b0b8d56092a0e31853e7b2a338f4cb8173bee92b202da20"
+        }
+      ],
+      "effect_chain": [
+        "MissFortune_Skin69_Emote_Dance_In",
+        "MissFortune_Skin69_Emote_Dance_InChild02"
+      ],
+      "resource": "2636a78f",
+      "emitter": "Temp_GroundGlow_Constant11",
+      "birth_rgba": [
+        1.0,
+        0.0,
+        0.0,
+        0.20000000298023224
+      ],
+      "particle_lifetime_seconds": 2.0,
+      "alpha_curve": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.5,
+          0.6899977326393127
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "sheet_grid": [
+        1,
+        1
+      ],
+      "sprite_size": [
+        112,
+        52
+      ]
+    },
+    "DanceHalo": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_add_gold.skins_missfortune_skin69.tex",
+          "sha256": "8473bf380121978f3702323c1950b3aefa90cfd76be6d1cf7d3e2e63b9f8f7bb"
+        }
+      ],
+      "effect_chain": [
+        "MissFortune_Skin69_Emote_Dance_In",
+        "MissFortune_Skin69_Emote_Dance_In01"
+      ],
+      "resource": "dcdc0baa",
+      "emitter": "heal_spark",
+      "birth_rgba": null,
+      "particle_lifetime_seconds": 0.6000000238418579,
+      "alpha_curve": null,
+      "sheet_grid": [
+        2,
+        2
+      ],
+      "sprite_size": [
+        37,
+        45
+      ]
+    },
+    "DanceFlash": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/vayne_skin64_sparkle.skins_missfortune_skin69.tex",
+          "sha256": "28323dcb25499bb0762767d308d9237e5067f5993bc47c08789ee5d9dc3e133c"
+        }
+      ],
+      "effect_chain": [
+        "MissFortune_Skin69_Emote_Dance_In",
+        "MissFortune_Skin69_Emote_Dance_InChild04"
+      ],
+      "resource": "2436a469",
+      "emitter": "Flash2",
+      "birth_rgba": [
+        0.9615472555160522,
+        0.6954909563064575,
+        0.34041351079940796,
+        1.0
+      ],
+      "particle_lifetime_seconds": 0.30000001192092896,
+      "alpha_curve": [
+        [
+          0.0,
+          1.0
+        ],
+        [
+          0.25,
+          0.2699931263923645
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "sheet_grid": [
+        1,
+        1
+      ],
+      "sprite_size": [
+        48,
+        48
+      ]
+    },
+    "DanceFeather": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_feather01.skins_missfortune_skin69.tex",
+          "sha256": "4e7d09fa392859b70c17230bea5db1ba851f14fb3ca2ea7c6f58699b6c1f70a5"
+        },
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/seraphine_skin43_q_feathers.skins_missfortune_skin69.scb",
+          "sha256": "bd4bcae4090b1b56621e42f0e4100c4fc90e93c9d63cd9138154f69d7031a074"
+        }
+      ],
+      "effect_chain": [
+        "MissFortune_Skin69_Emote_Dance_In",
+        "MissFortune_Skin69_Emote_Dance_InChild03"
+      ],
+      "resource": "2536a5fc",
+      "emitter": "Ascended_Feathers",
+      "birth_rgba": [
+        0.8110017776489258,
+        0.5273212790489197,
+        0.19497978687286377,
+        0.501960813999176
+      ],
+      "particle_lifetime_seconds": 1.0,
+      "alpha_curve": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.06907498091459274,
+          1.0
+        ],
+        [
+          0.7556194067001343,
+          1.0
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "sheet_grid": [
+        1,
+        1
+      ],
+      "sprite_size": [
+        24,
+        8
+      ]
+    },
+    "DanceSpark": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin31_e_stardust.skins_missfortune_skin69.tex",
+          "sha256": "9dd7908844f46643ca5564f73a02b9885c47ba7609779405cabaa197aceed768"
+        }
+      ],
+      "effect_chain": [
+        "MissFortune_Skin69_Emote_Dance_In",
+        "MissFortune_Skin69_Emote_Dance_InChild02"
+      ],
+      "resource": "2636a78f",
+      "emitter": "lotus_leaves",
+      "birth_rgba": [
+        1.0,
+        0.886274516582489,
+        0.4313725531101227,
+        1.0
+      ],
+      "particle_lifetime_seconds": 0.699999988079071,
+      "alpha_curve": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.10000000149011612,
+          1.0
+        ],
+        [
+          0.5,
+          1.0
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "sheet_grid": [
+        1,
+        1
+      ],
+      "sprite_size": [
+        32,
+        32
+      ]
+    }
+  }
+}

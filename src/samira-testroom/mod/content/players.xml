@@ -5,4 +5,7 @@
     <player name="Yone" skin="character_001_isaac.png" skinColor="-1"
             hp="6" bombs="0" keys="0" coins="0"
             nameimage="yone-name.png" portrait="yone-portrait.png" />
+    <player name="Miss Fortune" skin="character_001_isaac.png" skinColor="-1"
+            hp="6" bombs="0" keys="0" coins="0"
+            nameimage="mf-name.png" portrait="mf-portrait.png" />
 </players>

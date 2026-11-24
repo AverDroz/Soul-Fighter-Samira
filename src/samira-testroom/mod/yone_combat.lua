@@ -1,6 +1,7 @@
 local Combat = {}
 local Artifacts = include('yone_artifacts')
 local Progress = include('yone_progression')
+local Navigation = include('samira_navigation')
 
 -- Timings are Isaac update frames (30 Hz).
 local skills = {
@@ -47,28 +48,8 @@ function Combat.attackable(entity)
     return activeTarget(entity) and (entity.Type == EntityType.ENTITY_FIREPLACE or entity:IsVulnerableEnemy())
 end
 
-function Combat.clearPoint(room, player, point)
-    local radius = math.min(14, math.max(6, player.Size * .6))
-    if not room:IsPositionInRoom(point, radius) then return false end
-    for _, offset in ipairs({Vector.Zero, Vector(radius, 0), Vector(-radius, 0),
-        Vector(0, radius), Vector(0, -radius)}) do
-        local cell = room:GetGridCollision(room:GetGridIndex(point + offset))
-        if cell ~= GridCollisionClass.COLLISION_NONE
-            and (not player:IsFlying() or cell >= GridCollisionClass.COLLISION_WALL) then return false end
-    end
-    return true
-end
-
-local function safeDestination(room, player, start, goal)
-    local delta, lastSafe = goal - start, start
-    local steps = math.max(1, math.ceil(delta:Length() / 4))
-    for step = 1, steps do
-        local nextPosition = start + delta * (step / steps)
-        if not Combat.clearPoint(room, player, nextPosition) then break end
-        lastSafe = nextPosition
-    end
-    return lastSafe
-end
+Combat.clearPoint = Navigation.clearPoint
+local safeDestination = Navigation.safeDestination
 
 -- Q3 may bridge a single pit cell, but never stops in a pit or crosses solids.
 local function q3Destination(room, player, start, goal)
@@ -168,9 +149,7 @@ function Combat.preNpcRender(state, entity, offset, clock)
     end
 end
 
-function Combat.clearSegment(room, player, start, goal)
-    return safeDestination(room, player, start, goal):Distance(goal) < .5
-end
+Combat.clearSegment = Navigation.clearSegment
 
 local function attackDelay(player, speed)
     return math.max(8, math.ceil((player.MaxFireDelay + 1) * 1.5 / speed))

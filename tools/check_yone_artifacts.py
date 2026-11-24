@@ -18,7 +18,8 @@ function include(name)
 end
 local a = assert(load(source))()
 CollectibleType = {COLLECTIBLE_20_20=1, COLLECTIBLE_INNER_EYE=2, COLLECTIBLE_MUTANT_SPIDER=3,
-    COLLECTIBLE_MOMS_KNIFE=4, COLLECTIBLE_EYE_SORE=5, COLLECTIBLE_CRICKETS_BODY=6}
+    COLLECTIBLE_MOMS_KNIFE=4, COLLECTIBLE_EYE_SORE=5, COLLECTIBLE_CRICKETS_BODY=6,
+    COLLECTIBLE_BLOOD_CLOT=7}
 TrinketType = {TRINKET_RAINBOW_WORM=64}
 TearVariant = {BLUE=0, BLOOD=1, TOOTH=2}
 TearFlags = {TEAR_NORMAL=0, TEAR_WIGGLE=1, TEAR_PULSE=2, TEAR_SPIRAL=4, TEAR_SQUARE=8, TEAR_FLAT=16,
@@ -85,7 +86,7 @@ function p:FireTear(pos, vel, canBeEye, ignoreTractor, canEndStreak, owner, mult
     assert(canBeEye and not ignoreTractor and not canEndStreak and owner==self)
     local tore = entity()
     tore.Position, tore.Velocity, tore.TearFlags, tore.Variant = pos,vel,self.flags,self.variant
-    tore.CollisionDamage = self.Damage * multiplier
+    tore.CollisionDamage = (self.shotDamage or self.Damage) * multiplier
     function tore:HasTearFlags(flag) return self.TearFlags & flag == flag end
     function tore:AddTearFlags(flag) self.TearFlags = self.TearFlags | flag end
     function tore:ClearTearFlags(flag) self.TearFlags = self.TearFlags & ~flag end
@@ -122,6 +123,16 @@ local function fire(kind, clock, reach, target, clip)
 end
 local base = fire('attack', 0)
 assert(#base==1 and base[1].removed and not base[1].color, 'ordinary blade left a colored extra tear')
+p.shotDamage = p.Damage + .75
+for _, kind in ipairs({'attack', 'q', 'q3'}) do
+    local shot = fire(kind, 0)[1]
+    assert(shot.removed and not shot.color, 'native damage drift retained an ordinary '..kind..' tear')
+end
+p.owned[CollectibleType.COLLECTIBLE_BLOOD_CLOT] = true
+p.variant = TearVariant.BLOOD
+assert(fire('q', 0)[1]:Exists(), 'native per-eye damage effect was discarded')
+p.shotDamage, p.variant = nil, TearVariant.BLUE
+p.owned[CollectibleType.COLLECTIBLE_BLOOD_CLOT] = nil
 local target = entity()
 target.Position = Vector(25, 1)
 function target:ToNPC() return self end

@@ -1,6 +1,7 @@
 local Crafting = {}
 local catalog = include('samira_items_data')
 local names = {}
+local noRecipes = 'Нет доступных рецептов'
 local failures = {
     player = 'Выбери Самиру или Ёнэ.',
     room = 'Собирать можно в магазине.',
@@ -37,7 +38,7 @@ function Crafting.init(window, player, inventory)
         local recipe = recipes[index + 1]
         selected = recipe and recipe.row.riotId
         ImGui.UpdateText(feedback, '')
-    end, {'Загружаю рецепты'}, 0)
+    end, {noRecipes}, 0)
     ImGui.AddText(menu, '', true, info)
     ImGui.AddButton(menu, 'samiraCraftApply', 'Собрать', function()
         if not selected then return end
@@ -45,7 +46,7 @@ function Crafting.init(window, player, inventory)
         ImGui.UpdateText(feedback, Crafting.result(selected, ok, reason))
     end)
     ImGui.AddText(menu, '', true, feedback)
-    ImGui.AddCallback(info, ImGuiCallback.Render, function()
+    ImGui.AddCallback(combo, ImGuiCallback.Render, function()
         local owner = player()
         recipes = inventory.recipes(owner)
         local options, index = {}, 0
@@ -56,12 +57,12 @@ function Crafting.init(window, player, inventory)
         if index == 0 and #recipes > 0 then index = 1 end
         local recipe = recipes[index]
         selected = recipe and recipe.row.riotId
-        if #options == 0 then options[1] = 'Нет доступных рецептов' end
+        if #options == 0 then options[1] = noRecipes end
         local key = table.concat(options, '\n')
         if key ~= previousOptions then
-            previousOptions = key
-            ImGui.UpdateData(combo, ImGuiData.Options, options)
+            ImGui.UpdateData(combo, ImGuiData.ListValues, options)
             ImGui.UpdateData(combo, ImGuiData.Value, math.max(0, index - 1))
+            previousOptions = key
         end
 
         local text = 'Выбери Самиру или Ёнэ.'

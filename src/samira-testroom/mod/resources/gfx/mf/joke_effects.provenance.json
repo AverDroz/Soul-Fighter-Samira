@@ -1,0 +1,414 @@
+{
+  "archives": {
+    "MVP-T1-Miss-Fortune-Skin69-Abilities.zip": "602f11876a05c99b310c9e5caa1b21ff19bb9d48cdc10ea6139ae0d5db877e24",
+    "PBE MissFortune.wad.client": "ec155cda0e61f3cea58d2fb775746b0143d5c12b9d9da80b60618889f4b4d362"
+  },
+  "graph_sha256": "d502b4fb9ee4a66a3da2ca6e5f38a0bd4ce06d24f398346b84141e2f9f352c8c",
+  "effects_bin_sha256": "96d063b26fc113ae9ad3824b9c0346e2d5f2865c117a76de088d92a97f7d5ba7",
+  "conversion": "Representative sprites decoded from source TEX or projected from source SCB",
+  "sprites": {
+    "JokeIntroFlash": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/ahri_skin88_emote_laugh_exclamation_mark.skins_missfortune_skin69.tex",
+          "sha256": "eaf5eb7eb11462e24f946ab100d990280d29e3016c27dbdcaabfe8f6a9f79dbc",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        }
+      ],
+      "effect_key": "9fdb4c4d",
+      "effect_chain": [
+        "MissFortune_Skin69_Emote_Joke_In"
+      ],
+      "emitter": "Flash5",
+      "events": [
+        {
+          "clip": "Joke_In",
+          "clip_state": "e5575908",
+          "event": "d98bc3f3",
+          "start_frame": 20.0,
+          "end_frame": null,
+          "attachment_bone": "C_BUFFBONE_GLB_LAYOUT_LOC"
+        }
+      ],
+      "particle_lifetime_seconds": 0.15000000596046448,
+      "emitter_delay_seconds": 0.25,
+      "emitter_offset": [
+        91.13934326171875,
+        260.653564453125,
+        0.0
+      ],
+      "emitter_base_color": null,
+      "sheet_grid": [
+        2,
+        1
+      ],
+      "sheet_frame": 0,
+      "source_texture_size": [
+        128,
+        128
+      ],
+      "projection": null,
+      "crop_bounds": [
+        5,
+        33,
+        61,
+        95
+      ],
+      "sprite_size": [
+        48,
+        53
+      ]
+    },
+    "JokeIntroRing": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/cassiopeia_skin38_cirlcle_01.skins_missfortune_skin69.tex",
+          "sha256": "6ce600a5c83b9e3bc60659e2a6f5471d67c7e07557aa3790cfe11ef02871494a",
+          "archive": "PBE MissFortune.wad.client"
+        }
+      ],
+      "effect_key": "9fdb4c4d",
+      "effect_chain": [
+        "MissFortune_Skin69_Emote_Joke_In",
+        "MissFortune_Skin69_Emote_Joke_In01"
+      ],
+      "emitter": "Alaha",
+      "events": [
+        {
+          "clip": "Joke_In",
+          "clip_state": "e5575908",
+          "event": "d98bc3f3",
+          "start_frame": 20.0,
+          "end_frame": null,
+          "attachment_bone": "C_BUFFBONE_GLB_LAYOUT_LOC"
+        }
+      ],
+      "particle_lifetime_seconds": 0.5,
+      "emitter_delay_seconds": null,
+      "emitter_offset": null,
+      "emitter_base_color": [
+        1.0,
+        0.0,
+        0.03999389708042145,
+        0.3000076413154602
+      ],
+      "sheet_grid": [
+        1,
+        1
+      ],
+      "sheet_frame": 0,
+      "source_texture_size": [
+        128,
+        128
+      ],
+      "projection": null,
+      "crop_bounds": [
+        0,
+        0,
+        128,
+        128
+      ],
+      "sprite_size": [
+        84,
+        84
+      ]
+    },
+    "JokeSpamBeam": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/galio_skin47_light.skins_missfortune_skin69.tex",
+          "sha256": "b82800381c88b167d54488e73f392674aa888450cead6a7256116e75a910c24f",
+          "archive": "PBE MissFortune.wad.client"
+        }
+      ],
+      "effect_key": "686039af",
+      "effect_chain": [
+        "MissFortune_Skin69_Emote_Joke_In02",
+        "MissFortune_Skin69_Emote_Joke_InChild04"
+      ],
+      "emitter": "skyBeam5",
+      "events": [
+        {
+          "clip": "Joke_In",
+          "clip_state": "e5575908",
+          "event": "da8bc586",
+          "start_frame": 64.0,
+          "end_frame": null,
+          "attachment_bone": "C_BUFFBONE_GLB_LAYOUT_LOC"
+        },
+        {
+          "clip": "Joke_Spam",
+          "clip_state": "93f45fa2",
+          "event": "da8bc586",
+          "start_frame": 8.0,
+          "end_frame": null,
+          "attachment_bone": "C_BUFFBONE_GLB_LAYOUT_LOC"
+        }
+      ],
+      "particle_lifetime_seconds": 0.699999988079071,
+      "emitter_delay_seconds": null,
+      "emitter_offset": [
+        0.0,
+        1000.0,
+        0.0
+      ],
+      "emitter_base_color": [
+        1.0,
+        1.0,
+        1.0,
+        0.2500038146972656
+      ],
+      "sheet_grid": [
+        1,
+        1
+      ],
+      "sheet_frame": 0,
+      "source_texture_size": [
+        64,
+        128
+      ],
+      "projection": null,
+      "crop_bounds": [
+        0,
+        0,
+        64,
+        128
+      ],
+      "sprite_size": [
+        36,
+        72
+      ]
+    },
+    "JokeSpamGold": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_add_gold.skins_missfortune_skin69.tex",
+          "sha256": "8473bf380121978f3702323c1950b3aefa90cfd76be6d1cf7d3e2e63b9f8f7bb",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        }
+      ],
+      "effect_key": "6760381c",
+      "effect_chain": [
+        "MissFortune_Skin69_Emote_Joke_In03"
+      ],
+      "emitter": "heal_spark",
+      "events": [
+        {
+          "clip": "Joke_In",
+          "clip_state": "e5575908",
+          "event": "db8bc719",
+          "start_frame": 64.0,
+          "end_frame": null,
+          "attachment_bone": "C_BUFFBONE_GLB_LAYOUT_LOC"
+        },
+        {
+          "clip": "Joke_Spam",
+          "clip_state": "93f45fa2",
+          "event": "db8bc719",
+          "start_frame": 8.0,
+          "end_frame": null,
+          "attachment_bone": "C_BUFFBONE_GLB_LAYOUT_LOC"
+        }
+      ],
+      "particle_lifetime_seconds": 0.6000000238418579,
+      "emitter_delay_seconds": null,
+      "emitter_offset": null,
+      "emitter_base_color": null,
+      "sheet_grid": [
+        2,
+        2
+      ],
+      "sheet_frame": 0,
+      "source_texture_size": [
+        128,
+        128
+      ],
+      "projection": null,
+      "crop_bounds": [
+        6,
+        9,
+        43,
+        54
+      ],
+      "sprite_size": [
+        36,
+        44
+      ]
+    },
+    "JokeLoopLogo": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/r_t1logo_1_01.skins_missfortune_skin69.tex",
+          "sha256": "1070f26ffddd69e661cfc74bf436a04dbd3bf558dc1ce9cc643f44e119d78abb",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        }
+      ],
+      "effect_key": "66603689",
+      "effect_chain": [
+        "MissFortune_Skin69_Emote_Joke_In04",
+        "MissFortune_Skin69_Emote_Joke_InChild05"
+      ],
+      "emitter": "Temp_GroundGlow_Constant",
+      "events": [
+        {
+          "clip": "Joke_Loop",
+          "clip_state": "fd5d4579",
+          "event": "18ac98fe",
+          "start_frame": 0,
+          "end_frame": null,
+          "attachment_bone": "C_BUFFBONE_GLB_LAYOUT_LOC"
+        }
+      ],
+      "particle_lifetime_seconds": 2.0,
+      "emitter_delay_seconds": null,
+      "emitter_offset": null,
+      "emitter_base_color": [
+        1.0,
+        0.8500038385391235,
+        0.5600060820579529,
+        0.3000076413154602
+      ],
+      "sheet_grid": [
+        1,
+        1
+      ],
+      "sheet_frame": 0,
+      "source_texture_size": [
+        128,
+        128
+      ],
+      "projection": null,
+      "crop_bounds": [
+        10,
+        42,
+        117,
+        86
+      ],
+      "sprite_size": [
+        107,
+        44
+      ]
+    },
+    "JokeLoopConfetti": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_emote_confettigradient.skins_missfortune_skin69.tex",
+          "sha256": "7f1b2c8c4b65c16709c221890d3f86f134507c11950c2141cc1b8ec6c3450059",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        },
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_emote_confetti.skins_missfortune_skin69.scb",
+          "sha256": "f385d75482ae1c87574742b4323a5a5dec0dffa425cfe46057c079ed87610589",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        }
+      ],
+      "effect_key": "66603689",
+      "effect_chain": [
+        "MissFortune_Skin69_Emote_Joke_In04",
+        "MissFortune_Skin69_Emote_Joke_InChild03"
+      ],
+      "emitter": "petals rain",
+      "events": [
+        {
+          "clip": "Joke_Loop",
+          "clip_state": "fd5d4579",
+          "event": "18ac98fe",
+          "start_frame": 0,
+          "end_frame": null,
+          "attachment_bone": "C_BUFFBONE_GLB_LAYOUT_LOC"
+        }
+      ],
+      "particle_lifetime_seconds": 0.6000000238418579,
+      "emitter_delay_seconds": null,
+      "emitter_offset": [
+        0.0,
+        450.0,
+        0.0
+      ],
+      "emitter_base_color": [
+        1.0,
+        0.21568627655506134,
+        0.21568627655506134,
+        1.0
+      ],
+      "sheet_grid": [
+        1,
+        1
+      ],
+      "sheet_frame": 0,
+      "source_texture_size": [
+        128,
+        128
+      ],
+      "projection": "XZ, looking down onto the confetti mesh",
+      "crop_bounds": [
+        1,
+        1,
+        49,
+        88
+      ],
+      "sprite_size": [
+        13,
+        24
+      ]
+    },
+    "JokeLoopBeam": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/galio_skin47_light.skins_missfortune_skin69.tex",
+          "sha256": "b82800381c88b167d54488e73f392674aa888450cead6a7256116e75a910c24f",
+          "archive": "PBE MissFortune.wad.client"
+        }
+      ],
+      "effect_key": "66603689",
+      "effect_chain": [
+        "MissFortune_Skin69_Emote_Joke_In04",
+        "MissFortune_Skin69_Emote_Joke_InChild03"
+      ],
+      "emitter": "skyBeam3",
+      "events": [
+        {
+          "clip": "Joke_Loop",
+          "clip_state": "fd5d4579",
+          "event": "18ac98fe",
+          "start_frame": 0,
+          "end_frame": null,
+          "attachment_bone": "C_BUFFBONE_GLB_LAYOUT_LOC"
+        }
+      ],
+      "particle_lifetime_seconds": 2.0,
+      "emitter_delay_seconds": null,
+      "emitter_offset": [
+        0.0,
+        1000.0,
+        0.0
+      ],
+      "emitter_base_color": [
+        1.0,
+        1.0,
+        1.0,
+        0.17999541759490967
+      ],
+      "sheet_grid": [
+        1,
+        1
+      ],
+      "sheet_frame": 0,
+      "source_texture_size": [
+        64,
+        128
+      ],
+      "projection": null,
+      "crop_bounds": [
+        0,
+        0,
+        64,
+        128
+      ],
+      "sprite_size": [
+        36,
+        72
+      ]
+    }
+  }
+}

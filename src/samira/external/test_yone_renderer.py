@@ -305,6 +305,28 @@ class YoneRendererTests(unittest.TestCase):
         state['phase'] = .7
         self.assertNotIn('yoneVfx', renderer.draw(state, 0)[1])
 
+    def test_r_source_telegraph_uses_projected_corners_and_hit_timing(self):
+        from run_testroom_renderer import YoneRenderer
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            assets = root / 'vfx'
+            assets.mkdir()
+            Image.new('RGBA', (4, 2), 'white').save(assets / 'r_ground.png')
+            renderer = YoneRenderer(self.ctx, root / 'unavailable-yone.glb')
+        self.addCleanup(renderer.close)
+        corners = [[20, 86], [124, 70], [130, 108], [26, 124]]
+        state = {'kind': 'r', 'phase': .65, 'screen': [160, 160], 'position': [23, 105],
+                 'face': [1, 0], 'clock': 120, 'yoneTiming': {'hit': 7, 'length': 10},
+                 'yone': {'fx': [], 'rTelegraph': {'corners': corners}}}
+        self.assertIn('r_ground', renderer.vfx.canvas.textures)
+        self.assertTrue(renderer.draw(state, 0)[1]['yoneVfx'])
+        self.assertGreater(self.region(110, 80, 120, 90)[:, :, 0].max(), 100)
+        self.assertFalse(self.region(110, 116, 126, 125)[:, :, 3].any())
+        self.fbo.clear(0, 0, 0, 0)
+        state['phase'] = .7
+        self.assertNotIn('yoneVfx', renderer.draw(state, 0)[1])
+        self.assertFalse(self.pixels()[:, :, 3].any())
+
     def test_projected_ultimate_width_and_cricket_rays(self):
         from run_testroom_renderer import YoneRenderer
         renderer = YoneRenderer(self.ctx, Path('unavailable-yone.glb'))

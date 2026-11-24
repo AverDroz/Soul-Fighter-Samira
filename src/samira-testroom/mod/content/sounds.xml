@@ -6,9 +6,123 @@
     <sample weight="1" path="heartsteel_proc_767032564.wav" />
   </sound>
   <sound name="Yone Mastery">
-    <sample weight="1" path="mastery.wav"/>
+    <sample weight="1" path="mastery.wav" />
   </sound>
   <sound name="Yone E Warning">
-    <sample weight="1" path="yone_e_warning.wav"/>
+    <sample weight="1" path="yone_e_warning.wav" />
+  </sound>
+  <sound name="Miss Fortune Attack">
+    <sample weight="1" path="mf_skin69_attack_1.wav" />
+    <sample weight="1" path="mf_skin69_attack_2.wav" />
+    <sample weight="1" path="mf_skin69_attack_3.wav" />
+  </sound>
+  <sound name="Miss Fortune Q">
+    <sample weight="1" path="mf_skin69_q_1.wav" />
+    <sample weight="1" path="mf_skin69_q_2.wav" />
+    <sample weight="1" path="mf_skin69_q_3.wav" />
+  </sound>
+  <sound name="Miss Fortune Q Hit">
+    <sample weight="1" path="mf_skin69_q_hit_1.wav" />
+    <sample weight="1" path="mf_skin69_q_hit_2.wav" />
+    <sample weight="1" path="mf_skin69_q_hit_3.wav" />
+  </sound>
+  <sound name="Miss Fortune Q Voice">
+    <sample weight="1" path="mf_skin69_q_voice_1.wav" />
+    <sample weight="1" path="mf_skin69_q_voice_2.wav" />
+    <sample weight="1" path="mf_skin69_q_voice_3.wav" />
+    <sample weight="1" path="mf_skin69_q_voice_4.wav" />
+  </sound>
+  <sound name="Miss Fortune W">
+    <sample weight="1" path="mf_skin69_w_1.wav" />
+  </sound>
+  <sound name="Miss Fortune E">
+    <sample weight="1" path="mf_skin69_e_1.wav" />
+  </sound>
+  <sound name="Miss Fortune E Rain">
+    <sample weight="1" path="mf_skin69_e_rain_1.wav" />
+    <sample weight="1" path="mf_skin69_e_rain_2.wav" />
+    <sample weight="1" path="mf_skin69_e_rain_3.wav" />
+  </sound>
+  <sound name="Miss Fortune E Voice">
+    <sample weight="1" path="mf_skin69_e_voice_1.wav" />
+    <sample weight="1" path="mf_skin69_e_voice_2.wav" />
+    <sample weight="1" path="mf_skin69_e_voice_3.wav" />
+    <sample weight="1" path="mf_skin69_e_voice_4.wav" />
+  </sound>
+  <sound name="Miss Fortune R">
+    <sample weight="1" path="mf_skin69_r_1.wav" />
+  </sound>
+  <sound name="Miss Fortune R Barrage">
+    <sample weight="1" path="mf_skin69_r_barrage_1.wav" />
+  </sound>
+  <sound name="Miss Fortune R Wave">
+    <sample weight="1" path="mf_skin69_r_wave_1.wav" />
+    <sample weight="1" path="mf_skin69_r_wave_2.wav" />
+    <sample weight="1" path="mf_skin69_r_wave_3.wav" />
+  </sound>
+  <sound name="Miss Fortune R Voice">
+    <sample weight="1" path="mf_skin69_r_voice_1.wav" />
+    <sample weight="1" path="mf_skin69_r_voice_2.wav" />
+  </sound>
+  <sound name="Miss Fortune Dance">
+    <sample weight="1" path="mf_skin69_dance_1.wav" />
+  </sound>
+  <sound name="Miss Fortune Joke">
+    <sample weight="1" path="mf_skin69_joke_1.wav" />
+  </sound>
+  <sound name="Miss Fortune Taunt">
+    <sample weight="1" path="mf_skin69_taunt_1.wav" />
+  </sound>
+  <sound name="Miss Fortune Laugh">
+    <sample weight="1" path="mf_skin69_laugh_1.wav" />
+  </sound>
+  <sound name="Miss Fortune Recall">
+    <sample weight="1" path="mf_skin69_recall_1.wav" />
+  </sound>
+  <sound name="Miss Fortune Homeguard Start">
+    <sample weight="1" path="mf_skin69_homeguard_start_1.wav" />
+  </sound>
+  <sound name="Miss Fortune Homeguard Gun">
+    <sample weight="1" path="mf_skin69_homeguard_gun_1.wav" />
+  </sound>
+  <sound name="Miss Fortune Homeguard Onboard">
+    <sample weight="1" path="mf_skin69_homeguard_onboard_1.wav" />
+  </sound>
+  <sound name="Miss Fortune Homeguard Loop">
+    <sample weight="1" path="mf_skin69_homeguard_loop_1.wav" />
+  </sound>
+  <sound name="Miss Fortune Homeguard Exit">
+    <sample weight="1" path="mf_skin69_homeguard_exit_1.wav" />
+  </sound>
+  <sound name="Miss Fortune Joke Cast">
+    <sample weight="1" path="mf_skin69_joke_cast_1.wav" />
+  </sound>
+  <sound name="Miss Fortune Joke Loop">
+    <sample weight="1" path="mf_skin69_joke_loop_1.wav" />
+  </sound>
+  <sound name="Miss Fortune Death">
+    <sample weight="1" path="mf_skin69_death_1.wav" />
+  </sound>
+  <sound name="Miss Fortune Death Voice">
+    <sample weight="1" path="mf_skin69_death_voice_1.wav" />
+    <sample weight="1" path="mf_skin69_death_voice_2.wav" />
+    <sample weight="1" path="mf_skin69_death_voice_3.wav" />
+    <sample weight="1" path="mf_skin69_death_voice_4.wav" />
+  </sound>
+  <sound name="Miss Fortune Respawn">
+    <sample weight="1" path="mf_skin69_respawn_1.wav" />
+  </sound>
+  <sound name="Miss Fortune Respawn Voice">
+    <sample weight="1" path="mf_skin69_respawn_voice_1.wav" />
+    <sample weight="1" path="mf_skin69_respawn_voice_2.wav" />
+    <sample weight="1" path="mf_skin69_respawn_voice_3.wav" />
+    <sample weight="1" path="mf_skin69_respawn_voice_4.wav" />
+    <sample weight="1" path="mf_skin69_respawn_voice_5.wav" />
+    <sample weight="1" path="mf_skin69_respawn_voice_6.wav" />
+    <sample weight="1" path="mf_skin69_respawn_voice_7.wav" />
+    <sample weight="1" path="mf_skin69_respawn_voice_8.wav" />
+  </sound>
+  <sound name="Miss Fortune Taunt Intro">
+    <sample weight="1" path="mf_skin69_taunt_intro_1.wav" />
   </sound>
 </sounds>

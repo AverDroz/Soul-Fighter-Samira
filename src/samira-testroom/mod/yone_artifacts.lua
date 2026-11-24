@@ -5,6 +5,7 @@ local Weapons = include('yone_artifact_weapons')
 local rainbowMotion = {'TEAR_WIGGLE', 'TEAR_PULSE', 'TEAR_SPIRAL', 'TEAR_SQUARE', 'TEAR_FLAT'}
 local impactFlags = {'TEAR_SLOW', 'TEAR_POISON', 'TEAR_FREEZE', 'TEAR_CHARM', 'TEAR_CONFUSION',
     'TEAR_PERMANENT_CONFUSION', 'TEAR_BURN', 'TEAR_FEAR', 'TEAR_GODS_FLESH', 'TEAR_MIDAS'}
+local eyeDamageItems = {'COLLECTIBLE_BLOOD_CLOT', 'COLLECTIBLE_CHEMICAL_PEEL', 'COLLECTIBLE_STYE'}
 local volleyBudget, volleyLimit = .28, 6
 local steelHue, azakanaHue = {.42, .83, 1}, {1, .26, .48}
 
@@ -108,9 +109,16 @@ local function addRainbowMotion(player, tear, clock)
 end
 
 local function modifiedTear(player, tear, damageScale)
-    return tear.TearFlags ~= TearFlags.TEAR_NORMAL
-        or tear.Variant ~= TearVariant.BLUE and tear.Variant ~= TearVariant.BLOOD
-        or math.abs(tear.CollisionDamage - player.Damage * damageScale) > .01
+    if tear.TearFlags ~= TearFlags.TEAR_NORMAL
+        or tear.Variant ~= TearVariant.BLUE and tear.Variant ~= TearVariant.BLOOD then return true end
+    -- Plain tears can differ from the blade's damage snapshot. Only an active
+    -- per-eye damage effect can make that difference special by itself.
+    if tear.CollisionDamage > player.Damage * damageScale + .01 then
+        for _, name in ipairs(eyeDamageItems) do
+            if owns(player, name) then return true end
+        end
+    end
+    return false
 end
 
 local function applyImpactFlags(player, target, tear)

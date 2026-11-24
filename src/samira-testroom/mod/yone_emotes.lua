@@ -11,8 +11,8 @@ local expressions = {
 local masteryDuration = 120
 local masteryCooldown = 180
 
-function Emotes.new()
-    return {held = {}, pocketSuppressed = false}
+function Emotes.new(availableExpressions)
+    return {held = {}, pocketSuppressed = false, expressions = availableExpressions or expressions}
 end
 
 local function startMastery(state, frame)
@@ -23,7 +23,7 @@ end
 
 function Emotes.trigger(state, frame, action)
     if action == 'mastery' then return startMastery(state, frame) end
-    for _, expression in ipairs(expressions) do
+    for _, expression in ipairs(state.expressions) do
         if expression.action == action then
             state.expression, state.expressionAt = expression, frame
             return true
@@ -40,7 +40,7 @@ function Emotes.update(state, frame, keys, interrupted)
     end
     state.lastFrame = frame
     local selected
-    for index = 1, #expressions do
+    for index = 1, #state.expressions do
         local down = keys.ctrl == true and keys[index] == true
         if down and not state.held[index] and not selected then selected = index end
         state.held[index] = down
@@ -52,11 +52,16 @@ function Emotes.update(state, frame, keys, interrupted)
     -- Retain ownership of 4 until it releases, even if Ctrl releases first.
     state.pocketSuppressed = keys[4] == true and (keys.ctrl == true or state.pocketSuppressed)
 
-    if interrupted then Emotes.cancel(state, false) end
+    local active = state.expression
+    if interrupted or active and active.duration and frame - state.expressionAt >= active.duration then
+        Emotes.cancel(state, false)
+    end
     -- Still consume disabled chords so holding a key through pause cannot start an emote.
     if keys.disabled then return end
     if selected and not interrupted then
-        state.expression, state.expressionAt = expressions[selected], frame
+        local expression = state.expressions[selected]
+        if expression.toggle and state.expression == expression then Emotes.cancel(state, false)
+        else state.expression, state.expressionAt = expression, frame end
     end
     if masteryPressed then startMastery(state, frame) end
 end

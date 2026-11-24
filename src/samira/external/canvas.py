@@ -13,13 +13,14 @@ in vec2 texcoord;in vec4 ink;uniform sampler2D image;uniform int brightnessAlpha
 void main(){vec4 v=texture(image,texcoord);if(brightnessAlpha==1)v.a*=max(v.r,max(v.g,v.b));color=v*ink;}'''
 
 class Canvas:
-    def __init__(self,ctx,root):
+    def __init__(self,ctx,root,*,font=True):
         import moderngl
         self.ctx=ctx;self.root=Path(root);self.program=ctx.program(vertex_shader=VS,fragment_shader=FS)
         self.buffer=ctx.buffer(reserve=2**20,dynamic=True)
         self.vao=ctx.vertex_array(self.program,[(self.buffer,'2f 2f 4f','position','uv','tint')])
         self.textures={};self.vertices=[];self.batch=None;self.draw_calls=0
         self.add('white',Image.new('RGBA',(1,1),'white'))
+        if not font:return
         # Rasterize glyphs once at 48px, not at Isaac's small internal resolution.
         fonts=Path(os.environ.get('WINDIR','C:/Windows'))/'Fonts'
         font=ImageFont.truetype(str(fonts/'arialbd.ttf'),48)
@@ -43,6 +44,11 @@ class Canvas:
             d.text((x+3,y+3+baseline),ch,font=face,fill='white',anchor='ls')
             self.glyphs[ch]=(x,y,face.getlength(ch))
         self.add('font',atlas)
+
+    def close(self):
+        for texture in self.textures.values():texture.release()
+        self.textures.clear()
+        self.vao.release();self.buffer.release();self.program.release()
 
     def add(self,name,image):
         import moderngl

@@ -1,0 +1,165 @@
+{
+  "archives": {
+    "MVP-T1-Miss-Fortune-Skin69-Abilities.zip": "602f11876a05c99b310c9e5caa1b21ff19bb9d48cdc10ea6139ae0d5db877e24",
+    "PBE MissFortune.wad.client": "ec155cda0e61f3cea58d2fb775746b0143d5c12b9d9da80b60618889f4b4d362"
+  },
+  "graph_sha256": "d502b4fb9ee4a66a3da2ca6e5f38a0bd4ce06d24f398346b84141e2f9f352c8c",
+  "effects_bin_sha256": "96d063b26fc113ae9ad3824b9c0346e2d5f2865c117a76de088d92a97f7d5ba7",
+  "clip_state": "986d8fe5",
+  "conversion": "Representative source TEX and projected SCB; placement adapted to Isaac.",
+  "sprites": {
+    "TauntRing": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_e_trail.skins_missfortune_skin69.tex",
+          "sha256": "d6f03ecd1bb38a5cd422cdbe9a02ec28cdefc0bec3867d052fd64d7974cdf32d",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        },
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_tf_goldcard_hit_geo.skins_missfortune_skin69.scb",
+          "sha256": "24a494f79753419bcfead5836e7dced78796e3064794d564a070c6a6a5bc522f",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        }
+      ],
+      "effect_key": "829b3a37",
+      "effect_chain": [
+        "MissFortune_Skin69_Emote_Taunt_In"
+      ],
+      "emitter": "Arctic_Bands",
+      "event": {
+        "event": "d98bc3f3",
+        "start_frame": 0,
+        "attachment": [
+          "96b05e9e"
+        ]
+      },
+      "sprite_size": [
+        48,
+        49
+      ],
+      "particle_lifetime_seconds": 1.2999999523162842,
+      "birth_rgba": null,
+      "sheet_grid": [
+        1,
+        1
+      ],
+      "projection": "XZ"
+    },
+    "TauntFeather": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_feather01.skins_missfortune_skin69.tex",
+          "sha256": "4e7d09fa392859b70c17230bea5db1ba851f14fb3ca2ea7c6f58699b6c1f70a5",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        },
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/seraphine_skin43_q_feathers.skins_missfortune_skin69.scb",
+          "sha256": "bd4bcae4090b1b56621e42f0e4100c4fc90e93c9d63cd9138154f69d7031a074",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        }
+      ],
+      "effect_key": "829b3a37",
+      "effect_chain": [
+        "MissFortune_Skin69_Emote_Taunt_In"
+      ],
+      "emitter": "Ascended_Feathers",
+      "event": {
+        "event": "d98bc3f3",
+        "start_frame": 0,
+        "attachment": [
+          "96b05e9e"
+        ]
+      },
+      "sprite_size": [
+        24,
+        8
+      ],
+      "particle_lifetime_seconds": 1.0,
+      "birth_rgba": [
+        0.9799954295158386,
+        0.5400015115737915,
+        0.17000076174736023,
+        0.800000011920929
+      ],
+      "sheet_grid": [
+        1,
+        1
+      ],
+      "projection": "XZ"
+    },
+    "TauntArrow": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_emote_meshes.skins_missfortune_skin69.tex",
+          "sha256": "439bd46de13659d0a6d9b6e17a5cbe978800d82aeb88b25d527f34597953adee",
+          "archive": "PBE MissFortune.wad.client"
+        },
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_emote_arrow.skins_missfortune_skin69.scb",
+          "sha256": "98ce60b5241db7346cd521877b5e254ff1f50cb946b10d0793cd42bd75589c69",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        }
+      ],
+      "effect_key": "6160fbc7",
+      "effect_chain": [
+        "MissFortune_Skin69_Emote_Taunt_Shoot"
+      ],
+      "emitter": "Arctic_Arrow",
+      "event": {
+        "event": "8a3730df",
+        "start_frame": 15.0,
+        "attachment": [
+          "31395e98"
+        ]
+      },
+      "sprite_size": [
+        5,
+        24
+      ],
+      "particle_lifetime_seconds": 0.30000001192092896,
+      "birth_rgba": null,
+      "sheet_grid": [
+        1,
+        1
+      ],
+      "projection": "XZ"
+    },
+    "TauntBlast": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/braum_skin42_046r_aoe_decal_side.skins_missfortune_skin69.tex",
+          "sha256": "22cbf469a4d35fa9092d98178918b8e246519030fcdd4472bd6c76d380b58b23",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        }
+      ],
+      "effect_key": "72a3a55f",
+      "effect_chain": [
+        "MissFortune_Skin69_Emote_Taunt_In01"
+      ],
+      "emitter": "blast",
+      "event": {
+        "event": "da8bc586",
+        "start_frame": 70.0,
+        "attachment": [
+          "96b05e9e"
+        ]
+      },
+      "sprite_size": [
+        54,
+        52
+      ],
+      "particle_lifetime_seconds": 1.0,
+      "birth_rgba": [
+        0.7600061297416687,
+        0.6399939060211182,
+        0.5000076293945312,
+        0.4000000059604645
+      ],
+      "sheet_grid": [
+        2,
+        2
+      ],
+      "projection": null
+    }
+  }
+}

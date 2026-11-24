@@ -1,0 +1,86 @@
+{
+  "archives": {
+    "League-Summoners-Rift-Shopkeepers.zip": "7c7219f884cb5a259b725791d2fa3b3f9f0d7821fcc07dcc0ac2e7f53ab3c02d",
+    "League-Item-Shop-Visuals.zip": "b049999dded41eb0bb84a51781d089acd4dc00e6b1ab91d368913dec3a0f285c",
+    "herostudio.zip": "7d284f7a03d77447f4f17a0c874a296bab625412ae3c0e556e450fdbe6abb166"
+  },
+  "shopkeepers": {
+    "south": {
+      "skin": "data/characters/sru_storekeepersouth/skins/skin0.bin",
+      "mesh": "assets/characters/sru_storekeepersouth/skins/base/sru_storekeepersouth.skn",
+      "skeleton": "assets/characters/sru_storekeepersouth/skins/base/sru_storekeepersouth.skl",
+      "texture": "png/assets/characters/sru_storekeepersouth/skins/base/sru_storekeepersouth_tx_cm.png",
+      "animation": "assets/characters/sru_storekeepersouth/skins/base/animations/sru_storekeeper_idle_normal1.anm",
+      "frame_count": 75,
+      "duration_ticks": 225,
+      "yaw_degrees": 0,
+      "frame_size": [
+        96,
+        96
+      ],
+      "ground_pivot": [
+        48,
+        92
+      ]
+    },
+    "north": {
+      "skin": "data/characters/sru_storekeepernorth/skins/skin0.bin",
+      "mesh": "assets/characters/sru_storekeepernorth/skins/base/sru_storekeepernorth.skn",
+      "skeleton": "assets/characters/sru_storekeepernorth/skins/base/sru_storekeepernorth.skl",
+      "texture": "png/assets/characters/sru_storekeepernorth/skins/base/sru_storekeepernorth_tx_cm.png",
+      "animation": "assets/characters/sru_storekeepernorth/skins/base/animations/sru_storekeepernorth_idle1.anm",
+      "frame_count": 61,
+      "duration_ticks": 181,
+      "yaw_degrees": 0,
+      "frame_size": [
+        96,
+        96
+      ],
+      "ground_pivot": [
+        48,
+        92
+      ]
+    }
+  },
+  "UI": {
+    "Panel": {
+      "source": "png/assets/ux/itemshop/itemshop_texture_atlas.png",
+      "crop": [
+        110,
+        340,
+        770,
+        860
+      ],
+      "size": [
+        320,
+        252
+      ]
+    },
+    "Coin": {
+      "source": "png/assets/ux/itemshop/itemshop_texture_atlas.png",
+      "crop": [
+        1,
+        1,
+        35,
+        31
+      ],
+      "size": [
+        16,
+        15
+      ]
+    },
+    "Shop": {
+      "source": "png/assets/ux/lol/itemshophud-default.png",
+      "crop": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "size": [
+        18,
+        18
+      ]
+    }
+  }
+}

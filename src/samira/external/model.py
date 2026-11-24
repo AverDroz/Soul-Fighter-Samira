@@ -1,5 +1,5 @@
 """Original GLB animation sampling. Only bone matrices cross to the GPU each frame."""
-import io,json,struct
+import io,json,math,struct
 from pathlib import Path
 import numpy as np
 from PIL import Image
@@ -146,7 +146,7 @@ class Model:
         if root is None:return pose
         # Yone's sequenced source clips carry different start offsets. Use one
         # neutral translation so switching clips cannot move the floor anchor.
-        reference=self.idle_clip if self.hero=='yone' else kind
+        reference=self.idle_clip if self.hero in ('yone','mf') else kind
         if reference not in self.motion_anchors:self.motion_anchors[reference]=self.sample(reference,0)[0][root].copy()
         t=pose[0].copy();delta=self.motion_anchors[reference][[0,2]]-t[root,[0,2]]
         t[root,[0,2]]+=delta
@@ -170,7 +170,7 @@ class Model:
                 result.update({name:False for name in event.get('mHideSubmeshList',[])})
         return result
 
-    def matrices(self,pose,kind=None,phase=0):
+    def world_matrices(self,pose,kind=None,phase=0,world_offsets=None):
         t,r,s=pose;x,y,z,w=r.T;n=len(t);local=np.zeros((n,4,4),dtype='f4')
         local[:,0,0]=1-2*(y*y+z*z);local[:,0,1]=2*(x*y-z*w);local[:,0,2]=2*(x*z+y*w)
         local[:,1,0]=2*(x*y+z*w);local[:,1,1]=1-2*(x*x+z*z);local[:,1,2]=2*(y*z-x*w)
@@ -194,7 +194,20 @@ class Model:
                 visiting.remove(i);resolved.add(i)
                 return world[i]
             for i in self.order:resolve(i)
-        return world[self.joints]@self.ibm
+        if world_offsets:
+            inherited = {}
+            for i in self.order:
+                parent_offset = inherited.get(self.parents.get(i))
+                offset = world_offsets.get(i)
+                if parent_offset is not None:
+                    offset = parent_offset if offset is None else parent_offset + offset
+                if offset is not None:
+                    world[i, :3, 3] += offset
+                    inherited[i] = offset
+        return world
+
+    def matrices(self,pose,kind=None,phase=0,world_offsets=None):
+        return self.world_matrices(pose,kind,phase,world_offsets)[self.joints]@self.ibm
 
 VERTEX='''#version 330
 in vec3 position; in vec2 uv; in vec4 joints; in vec4 weights;
@@ -215,6 +228,7 @@ FRAGMENT='''#version 330
 uniform sampler2D material; uniform sampler2D bannerMask;
 uniform float hurt; uniform bool stasis; uniform bool isBanner; uniform float effectTime;uniform float opacity;uniform bool ghost;uniform int form;
 uniform vec2 redScroll; uniform vec2 blueScroll; uniform float alphaBias;
+uniform float warmGlow;
 in vec2 texcoord; out vec4 color;
 void main(){
  vec4 tex=texture(material,texcoord); float alpha=tex.a;
@@ -226,6 +240,10 @@ void main(){
  if(alpha<.01)discard;
  float light=dot(tex.rgb,vec3(.3,.6,.1));
  vec3 c=mix(tex.rgb,vec3(1,.055,.025)*(.5+.5*light),hurt*.82);
+ if(warmGlow>0.0){
+   vec3 glow=mix(vec3(.58,.075,.035),vec3(1.0,.72,.29),light);
+   c=mix(c,glow,.34*warmGlow*(1.0-hurt));
+ }
  if(form==1)c=mix(c,vec3(.53,.44,.46)*(.42+light*1.1),.78);
  if(form==2){
    float shimmer=.90+.10*sin(texcoord.y*45.0-effectTime*9.0);
@@ -260,7 +278,7 @@ class GPURenderer:
     def __init__(self,ctx,model):
         import moderngl
         self.ctx=ctx;self.model=model;self.program=ctx.program(vertex_shader=VERTEX,fragment_shader=FRAGMENT)
-        self.view=YONE_VIEW if model.hero=='yone' else SAMIRA_VIEW
+        self.view=YONE_VIEW if model.hero in ('yone','mf') else SAMIRA_VIEW
         self.outline_program=ctx.program(vertex_shader=OUTLINE_VERTEX,fragment_shader=OUTLINE_FRAGMENT)
         self.outline_quad=ctx.vertex_array(self.outline_program,[])
         self.actor_surface=None;self.actor_texture=None;self.actor_depth=None
@@ -281,6 +299,7 @@ class GPURenderer:
         self.parts.sort(key=lambda part:part[0]!='Body')
         self.matrix_upload=np.repeat(np.eye(4,dtype='f4')[None,:,:],MAX_BONES,axis=0)
         self.sockets={}
+        self.node_sockets={}
         if model.hero=='samira':
             for label,name in [('base','Sword'),('tip','Sword_Tip2'),('pistol','Pistol_Muzzle'),('revolver','Revolver_Muzzle')]:
                 joint=next(i for i,node in enumerate(model.joints) if model.nodes[node].get('name')==name)
@@ -299,7 +318,7 @@ class GPURenderer:
                          self.vbo,self.bones,self.program,self.actor_surface,self.actor_texture,self.actor_depth):
             if resource is not None:resource.release()
 
-    def draw(self,kind,phase,origin,viewport,yaw,dt,ultimate=False,clip=None,banner=None,hurt=False,ghost=None,stasis=False,locomotion=None,body_scale=(1,1),flying=False,outline=True,anchor_root=False,snap_facing=False,*,form=None,opacity=1,detached=False,blend_seconds=.10):
+    def draw(self,kind,phase,origin,viewport,yaw,dt,ultimate=False,clip=None,banner=None,hurt=False,ghost=None,stasis=False,locomotion=None,body_scale=(1,1),flying=False,outline=True,anchor_root=False,snap_facing=False,*,form=None,opacity=1,detached=False,blend_seconds=.10,warm_glow=0,world_offsets=None,model_transform=None):
         import moderngl
         action=clip if clip in self.model.tracks else kind
         frozen=stasis and ghost is None and not detached and self.pose is not None
@@ -329,7 +348,10 @@ class GPURenderer:
             if not frozen:self.yaw+=delta*(1-np.exp(-dt/.075))
             draw_yaw=self.yaw
         else:draw_yaw=ghost[1]
-        actual=self.model.matrices(pose,rig_action,rig_phase);self.matrix_upload[:len(actual)]=actual
+        world=self.model.world_matrices(pose,rig_action,rig_phase,world_offsets)
+        actual=world[self.model.joints]@self.model.ibm
+        if model_transform is not None:actual=model_transform@actual
+        self.matrix_upload[:len(actual)]=actual
         self.bones.bind_to_uniform_block(0)
         self.bones.write(self.matrix_upload.transpose(0,2,1).tobytes())
         scale=self.model.pixel_scale
@@ -341,6 +363,7 @@ class GPURenderer:
         p['stasis'].value=stasis
         p['opacity'].value=ghost[2] if ghost else 1 if outline else opacity
         p['ghost'].value=ghost is not None;p['form'].value=FORMS[form]
+        p['warmGlow'].value=warm_glow
         p['effectTime'].value=self.effect_time;self.textures[self.model.banner_mask].use(1)
         target=None
         if outline and ghost is None:
@@ -373,13 +396,24 @@ class GPURenderer:
             self.actor_texture.use(0);self.outline_program['actor'].value=0
             pixels=min(2.2,max(1.,size[1]/viewport[1]*.65))
             self.outline_program['radius'].value=(pixels/size[0],pixels/size[1])
-            self.outline_program['edgeColor'].value=OUTLINE_COLORS[form]
+            edge_color=OUTLINE_COLORS[form]
+            if warm_glow:
+                edge_color=tuple(base+(warm-base)*warm_glow for base,warm in zip(edge_color,(.88,.29,.05)))
+            self.outline_program['edgeColor'].value=edge_color
             self.outline_program['actorOpacity'].value=opacity
             self.outline_quad.render(vertices=3)
             self.ctx.blend_func=(moderngl.SRC_ALPHA,moderngl.ONE_MINUS_SRC_ALPHA,moderngl.ONE,moderngl.ONE_MINUS_SRC_ALPHA)
             self.ctx.enable(moderngl.DEPTH_TEST)
         points={}
-        for name,(joint,rest) in self.sockets.items():
-            v=actual[joint]@rest;x=v[0]*np.cos(draw_yaw)+v[2]*np.sin(draw_yaw);z=-v[0]*np.sin(draw_yaw)+v[2]*np.cos(draw_yaw)
-            points[name]=(origin[0]+float(x)*scale*body_scale[0],origin[1]-float(v[1]*self.view[0]-z*self.view[1])*scale*body_scale[1])
+        if self.sockets or self.node_sockets:
+            c,s=math.cos(draw_yaw),math.sin(draw_yaw)
+            def project(v):
+                x,z=v[0]*c+v[2]*s,-v[0]*s+v[2]*c
+                return (origin[0]+float(x)*scale*body_scale[0],
+                        origin[1]-float(v[1]*self.view[0]-z*self.view[1])*scale*body_scale[1])
+            for name,(joint,rest) in self.sockets.items():
+                points[name]=project(actual[joint]@rest)
+            for name,(node,local_point) in self.node_sockets.items():
+                point=world[node]@local_point
+                points[name]=project(model_transform@point if model_transform is not None else point)
         return points

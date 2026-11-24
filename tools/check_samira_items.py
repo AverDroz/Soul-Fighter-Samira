@@ -78,6 +78,10 @@ lua.globals().yoneCombatSource = (MOD / 'yone_combat.lua').read_text(encoding='u
 lua.globals().yoneArtifactsSource = (MOD / 'yone_artifacts.lua').read_text(encoding='utf8')
 lua.globals().yoneWeaponArtifactsSource = (MOD / 'yone_artifact_weapons.lua').read_text(encoding='utf8')
 lua.globals().yoneProgressSource = (MOD / 'yone_progression.lua').read_text(encoding='utf8')
+lua.globals().missFortuneRunesSource = (MOD / 'miss_fortune_runes.lua').read_text(encoding='utf8')
+lua.globals().missFortuneCombatSource = (MOD / 'miss_fortune_combat.lua').read_text(encoding='utf8')
+lua.globals().nativeWeaponsSource = (MOD / 'samira_weapons.lua').read_text(encoding='utf8')
+lua.globals().navigationSource = (MOD / 'samira_navigation.lua').read_text(encoding='utf8')
 lua.execute(r'''
 local catalog = assert(load(catalogSource))()
 local byRiot = {}
@@ -88,6 +92,8 @@ function include(name)
     if name == 'samira_items_data' then return catalog end
     if name == 'yone_artifact_weapons' then return assert(load(yoneWeaponArtifactsSource))() end
     if name == 'yone_progression' then return Progress end
+    if name == 'miss_fortune_runes' then return assert(load(missFortuneRunesSource))() end
+    if name == 'samira_navigation' then return assert(load(navigationSource))() end
     assert(name == 'yone_artifacts')
     return assert(load(yoneArtifactsSource))()
 end
@@ -188,7 +194,25 @@ local yone = {
         table.insert(yoneRoutes.refunds, {fraction=fraction, tick=tick})
     end,
 }
-Items.init(host, game, function() return p end, nil, yone)
+local corsairRoutes = {accepted = {}, refunds = {}, reductions = 0}
+local corsair = {
+    is = function(player) return player and player.corsair == true end,
+    damageMultiplier = function(ctx, target)
+        return not ctx.corsairSecondary and target.corsairMarked and 1.25 or 1
+    end,
+    acceptHit = function(ctx, tick, target, amount)
+        corsairRoutes.accepted[#corsairRoutes.accepted + 1] = {ctx = ctx, tick = tick, target = target, amount = amount}
+    end,
+    exportCooldowns = function() return {q = 23, r = 140} end,
+    reset = function(keep) assert(keep); corsairRoutes.reset = true end,
+    restoreCooldowns = function(saved, frame) corsairRoutes.restored = {saved = saved, frame = frame} end,
+    reduceCooldowns = function(fraction)
+        assert(fraction == .15)
+        corsairRoutes.reductions = corsairRoutes.reductions + 1
+    end,
+    reduceUltimateCooldown = function(fraction) corsairRoutes.refunds[#corsairRoutes.refunds + 1] = fraction end,
+}
+Items.init(host, game, function() return p end, nil, yone, corsair)
 local reductions = 0
 local accepted = {}
 Items.bindCombat({
@@ -843,6 +867,214 @@ fire('MC_POST_GAME_STARTED',true)
 Items.restoreCombatCooldowns()
 assert(yoneRoutes.restored.saved.q == 17, 'Yone cooldowns must restore')
 
+start({1043, 6675, 3085, 3094})
+p.corsair = true
+random = .9
+assert(Items.combatStats(p) == .75, 'Corsair uses normal crit chance')
+assert(Items.shopEligible(p, 3085) and Items.shopEligible(p, 3094))
+local samiraKillHits = 0
+Items.bindKills({acceptHit = function() samiraKillHits = samiraKillHits + 1 end})
+local primary, bounce, blocked, boltTarget = enemy(920, 100), enemy(921, 30), enemy(922, 102), enemy(923, 120)
+primary.corsairMarked, blocked.corsairMarked, blocked.cancelled = true, true, true
+p.Position = Vector(120, 0)
+step()
+local native, corsairQ = nativeOutput('q', EntityType.ENTITY_TEAR, 925)
+assert(not blocked:TakeDamage(8, 0, EntityRef(native), 0))
+assert(not corsairQ.accepted and #corsairRoutes.accepted == 0)
+assert(primary:TakeDamage(8, 0, EntityRef(native), 0))
+close(primary.hits[1], 8 * 1.5 * 1.25 + .3 + 1.2, 'Corsair Q primary on-hit, passive and Firecannon')
+local confirmation = corsairRoutes.accepted[1]
+assert(confirmation.target == primary and confirmation.ctx == corsairQ and confirmation.tick == clock)
+close(confirmation.amount, primary.hits[1], 'Corsair accepted amount')
+corsairQ.corsairSecondary = true
+bounce.corsairMarked = true
+close(hit(bounce, nil, corsairQ, 8), 8 * 1.5 + .3, 'MF ricochet applies Recurve but cannot spend Firecannon again')
+corsairQ.corsairSecondary = nil
+step()
+assert(bolts == 2 and #boltTarget.hits == 1 and #bounce.hits == 1, 'Hurricane originates from native primary only')
+assert(corsairRoutes.reductions == 1 and #accepted == 0 and samiraKillHits == 0)
+Items.bindKills(nil)
+
+start({3031, 6696})
+p.corsair = true
+random = .9
+local waveTarget, slainByWave = enemy(930), enemy(931)
+local wave = Items.newAttack(p, 'r', clock)
+assert(not wave.crit and not Items.newAttack(p, 'w', clock).crit)
+close(hit(waveTarget, nil, wave, 8), 8 * 1.2, 'Corsair Axiom R damage')
+random = 0
+Items.rerollCrit(wave)
+assert(wave.crit and wave.accepted)
+close(hit(waveTarget, nil, wave, 8), 8 * 1.2 * (1.45 + .30 * .45), 'MF R crit plus scaled Infinity Edge')
+slainByWave.HitPoints = 1
+hit(slainByWave, nil, wave, 8)
+fire('MC_POST_NPC_DEATH', slainByWave)
+assert(#corsairRoutes.refunds == 1 and corsairRoutes.refunds[1] == .03, 'Corsair Axiom counts a death once')
+clock = 100
+fire('MC_POST_GLOWING_HOURGLASS_SAVE', 2)
+fire('MC_POST_GLOWING_HOURGLASS_LOAD', 2)
+Items.applyCooldownCheckpoint(clock)
+assert(corsairRoutes.reset and corsairRoutes.restored.saved.r == 140 and corsairRoutes.restored.frame == 100)
+fire('MC_PRE_GAME_EXIT', true)
+assert(save.combatCooldowns.q == 23 and save.combatCooldowns.r == 140)
+corsairRoutes.restored = nil
+fire('MC_POST_GAME_STARTED', true)
+Items.restoreCombatCooldowns()
+assert(corsairRoutes.restored.saved.q == 23)
+
+do
+    start({})
+    p.corsair = true
+    local credited = 0
+    corsair.recordTakedown = function(player, frame)
+        assert(player == p and frame == clock)
+        credited = credited + 1
+    end
+    for i=1,2 do
+        local victim=enemy(935+i)
+        victim.HitPoints, victim.deathBeforePost = 1, i == 1
+        hit(victim,'aa',nil,4)
+        fire('MC_POST_NPC_DEATH',victim)
+        assert(credited==i,'each credited kill must be seen once in either native callback order')
+    end
+    local unrelated=enemy(938)
+    unrelated:TakeDamage(20000,0,EntityRef(nil),0)
+    assert(credited==2,'a death without an accepted Miss Fortune hit gives no credit')
+    corsair.recordTakedown=nil
+end
+
+local Runes = include('miss_fortune_runes')
+local seenRunes = {}
+for seed = 0, 200 do
+    local left, right = Runes.restore(), Runes.restore()
+    assert(Runes.choose(left, 'random', seed) and Runes.choose(right, 'random', seed))
+    assert(left.rune == right.rune)
+    seenRunes[left.rune] = true
+end
+for _, choice in ipairs(Runes.choices) do assert(choice.id == 'random' or seenRunes[choice.id]) end
+
+start({})
+p.corsair = true
+Items.startMissFortuneRunes()
+assert(Items.chooseMissFortuneRune('press_the_attack'))
+assert(not Items.chooseMissFortuneRune('conqueror'))
+local runeFoe, otherRuneFoe = enemy(940), enemy(941)
+local runeShot, runeVolley = nativeOutput('q', EntityType.ENTITY_TEAR, 942)
+runeFoe.cancelled = true
+assert(not runeFoe:TakeDamage(8, 0, EntityRef(runeShot), 0))
+assert(Runes.runeStatus(Items.missFortuneRunes(), clock).stacks == 0)
+runeFoe.cancelled = false
+assert(runeFoe:TakeDamage(8, 0, EntityRef(runeShot), 0))
+assert(runeFoe:TakeDamage(8, 0, EntityRef(runeShot), 0))
+runeVolley.corsairSecondary = true
+hit(otherRuneFoe, nil, runeVolley, 8)
+runeVolley.corsairSecondary = nil
+assert(Runes.runeStatus(Items.missFortuneRunes(), clock).stacks == 1)
+hit(otherRuneFoe, 'attack', nil, 8)
+hit(runeFoe, 'attack', nil, 8)
+assert(Runes.runeStatus(Items.missFortuneRunes(), clock).stacks == 1)
+hit(runeFoe, 'attack', nil, 8)
+hit(runeFoe, 'attack', nil, 8)
+step()
+close(runeFoe.hits[#runeFoe.hits], p.Damage * .5, 'Press the Attack bonus')
+close(hit(otherRuneFoe, 'e', nil, 8), 8 * 1.08, 'Press the Attack buff')
+step(150)
+close(hit(otherRuneFoe, 'e', nil, 8), 8, 'Press the Attack buff expires')
+
+start({})
+p.corsair = true
+Items.startMissFortuneRunes()
+assert(Items.chooseMissFortuneRune('arcane_comet'))
+runeFoe, otherRuneFoe = enemy(943, 6), enemy(944, 46)
+local distant = enemy(945, 90)
+hit(runeFoe, 'attack', nil, 8)
+assert(Runes.runeStatus(Items.missFortuneRunes(), clock).ready)
+hit(runeFoe, 'e', nil, 8)
+assert(not Runes.runeStatus(Items.missFortuneRunes(), clock).ready)
+step(11)
+assert(#otherRuneFoe.hits == 0)
+step()
+close(runeFoe.hits[#runeFoe.hits], p.Damage * .45, 'Comet primary damage')
+close(otherRuneFoe.hits[1], p.Damage * .45, 'Comet hits nearby enemies')
+assert(#distant.hits == 0)
+fire('MC_PRE_GAME_EXIT', true)
+assert(save.missFortuneRunes.rune == 'arcane_comet' and save.missFortuneRunes.cometRemaining == 228)
+clock = 100
+fire('MC_POST_GAME_STARTED', true)
+Items.startMissFortuneRunes()
+assert(Runes.runeStatus(Items.missFortuneRunes(), clock).remaining == 228)
+
+start({})
+p.corsair = true
+Items.startMissFortuneRunes()
+assert(Items.chooseMissFortuneRune('lethal_tempo'))
+runeFoe = enemy(946)
+hit(runeFoe, 'e', nil, 8)
+close(Items.missFortuneRuneAttackSpeed(clock), 1, 'Lethal Tempo excludes E')
+hit(runeFoe, 'attack', nil, 8)
+close(Items.missFortuneRuneAttackSpeed(clock), 1.04, 'Lethal Tempo stack')
+enter(2)
+close(Items.missFortuneRuneAttackSpeed(clock), 1, 'Lethal Tempo resets on room change')
+
+start({})
+p.corsair = true
+Items.startMissFortuneRunes()
+assert(Items.chooseMissFortuneRune('conqueror'))
+runeFoe = enemy(946)
+local rainCast = Items.newAttack(p, 'e', clock)
+close(hit(runeFoe, nil, rainCast, 8), 8, 'Conqueror bonus starts after first hit')
+close(hit(runeFoe, nil, rainCast, 8), 8 * 1.02, 'Conqueror applies to direct ability damage')
+assert(Runes.runeStatus(Items.missFortuneRunes(), clock).stacks == 1)
+
+start({})
+p.corsair = true
+Items.startMissFortuneRunes()
+assert(Items.chooseMissFortuneRune('electrocute'))
+runeFoe = enemy(946)
+hit(runeFoe, 'attack', nil, 8)
+hit(runeFoe, 'attack', nil, 8)
+hit(runeFoe, 'q', nil, 8)
+assert(Runes.runeStatus(Items.missFortuneRunes(), clock).ready)
+hit(runeFoe, 'e', nil, 8)
+assert(not Runes.runeStatus(Items.missFortuneRunes(), clock).ready)
+step()
+close(runeFoe.hits[#runeFoe.hits], p.Damage * .45, 'Electrocute requires different attack kinds')
+
+start({})
+p.corsair = true
+Items.startMissFortuneRunes()
+assert(Items.chooseMissFortuneRune('first_strike'))
+runeFoe = enemy(947)
+runeFoe.cancelled = true
+hit(runeFoe, 'attack', nil, 100)
+assert(Runes.runeStatus(Items.missFortuneRunes(), clock).ready and p.coins == 0)
+runeFoe.cancelled = false
+assert(p:TakeDamage(1, 0, EntityRef(runeFoe), 0))
+assert(not Runes.runeStatus(Items.missFortuneRunes(), clock).ready)
+close(hit(runeFoe, 'attack', nil, 100), 100, 'Receiving damage first consumes readiness')
+step(450)
+close(hit(runeFoe, 'attack', nil, 25), 27, 'First Strike boosts the opener')
+assert(Runes.runeStatus(Items.missFortuneRunes(), clock).active and p.coins == 1)
+fire('MC_PRE_GAME_EXIT', true)
+assert(save.missFortuneRunes.firstStrikeActive == 90 and save.missFortuneRunes.firstStrikeRemaining == 450)
+clock = 100
+fire('MC_POST_GAME_STARTED', true)
+Items.startMissFortuneRunes()
+step()
+assert(Runes.runeStatus(Items.missFortuneRunes(), clock).active)
+close(hit(runeFoe, 'e', nil, 100), 108, 'First Strike boosts subsequent damage')
+assert(p.coins == 3)
+assert(p:TakeDamage(1, 0, EntityRef(runeFoe), 0))
+close(hit(runeFoe, 'attack', nil, 100), 108, 'Damage taken does not stop active First Strike')
+assert(p.coins == 3)
+step(90)
+close(hit(runeFoe, 'q', nil, 100), 100, 'First Strike active window ends before cooldown')
+step(450)
+runeFoe.HitPoints = 1
+hit(runeFoe, 'q', nil, 100)
+assert(p.coins == 3 and Runes.runeStatus(Items.missFortuneRunes(), clock).active,
+    'The opening hit still activates First Strike when its bonus is all overkill')
+
 -- Components share timers with their upgrades, and their bonuses apply only
 -- to accepted direct hits. Repeated hits in one action must not multiply on-hit.
 start({1043})
@@ -949,6 +1181,374 @@ start({})
 p.yone = true
 Items.startYoneProgress(true)
 assert(Items.yoneProgress().rune == 'conqueror', 'legacy continue did not get a usable rune')
+
+-- Run Dr. Fetus through the real native adapter, item damage callbacks and Miss Fortune combat.
+do
+    start({})
+    p.corsair = true
+    ButtonAction = setmetatable({}, {__index = nameKey})
+    InputHook = {GET_ACTION_VALUE = 0}
+    WeaponType = {WEAPON_BOMBS = 5}
+    function vec.__div(a, n) return Vector(a.X / n, a.Y / n) end
+    function vec:Rotated(degrees)
+        local r = math.rad(degrees)
+        return Vector(self.X * math.cos(r) - self.Y * math.sin(r), self.X * math.sin(r) + self.Y * math.cos(r))
+    end
+    local combat = assert(load(missFortuneCombatSource))()
+    local weapons = assert(load(nativeWeaponsSource))()
+    local state = combat.new(clock)
+    corsair.damageMultiplier = function(ctx, target, tick, split)
+        return combat.damageMultiplier(state, ctx, target, tick, split)
+    end
+    corsair.acceptHit = function(ctx, tick, target, amount, baseDamage, shot)
+        combat.acceptHit(state, ctx, tick, target, amount, p, game:GetRoom(), Items, baseDamage, shot)
+    end
+    local weapon = {fired = 0}
+    function p:GetWeapon(slot) assert(slot == 1); return weapon end
+    function weapon:GetWeaponType() return WeaponType.WEAPON_BOMBS end
+    function weapon:GetMaxCharge() return 0 end
+    function weapon:GetCharge() return 0 end
+    function weapon:GetNumFired() return self.fired end
+    function weapon:GetMainEntity() return nil end
+    local nativeCallbacks, volleys = {}, {}
+    weapons.init({AddCallback = function(_, name, cb) nativeCallbacks[name] = cb end}, game, function() return p end,
+        Items, function(kind, _, ctx) volleys[#volleys + 1] = {kind = kind, ctx = ctx} end)
+    Items.bindWeapons(weapons)
+    local aim = Vector(100, 100)
+    local function beginDoubleUp()
+        assert(combat.cast(state, 'q', p, aim, clock, game:GetRoom(), Items, weapons))
+        for _=1,24 do
+            step()
+            weapons.update(p, clock, nil, true)
+            nativeCallbacks.MC_PRE_PLAYER_UPDATE(nil, p)
+            if weapons.input(p, InputHook.GET_ACTION_VALUE, ButtonAction.ACTION_SHOOTRIGHT) > 0 then return end
+            nativeCallbacks.MC_POST_PLAYER_UPDATE(nil, p)
+        end
+        error('Double Up did not reach the native release frame')
+    end
+    beginDoubleUp()
+    local bomb = entity(250, EntityType.ENTITY_BOMB)
+    bomb.SpawnerEntity, bomb.Velocity, bomb.SpriteScale = p, Vector(9, 0), Vector(1, 1)
+    function bomb:SetColor(color) self.tint = color end
+    nativeCallbacks.MC_POST_FIRE_BOMB(nil, bomb)
+    weapon.fired = weapon.fired + 1
+    nativeCallbacks.MC_POST_TRIGGER_WEAPON_FIRED(nil, Vector(1, 0), 1, p, weapon)
+    nativeCallbacks.MC_POST_PLAYER_UPDATE(nil, p)
+    close(bomb.Velocity.X, 9 / math.sqrt(2), 'Q bomb aims at the locked diagonal')
+    close(bomb.Velocity.Y, bomb.Velocity.X, 'Q bomb preserves its native travel speed')
+    assert(#volleys == 1 and volleys[1].kind == 'q' and bomb.tint)
+
+    step(45)
+    local primary, splash, bounce = enemy(251, 60, 60), enemy(252, 73, 73), enemy(253, 120, 120)
+    local ordinary = entity(254, EntityType.ENTITY_BOMB)
+    ordinary.SpawnerEntity = p
+    local explosion, baseDamage = DamageFlag.DAMAGE_EXPLOSION, 11
+    assert(primary:TakeDamage(baseDamage, explosion, EntityRef(ordinary), 0))
+    close(primary.hits[1], baseDamage, 'ordinary player bomb receives no Q or Love Tap')
+    assert(combat.loveTapTarget(state) == nil and #state.pendingBounce == 0)
+    assert(primary:TakeDamage(baseDamage, explosion, EntityRef(bomb), 0))
+    assert(splash:TakeDamage(baseDamage, explosion, EntityRef(bomb), 0))
+    close(primary.hits[2], baseDamage * 1.5 * 1.35, 'Q explosion receives Love Tap on the first target')
+    close(splash.hits[1], baseDamage * 1.5, 'Q explosion modifies splash damage once per target')
+    assert(#state.pendingBounce == 1 and combat.loveTapTarget(state) == primary)
+    local bombBeam = entity(255, EntityType.ENTITY_LASER)
+    bombBeam.Parent, bombBeam.SpawnerEntity, bombBeam.SpriteScale = bomb, p, Vector(1, 1)
+    function bombBeam:SetColor(color) self.tint = color end
+    function bombBeam:ToLaser() return self end
+    function bombBeam:IsCircleLaser() return false end
+    nativeCallbacks.MC_POST_LASER_INIT(nil, bombBeam)
+    bombBeam.Parent = nil
+    assert(primary:TakeDamage(baseDamage, DamageFlag.DAMAGE_LASER, EntityRef(p), 0, EntityRef(bombBeam)))
+    close(primary.hits[3], baseDamage * 1.5, 'a detached child beam still receives the bomb Q damage')
+    assert(#state.pendingBounce == 1 and combat.loveTapTarget(state) == primary,
+        'the derived laser shares the bomb hit limits and does not duplicate its ricochet')
+    for _ = 1, 5 do
+        step()
+        combat.update(state, p, clock, game:GetRoom(), Items)
+    end
+    assert(#bounce.hits == 1 and #splash.hits == 1 and #state.pendingBounce == 0)
+    close(bounce.hits[1], baseDamage * 1.5 * 1.35, 'one ricochet to the untouched enemy')
+    assert(combat.loveTapTarget(state) == bounce and #volleys == 1)
+
+    for _, moving in ipairs({true, false}) do
+        list, state, volleys = {}, combat.new(clock), {}
+        weapons.reset()
+        beginDoubleUp()
+        local turnedBomb = entity(278, EntityType.ENTITY_BOMB)
+        turnedBomb.SpawnerEntity, turnedBomb.Velocity, turnedBomb.SpriteScale = p, Vector(9, 0), Vector(1, 1)
+        function turnedBomb:SetColor(color) self.tint = color end
+        nativeCallbacks.MC_POST_FIRE_BOMB(nil, turnedBomb)
+        weapon.fired = weapon.fired + 1
+        nativeCallbacks.MC_POST_TRIGGER_WEAPON_FIRED(nil, Vector(1, 0), 1, p, weapon)
+        nativeCallbacks.MC_POST_PLAYER_UPDATE(nil, p)
+        turnedBomb.Velocity = moving and Vector(0, -9) or Vector(0, 0)
+        local impact = enemy(279, 60, 60)
+        local actualDirection = enemy(280, 60, 20)
+        local originDirection = enemy(281, 120, 120)
+        assert(impact:TakeDamage(baseDamage, DamageFlag.DAMAGE_EXPLOSION, EntityRef(turnedBomb), 0))
+        for _ = 1, 5 do
+            step()
+            combat.update(state, p, clock, game:GetRoom(), Items)
+        end
+        assert(#actualDirection.hits == (moving and 1 or 0)
+            and #originDirection.hits == (moving and 0 or 1),
+            'Q bomb ricochet follows its velocity, falling back to the origin when stationary')
+        assert(#volleys == 1 and #state.pendingBounce == 0)
+    end
+
+    local blocked = {CheckLine = function() return false end}
+    -- The native damage callback reports the player as Source and the beam or
+    -- knife hitbox as ExtraSource. The ricochet must carry the weapon's status.
+    TearFlags.TEAR_NORMAL, TearFlags.TEAR_POISON = 0, 2
+    WeaponType.WEAPON_TECH_X, WeaponType.WEAPON_KNIFE, WeaponType.WEAPON_LASER = 6, 7, 8
+    WeaponType.WEAPON_BRIMSTONE = 9
+    KnifeVariant = {MOMS_KNIFE=0}
+    for _, case in ipairs({
+        {kind=EntityType.ENTITY_LASER, weapon=WeaponType.WEAPON_TECH_X, label='Tech X'},
+        {kind=EntityType.ENTITY_LASER, weapon=WeaponType.WEAPON_LASER, heading=-90, label='Technology'},
+        {kind=EntityType.ENTITY_LASER, weapon=WeaponType.WEAPON_BRIMSTONE, heading=-90, label='Brimstone'},
+        {kind=EntityType.ENTITY_KNIFE, weapon=WeaponType.WEAPON_KNIFE, label='knife'},
+        {kind=EntityType.ENTITY_KNIFE, weapon=WeaponType.WEAPON_KNIFE, heading=-90, label='returning Mom’s Knife'},
+        {kind=EntityType.ENTITY_KNIFE, weapon=WeaponType.WEAPON_KNIFE, heading=-90, child=true, label='returning Mom’s Knife hitbox'},
+    }) do
+        list, state, volleys = {}, combat.new(clock), {}
+        weapons.reset()
+        local carrier = entity(260, case.kind)
+        carrier.SpawnerEntity, carrier.TearFlags = p, TearFlags.TEAR_POISON
+        carrier.SpriteScale, carrier.Velocity, carrier.Rotation = Vector(1, 1), Vector(9, 0), 0
+        function carrier:SetColor(color) self.tint = color end
+        function carrier:GetColor() return {R=1, G=1, B=1, A=1, RO=0, GO=0, BO=0} end
+        function carrier:ToKnife() return self end
+        function carrier:ToLaser() return self end
+        function carrier:IsCircleLaser() return case.kind == EntityType.ENTITY_LASER and not case.heading end
+        local actualSource = carrier
+        if case.kind == EntityType.ENTITY_KNIFE then
+            if case.heading then
+                carrier.Variant = KnifeVariant.MOMS_KNIFE
+                function carrier:GetKnifeVelocity() return -5 end
+            end
+            if not case.heading or case.child then
+                actualSource = entity(261, case.kind)
+                actualSource.SpawnerEntity = p
+                function actualSource:ToKnife() return self end
+                function actualSource:GetHitboxParentKnife() return carrier end
+            end
+        end
+        function weapon:GetWeaponType() return case.weapon end
+        function weapon:GetMainEntity() return carrier end
+        beginDoubleUp()
+        if case.weapon == WeaponType.WEAPON_BRIMSTONE then
+            nativeCallbacks.MC_POST_FIRE_BRIMSTONE(nil, carrier)
+        elseif case.kind == EntityType.ENTITY_LASER then
+            nativeCallbacks.MC_POST_FIRE_TECH_X_LASER(nil, carrier)
+        end
+        weapon.fired = weapon.fired + 1
+        nativeCallbacks.MC_POST_TRIGGER_WEAPON_FIRED(nil, Vector(1, 0), 1, p, weapon)
+        nativeCallbacks.MC_POST_PLAYER_UPDATE(nil, p)
+        if case.heading then carrier.AngleDegrees, carrier.Rotation = case.heading, case.heading+180 end
+        function weapon:GetWeaponType() return WeaponType.WEAPON_BOMBS end
+        function weapon:GetMainEntity() return nil end
+        primary = enemy(262, 60, 60)
+        bounce = case.heading and enemy(263, 60, 20) or enemy(263, 120, 120)
+        local wrongDirection = case.child and enemy(264, 120, 120)
+        function bounce:ToNPC() return self end
+        function bounce:ApplyTearflagEffects(_, flags, owner, damage)
+            assert(owner == p and damage == baseDamage)
+            self.appliedFlags = flags
+        end
+        local attackFlag = case.kind == EntityType.ENTITY_LASER and DamageFlag.DAMAGE_LASER or 0
+        assert(primary:TakeDamage(baseDamage, attackFlag, EntityRef(p), 0, EntityRef(actualSource)))
+        assert(#volleys == 1 and #state.pendingBounce == 1 and not bounce.appliedFlags)
+        if case.weapon == WeaponType.WEAPON_BRIMSTONE then
+            assert(carrier.tint and carrier.TearFlags == TearFlags.TEAR_POISON)
+            close(primary.hits[1], baseDamage * 1.5 * 1.35, 'Brimstone Q applies Love Tap on the first beam hit')
+            step()
+            assert(primary:TakeDamage(baseDamage, attackFlag, EntityRef(p), 0, EntityRef(actualSource)))
+            close(primary.hits[2], baseDamage * 1.5, 'later Brimstone ticks retain Q damage')
+            assert(#state.pendingBounce == 1, 'later Brimstone ticks cannot queue another ricochet')
+        end
+        for _ = 1, 5 do
+            step()
+            combat.update(state, p, clock, case.kind == EntityType.ENTITY_LASER and blocked or game:GetRoom(), Items)
+        end
+        assert(#bounce.hits == 1, case.label .. ' Q should ricochet once')
+        assert(not wrongDirection or #wrongDirection.hits == 0, case.label .. ' Q follows the parent knife direction')
+        assert(bounce.appliedFlags == TearFlags.TEAR_POISON, case.label .. ' Q ricochet lost poison')
+    end
+
+    WeaponType.WEAPON_TEARS = 1
+    local function newNativeTear(seed, variant, flags, velocity)
+        local projectile = entity(seed, EntityType.ENTITY_TEAR)
+        projectile.SpawnerEntity = p
+        projectile.Variant, projectile.TearFlags = variant, flags
+        projectile.Velocity, projectile.Scale = velocity, 1
+        function projectile:ToTear() return self end
+        function projectile:SetColor(color) self.tint = color end
+        return projectile
+    end
+    for _, spectral in ipairs({false, true}) do
+        list, state, volleys = {}, combat.new(clock), {}
+        weapons.reset()
+        function weapon:GetWeaponType() return WeaponType.WEAPON_TEARS end
+        beginDoubleUp()
+        local flags = spectral and TearFlags.TEAR_SPECTRAL or TearFlags.TEAR_NORMAL
+        local tear = newNativeTear(265, TearVariant.BLUE, flags, Vector(9, 0))
+        nativeCallbacks.MC_POST_FIRE_TEAR(nil, tear)
+        weapon.fired = weapon.fired + 1
+        nativeCallbacks.MC_POST_TRIGGER_WEAPON_FIRED(nil, Vector(1, 0), 1, p, weapon)
+        nativeCallbacks.MC_POST_PLAYER_UPDATE(nil, p)
+        function weapon:GetWeaponType() return spectral and WeaponType.WEAPON_KNIFE or WeaponType.WEAPON_TECH_X end
+        primary, bounce = enemy(266, 60, 60), enemy(267, 120, 120)
+        assert(primary:TakeDamage(baseDamage, 0, EntityRef(tear), 0))
+        assert(#state.pendingBounce == 1)
+        for _ = 1, 5 do
+            step()
+            combat.update(state, p, clock, blocked, Items)
+        end
+        assert(#bounce.hits == (spectral and 1 or 0), 'Q bounce must use tear spectral flags instead of the current weapon')
+    end
+
+    for _, case in ipairs({{health=27}, {health=27, unrelatedKill=true}, {health=12, buffer=true, critical=true}}) do
+        list, state, volleys = {}, combat.new(clock), {}
+        weapons.reset()
+        function weapon:GetWeaponType() return WeaponType.WEAPON_TEARS end
+        beginDoubleUp()
+        local rebound = newNativeTear(268, TearVariant.BLUE, TearFlags.TEAR_POISON, Vector(9, 0))
+        nativeCallbacks.MC_POST_FIRE_TEAR(nil, rebound)
+        weapon.fired = weapon.fired + 1
+        nativeCallbacks.MC_POST_TRIGGER_WEAPON_FIRED(nil, Vector(1, 0), 1, p, weapon)
+        nativeCallbacks.MC_POST_PLAYER_UPDATE(nil, p)
+        rebound.Velocity = Vector(0, -9) -- The native tear has turned, e.g. with My Reflection.
+        primary, bounce = enemy(269, 60, 60), enemy(276, 60, 20)
+        local wrongDirection = enemy(277, 120, 120)
+        primary.HitPoints, primary.bufferDamage = case.health, case.buffer
+        assert(primary:TakeDamage(baseDamage, 0, EntityRef(rebound), 0))
+        if case.unrelatedKill then primary.HitPoints = 0 end
+        for _ = 1, 5 do
+            step()
+            combat.update(state, p, clock, game:GetRoom(), Items)
+        end
+        assert(#bounce.hits == 1 and #wrongDirection.hits == 0, 'a turned tear bounces in its actual impact direction')
+        close(bounce.hits[1], baseDamage * 1.5 * 1.35 * (case.critical and 1.25 or 1),
+            'only a primary Q kill guarantees a critical bounce')
+    end
+
+    -- Exercise C Section through the native tear path. REPENTOGON reports
+    -- Cricket's Body with MC_POST_FIRE_SPLIT_TEAR(child, source, QUAD).
+    weapons.reset()
+    start({3036, 1043}) -- Lord Dominik's adds passive damage. Recurve Bow adds Q on-hit damage.
+    random = .99
+    p.corsair = true
+    state, volleys = combat.new(clock), {}
+    TearVariant.FETUS = 50
+    SplitTearType = {QUAD = 1}
+    TearFlags.TEAR_QUADSPLIT = 1 << 18
+    TearFlags.TEAR_FETUS = 1 << 60 -- Stand-in for native BitSet128 bit 114.
+    function weapon:GetWeaponType() return WeaponType.WEAPON_TEARS end
+    function p:GetWeapon(slot) assert(slot == 1); return weapon end
+    assert(combat.cast(state, 'w', p, nil, clock, game:GetRoom(), Items, weapons))
+    local wReady = state.ready.w
+    beginDoubleUp()
+    local fetusFlags = TearFlags.TEAR_FETUS | TearFlags.TEAR_QUADSPLIT | TearFlags.TEAR_POISON
+    local fetus = newNativeTear(270, TearVariant.FETUS, fetusFlags, Vector(9, 0))
+    nativeCallbacks.MC_POST_FIRE_TEAR(nil, fetus)
+    local cricket = newNativeTear(271, TearVariant.BLUE, TearFlags.TEAR_POISON, Vector(0, -4))
+    -- The split callback supplies ancestry independently of the child's
+    -- SpawnerEntity, which may resolve directly to the player later.
+    nativeCallbacks.MC_POST_FIRE_SPLIT_TEAR(nil, cricket, fetus, SplitTearType.QUAD)
+    nativeCallbacks.MC_POST_FIRE_TEAR(nil, cricket)
+    weapon.fired = weapon.fired + 1
+    nativeCallbacks.MC_POST_TRIGGER_WEAPON_FIRED(nil, Vector(1, 0), 1, p, weapon)
+    nativeCallbacks.MC_POST_PLAYER_UPDATE(nil, p)
+    assert(fetus.Variant == TearVariant.FETUS and fetus.TearFlags == fetusFlags and fetus.tint)
+    close(fetus.Velocity.X, fetus.Velocity.Y, 'fetus follows the locked diagonal')
+    assert(cricket.TearFlags == TearFlags.TEAR_POISON and cricket.Velocity.X == 0 and cricket.Velocity.Y == -4,
+        "Cricket's Body keeps its native status flag and split direction")
+
+    primary, bounce = enemy(272, 60, 60), enemy(273, 120, 120)
+    local splitTarget = enemy(274, 80, 80)
+    local splitDamage = 5
+    assert(splitTarget:TakeDamage(splitDamage, 0, EntityRef(cricket), 0))
+    assert(#state.pendingBounce == 0 and combat.loveTapTarget(state) == nil and state.ready.w == wReady,
+        "Cricket's Body child must leave Double Up and Love Tap available to the fetus")
+    close(splitTarget.hits[1], splitDamage * 1.5 * 1.15, "Cricket's Body retains Q and passive item damage")
+    assert(primary:TakeDamage(baseDamage, 0, EntityRef(fetus), 0))
+    close(primary.hits[1], baseDamage * 1.5 * 1.35 * 1.15 + .3,
+        'the fetus retains the primary Double Up and purchased on-hit damage')
+    assert(#state.pendingBounce == 1 and state.pendingBounce[1].point.X == primary.Position.X)
+    assert(combat.loveTapTarget(state) == primary and state.ready.w == wReady - 60)
+
+    for _ = 1, 5 do
+        step()
+        combat.update(state, p, clock, game:GetRoom(), Items)
+    end
+    assert(#bounce.hits == 1 and #splitTarget.hits == 1 and #state.pendingBounce == 0,
+        "Double Up skips the nearer target already hit by Cricket's Body")
+    assert(#volleys == 1 and volleys[1].kind == 'q')
+    local lateTarget = enemy(275, 150, 150)
+    assert(lateTarget:TakeDamage(splitDamage, 0, EntityRef(cricket), 0))
+    close(lateTarget.hits[1], splitDamage * 1.5 * 1.15, 'late split keeps Q and passive item damage')
+    assert(#state.pendingBounce == 0 and combat.loveTapTarget(state) == bounce,
+        "late Cricket's Body hits widen neither Double Up nor Love Tap")
+
+    -- Ordinary tears use the same split ancestry as C Section. Exercise both
+    -- callback orders and confirm a child cannot spend the parent's effects.
+    for _, kind in ipairs({'aa', 'q'}) do
+        weapons.reset()
+        start({3036, 1043})
+        p.corsair, random = true, .99
+        state, volleys = combat.new(clock), {}
+        function p:GetWeapon(slot) assert(slot == 1); return weapon end
+        Items.startMissFortuneRunes()
+        assert(Items.chooseMissFortuneRune('conqueror'))
+        if kind == 'q' then
+            beginDoubleUp()
+        else
+            weapons.update(p, clock, Vector(1, 1), true)
+            nativeCallbacks.MC_PRE_PLAYER_UPDATE(nil, p)
+        end
+        local flags = TearFlags.TEAR_QUADSPLIT | TearFlags.TEAR_POISON
+        local parent = newNativeTear(282, TearVariant.BLUE, flags, Vector(9, 0))
+        local child = newNativeTear(283, TearVariant.BLUE, TearFlags.TEAR_POISON, Vector(0, -4))
+        nativeCallbacks.MC_POST_FIRE_TEAR(nil, parent)
+        if kind == 'aa' then
+            nativeCallbacks.MC_POST_FIRE_TEAR(nil, child)
+            nativeCallbacks.MC_POST_FIRE_SPLIT_TEAR(nil, child, parent, SplitTearType.QUAD)
+        else
+            nativeCallbacks.MC_POST_FIRE_SPLIT_TEAR(nil, child, parent, SplitTearType.QUAD)
+            nativeCallbacks.MC_POST_FIRE_TEAR(nil, child)
+        end
+        weapon.fired = weapon.fired + 1
+        nativeCallbacks.MC_POST_TRIGGER_WEAPON_FIRED(nil, Vector(1, 0), 1, p, weapon)
+        nativeCallbacks.MC_POST_PLAYER_UPDATE(nil, p)
+        assert(parent.TearFlags == flags and child.TearFlags == TearFlags.TEAR_POISON
+            and child.Velocity.X == 0 and child.Velocity.Y == -4,
+            kind .. ' Cricket split preserves native flags and direction')
+        local splitTarget = enemy(284, 80, 80)
+        local primary = enemy(285, 60, 60)
+        local bounce = enemy(286, 120, 120)
+        assert(splitTarget:TakeDamage(5, 0, EntityRef(child), 0))
+        close(splitTarget.hits[1], 5 * (kind == 'q' and 1.5 or 1) * 1.15,
+            kind .. ' split keeps passive damage without Recurve on-hit')
+        assert(combat.loveTapTarget(state) == nil and #state.pendingBounce == 0
+            and Runes.runeStatus(Items.missFortuneRunes(), clock).stacks == 0,
+            kind .. ' split must not consume Love Tap, rune, or ricochet')
+        assert(primary:TakeDamage(baseDamage, 0, EntityRef(parent), 0))
+        close(primary.hits[1], baseDamage * (kind == 'q' and 1.5 or 1) * 1.35 * 1.15 + .3,
+            kind .. ' parent retains Recurve on-hit')
+        assert(combat.loveTapTarget(state) == primary
+            and Runes.runeStatus(Items.missFortuneRunes(), clock).stacks == 1
+            and #state.pendingBounce == (kind == 'q' and 1 or 0),
+            kind .. ' parent retains Love Tap, rune, and Q ricochet')
+        for _ = 1, 5 do
+            step()
+            combat.update(state, p, clock, game:GetRoom(), Items)
+        end
+        assert(#bounce.hits == (kind == 'q' and 1 or 0) and #state.pendingBounce == 0
+            and #volleys == 1 and volleys[1].kind == kind,
+            kind .. ' produces only its expected ricochet')
+    end
+end
 
 print('Passed item stat checks, component effects, native weapon damage and Style, combat scenarios, and persistence.')
 ''')

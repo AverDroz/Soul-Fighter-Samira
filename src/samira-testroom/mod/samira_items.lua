@@ -1,9 +1,10 @@
 local Items = {}
 local catalog = include('samira_items_data')
 local YoneProgress = include('yone_progression')
+local MissFortuneRunes = include('miss_fortune_runes')
 local json = require('json')
 
-local mod, game, getPlayer, combat, weapons, kills, attachSettings, yone
+local mod, game, getPlayer, combat, weapons, kills, attachSettings, yone, corsair
 local defeat
 local ids, rng
 local vampProbe
@@ -19,8 +20,13 @@ local function isYone(p)
     return p and yone and yone.is and yone.is(p) or false
 end
 
+local function isCorsair(p)
+    return p and corsair and corsair.is and corsair.is(p) or false
+end
+
 local function itemCombat(p)
     if isYone(p) then return yone end
+    if isCorsair(p) then return corsair end
     return combat
 end
 
@@ -243,6 +249,9 @@ local function save(shouldSave)
     end
     local saved = clone(run)
     if run.yoneProgress then saved.yoneProgress = YoneProgress.snapshot(run.yoneProgress, game:GetFrameCount()) end
+    if run.missFortuneRunes then
+        saved.missFortuneRunes = MissFortuneRunes.snapshot(run.missFortuneRunes, game:GetFrameCount())
+    end
     saved.cooldownCheckpoints = cooldownCheckpoints
     local driver = itemCombat(getPlayer())
     if driver and driver.exportCooldowns then saved.combatCooldowns = driver.exportCooldowns(clock) end
@@ -276,6 +285,9 @@ local function newRun(continued)
             if type(saved.yoneProgress) == 'table' and saved.yoneProgress.version == YoneProgress.VERSION then
                 initial.yoneProgress = YoneProgress.restore(saved.yoneProgress, game:GetFrameCount())
             end
+            if type(saved.missFortuneRunes) == 'table' then
+                initial.missFortuneRunes = MissFortuneRunes.restore(saved.missFortuneRunes, game:GetFrameCount())
+            end
             if type(saved.cooldownCheckpoints) == 'table' then cooldownCheckpoints = saved.cooldownCheckpoints end
         end
     end
@@ -299,6 +311,26 @@ end
 
 function Items.chooseYoneRune(key)
     if run and run.yoneProgress then return YoneProgress.choose(run.yoneProgress, key, run.seed) end
+end
+
+function Items.startMissFortuneRunes()
+    if not run then newRun(false) end
+    run.missFortuneRunes = run.missFortuneRunes or MissFortuneRunes.restore()
+end
+
+function Items.missFortuneRunes()
+    return run and run.missFortuneRunes
+end
+
+function Items.chooseMissFortuneRune(key)
+    if run and run.missFortuneRunes then
+        return MissFortuneRunes.choose(run.missFortuneRunes, key, run.seed)
+    end
+end
+
+function Items.missFortuneRuneAttackSpeed(frame)
+    local runes = Items.missFortuneRunes()
+    return runes and MissFortuneRunes.attackSpeed(runes, frame) or 1
 end
 
 local function ready(key)
@@ -357,6 +389,9 @@ local function saveCooldownCheckpoint(_, slot)
         snap.yoneProgress = YoneProgress.snapshot(run.yoneProgress, frame)
         snap.yoneClearXP = clone(floor.yoneClearXP or {})
     end
+    if isCorsair(p) and run.missFortuneRunes then
+        snap.missFortuneRunes = MissFortuneRunes.snapshot(run.missFortuneRunes, frame)
+    end
     cooldownCheckpoints['slot' .. slot] = snap
 end
 
@@ -377,6 +412,13 @@ function Items.applyCooldownCheckpoint(frame)
         if selected and not run.yoneProgress.rune then YoneProgress.choose(run.yoneProgress, selected, run.seed) end
         if snap.floorKey == floorKey() and type(snap.yoneClearXP) == 'table' then
             ensureFloor().yoneClearXP = clone(snap.yoneClearXP)
+        end
+    end
+    if isCorsair(p) and run.missFortuneRunes then
+        local selected = run.missFortuneRunes.rune
+        run.missFortuneRunes = MissFortuneRunes.restore(snap.missFortuneRunes, frame)
+        if selected and not run.missFortuneRunes.rune then
+            MissFortuneRunes.choose(run.missFortuneRunes, selected, run.seed)
         end
     end
     if snap.floorKey == floorKey() and type(snap.claims) == 'table' then
@@ -414,6 +456,13 @@ local function criticalChance(owned, stats, yone)
     local chance = (stats.crit_chance_pct or 0) / 100
     if owned[3032] then chance = chance + math.min(25, math.floor(run.yunTalHits / 5)) / 100 end
     return yone and math.min(1, chance * 2) or chance
+end
+
+local function attackCriticalChance(p, owned, stats, kind)
+    local yone = isYone(p)
+    if yone and kind ~= 'aa' and kind ~= 'q' then return 0 end
+    if isCorsair(p) and kind ~= 'aa' and kind ~= 'q' and kind ~= 'r' then return 0 end
+    return criticalChance(owned, stats, yone)
 end
 
 function Items.combatStats(p)
@@ -459,12 +508,11 @@ end
 
 function Items.newAttack(p, nativeKind, tick)
     local owned, stats = state(p)
+    local missFortune = isCorsair(p)
     clock = tick
     room.actionSequence = room.actionSequence + 1
     local kind = ({attack = 'aa', melee = 'aa', qmelee = 'q', q3 = 'q'})[nativeKind] or nativeKind
-    local yone = isYone(p)
-    local chance = criticalChance(owned, stats, yone)
-    if yone and kind ~= 'aa' and kind ~= 'q' then chance = 0 end
+    local chance = attackCriticalChance(p, owned, stats, kind)
     local barrage = kind == 'aa' and owned[2512] and live('barrage') and (room.barrageShots or 0) > 0
     if barrage then
         room.barrageShots = room.barrageShots - 1
@@ -473,8 +521,16 @@ function Items.newAttack(p, nativeKind, tick)
     return {
         id = room.actionSequence, room = room, player = p, kind = kind, clock = tick,
         origin = p.Position, hit = {},
+        missFortune = missFortune,
+        mfSpectral = kind == 'q' and missFortune and owned[3046] or nil,
         crit = barrage or chance >= 1 or chance > 0 and roll() < chance,
     }
+end
+
+function Items.rerollCrit(ctx)
+    local owned, stats = state(ctx.player)
+    local chance = attackCriticalChance(ctx.player, owned, stats, ctx.kind)
+    ctx.crit = chance >= 1 or chance > 0 and roll() < chance
 end
 
 function Items.onCast(p, key, tick)
@@ -501,11 +557,12 @@ function Items.withContext(ctx, action)
     return table.unpack(result, 2, result.n)
 end
 
-function Items.tagTear(p, tear, ctx)
+function Items.tagTear(p, tear, ctx, split)
     if not tear or not ctx then return end
     local owned = state(p)
     local data = tear:GetData()
     data.SamiraItemContext, data.SamiraItemPreviousPosition = ctx, tear.Position
+    if split then return end
     if ctx.kind == 'aa' and owned[3046] then tear:AddTearFlags(TearFlags.TEAR_SPECTRAL) end
     if owned[3094] and (room.energized == 3094 or room.energized == 3095)
         and not data.SamiraItemRangeExtended and tear.FallingSpeed and tear.FallingAcceleration then
@@ -516,11 +573,11 @@ function Items.tagTear(p, tear, ctx)
 end
 
 local function contextFrom(p, source, extraSource)
-    if weapons then
-        local ctx, ranged = weapons.context(p, source, extraSource)
-        if ctx and ctx.room == room then return ctx, ranged end
-    end
     local entity = extraSource and extraSource.Entity or source and source.Entity
+    if weapons then
+        local ctx, ranged, _, split = weapons.context(p, source, extraSource)
+        if ctx and ctx.room == room then return ctx, ranged, entity, split end
+    end
     if not entity then return end
     local ctx, ranged
     if entity.Type == EntityType.ENTITY_TEAR then
@@ -528,7 +585,9 @@ local function contextFrom(p, source, extraSource)
     elseif same(entity, p) and not (extraSource and extraSource.Entity) then
         ctx = directContext
     end
-    if ctx and not (weapons and ctx.nativeWeapon) and ctx.room == room and same(ctx.player, p) then return ctx, ranged end
+    if not ctx or ctx.room ~= room or not same(ctx.player, p) then return end
+    local ricochet = ctx == directContext and ctx.corsairSecondary and isCorsair(p)
+    if not (weapons and ctx.nativeWeapon) or ricochet then return ctx, ranged, entity end
 end
 
 local function enemyState(entity)
@@ -644,13 +703,36 @@ local function markEnergized(owned, item)
     if load then room.energized = load end
 end
 
-local function prepareDamage(p, entity, amount, ctx, ranged)
+local function directDamageMultiplier(p, entity, ctx, split)
+    local multiplier = ctx.damageMultiplier or 1
+    if isCorsair(p) and corsair.damageMultiplier then
+        multiplier = multiplier * (corsair.damageMultiplier(ctx, entity, clock, split) or 1)
+    end
+    if isCorsair(p) and run.missFortuneRunes then
+        local runeMultiplier, firstStrike = MissFortuneRunes.damage(run.missFortuneRunes, game:GetFrameCount(), ctx.kind)
+        return multiplier * runeMultiplier, firstStrike and runeMultiplier
+    end
+    return multiplier
+end
+
+local function appliesOnHit(p, ctx, first, firstTarget)
+    return ctx.kind == 'aa' or isCorsair(p) and ctx.kind == 'q' and ctx.nativeWeapon
+        and (first or ctx.corsairSecondary and firstTarget)
+end
+
+local function prepareDamage(p, entity, amount, ctx, ranged, split)
     local owned, stats = state(p)
     local enemy = enemyState(entity)
-    local isAA, firstTarget, first = ctx.kind == 'aa', not ctx.hit[entityKey(entity)], not ctx.accepted
-    local plan = {ctx = ctx, first = first, firstTarget = firstTarget, ranged = ranged,
+    local isAA, firstTarget, first = ctx.kind == 'aa', not ctx.hit[entityKey(entity)], not split and not ctx.accepted
+    local corsair = isCorsair(p)
+    local ricochet = corsair and ctx.corsairSecondary
+    local onHit = not split and appliesOnHit(p, ctx, first, firstTarget)
+    local plan = {ctx = ctx, first = first, firstTarget = firstTarget, ranged = ranged, split = split,
+        onHit = onHit, ricochet = ricochet, baseDamage = amount,
+        healthBefore = corsair and ctx.kind == 'q' and not ricochet and not split and entity.HitPoints,
         mortalBefore = owned[2523] and mortalDamage(entity)}
-    local modified = amount * (ctx.damageMultiplier or 1)
+    local multiplier, firstStrikeMultiplier = directDamageMultiplier(p, entity, ctx, split)
+    local modified = amount * multiplier
     if owned[2501] then
         local capacity = p:GetEffectiveMaxHearts()
         if capacity > 0 then modified = modified * (1 + .1 * (1 - math.min(1, p:GetHearts() / capacity))) end
@@ -665,20 +747,26 @@ local function prepareDamage(p, entity, amount, ctx, ranged)
     if owned[3161] and not isAA and live('shojin') then modified = modified * (1 + .03 * room.shojin) end
     if owned[3071] and clock < (enemy.cleaveEnd or 0) then modified = modified * (1 + .03 * enemy.cleave) end
     local bossId = (owned[6610] or owned[2520]) and boss(entity) and bossKey(entity)
-    plan.sky = isAA and (not isYone(p) or first) and owned[6610] and room.combatSeen
+    plan.sky = onHit and not ricochet and (not isYone(p) or first) and owned[6610] and room.combatSeen
         and bossId and not room.skyBosses[bossId] and bossId
     if (not isYone(p) or first) and (ctx.crit or plan.sky) then
-        modified = modified * (1.5 + (stats.crit_multiplier_bonus or 0))
+        local criticalBonus = .5 + (stats.crit_multiplier_bonus or 0)
+        if ricochet then criticalBonus = criticalBonus * .5
+        elseif corsair and ctx.kind == 'r' then criticalBonus = .45 + (stats.crit_multiplier_bonus or 0) * .45 end
+        modified = modified * (1 + criticalBonus)
     end
-    local heartsteelHit = isAA or ctx.kind == 'q' and first and isYone(p)
+    local heartsteelHit = onHit or ctx.kind == 'q' and first and isYone(p)
     if heartsteelHit and owned[3084] and (enemy.steelNear or 0) >= steelChargeFrames
         and clock >= (enemy.steelReady or 0) then
         plan.steel = true
         modified = modified * 1.5
     end
-    if first and isAA then
+    local firstStrikeBonus = firstStrikeMultiplier and modified * (1 - 1 / firstStrikeMultiplier)
+    if onHit and (first or ricochet) then
         if owned[1043] then modified = modified + .3 end
         if owned[3153] then modified = modified + .25 * p.Damage end
+    end
+    if first and onHit then
         if owned[6672] and (run.krakenHits + 1) % 3 == 0 then modified = modified + .5 * p.Damage end
         if owned[3181] and (run.hullHits + 1) % 5 == 0 then modified = modified + 4 end
         if (owned[3078] or owned[3057]) and room.spellblade and live('spellbladeExpires') and ready('spellblade') then
@@ -702,6 +790,9 @@ local function prepareDamage(p, entity, amount, ctx, ranged)
             plan.bastionBoss, modified = bossId, modified + bonus
         end
     end
+    if firstStrikeBonus then
+        plan.firstStrikeBonus = math.max(0, math.min(entity.HitPoints, modified) - (modified - firstStrikeBonus))
+    end
     room.pending[entityKey(entity)] = plan
     if modified ~= amount then return {Damage = modified} end
 end
@@ -723,7 +814,7 @@ local function tryVamp(p, owned, stats, plan)
     if maximum <= 0 then return end
     local full = p:GetHearts() >= maximum
     local lifesteal, omni = vampChances(owned, stats)
-    if plan.ctx.kind ~= 'aa' then lifesteal = 0 end
+    if not plan.onHit then lifesteal = 0 end
     local percent = full and (owned[3072] and lifesteal or 0) or lifesteal + omni
     if percent <= 0 then return end
     local chance, value = math.min(5, percent), roll() * 100
@@ -770,8 +861,7 @@ local function autoProcs(p, entity, owned, plan, enemy)
             heal(p, 1)
         end
     end
-    if not plan.first then return end
-    if owned[3153] and ready('ruinedKing') then
+    if (plan.first or plan.ricochet) and owned[3153] and ready('ruinedKing') then
         enemy.ruinedKing = (enemy.ruinedKing or 0) + 1
         if enemy.ruinedKing >= 3 then
             enemy.ruinedKing = 0
@@ -779,6 +869,7 @@ local function autoProcs(p, entity, owned, plan, enemy)
             slow(entity, p)
         end
     end
+    if not plan.first then return end
     if owned[6672] then run.krakenHits = (run.krakenHits + 1) % 3 end
     if owned[3181] then run.hullHits = (run.hullHits + 1) % 5 end
     if plan.spellblade then
@@ -833,19 +924,87 @@ local function queueBolts(entity, damage)
     end
 end
 
-local function axiomRefund(p, entity, enemy)
-    if enemy.axiomRefunded or not enemy.deadSeen or not enemy.axiomAt or not isYone(p) or not state(p)[6696] then return end
+local function confirmTakedown(p, entity, enemy)
+    if not enemy.deadSeen or not enemy.lastChampionHit then return end
+    local missFortune=isCorsair(p)
+    if not missFortune and not isYone(p) then return end
     local now = game:GetFrameCount()
-    if now < enemy.axiomAt or now - enemy.axiomAt > 90 then return end
+    if now < enemy.lastChampionHit or now - enemy.lastChampionHit > 90 then return end
     local driver = itemCombat(p)
-    if driver and driver.reduceUltimateCooldown then
+    if missFortune and driver.recordTakedown and not enemy.missFortuneCredited then
+        enemy.missFortuneCredited=true
+        driver.recordTakedown(p,now)
+    end
+    if not enemy.axiomRefunded and driver and driver.reduceUltimateCooldown and state(p)[6696] then
         enemy.axiomRefunded = true
         driver.reduceUltimateCooldown(boss(entity) and .10 or .03, now)
     end
 end
 
+local function knifeCarrier(entity)
+    local knife = entity and entity.ToKnife and entity:ToKnife()
+    local parent = knife and knife.GetHitboxParentKnife and knife:GetHitboxParentKnife()
+    return parent or knife
+end
+
+local function carriedTearFlags(entity)
+    if not entity then return end
+    if entity.Type == EntityType.ENTITY_TEAR and entity.ToTear then
+        local tear = entity:ToTear()
+        return tear and tear.TearFlags
+    elseif entity.Type == EntityType.ENTITY_LASER and entity.ToLaser then
+        local laser = entity:ToLaser()
+        return laser and laser.TearFlags
+    elseif entity.Type == EntityType.ENTITY_KNIFE and entity.ToKnife then
+        local carrier = knifeCarrier(entity)
+        return carrier and carrier.TearFlags
+    end
+end
+
+local function ricochetPassesGrid(ctx, source, flags)
+    if ctx.mfSpectral then return true end
+    local spectral = TearFlags and TearFlags.TEAR_SPECTRAL
+    if spectral and flags and flags & spectral == spectral then return true end
+    if not source then return false end
+    if source.Type == EntityType.ENTITY_LASER then return true end
+    local rockets = WeaponType and WeaponType.WEAPON_ROCKETS
+    return rockets ~= nil and ctx.weaponType == rockets
+        and (source.Type == EntityType.ENTITY_BOMB or source.Type == EntityType.ENTITY_EFFECT)
+end
+
+local function directionFromAngle(angle)
+    local radians = math.rad(angle)
+    return Vector(math.cos(radians), math.sin(radians))
+end
+
+local function ricochetHeading(source, target)
+    if not source then return end
+    if source.Type == EntityType.ENTITY_TEAR then return source.Velocity end
+    if source.Type == EntityType.ENTITY_BOMB and source.Velocity and source.Velocity:Length() > .001 then
+        return source.Velocity
+    end
+    if source.Type == EntityType.ENTITY_LASER and source.ToLaser then
+        local laser = source:ToLaser()
+        if not laser then return end
+        if laser.IsCircleLaser and laser:IsCircleLaser() then
+            if laser.Velocity and laser.Velocity:Length() > .001 then return laser.Velocity end
+            return laser.Position and target.Position - laser.Position
+        end
+        if laser.AngleDegrees then return directionFromAngle(laser.AngleDegrees) end
+    end
+    if source.Type == EntityType.ENTITY_KNIFE and source.ToKnife then
+        local knife = knifeCarrier(source)
+        if not knife then return end
+        if KnifeSubType and knife.SubType == KnifeSubType.PROJECTILE then return knife.Velocity end
+        if KnifeVariant and knife.Variant == KnifeVariant.MOMS_KNIFE and knife.GetKnifeVelocity then
+            local speed = knife:GetKnifeVelocity()
+            if speed ~= 0 then return directionFromAngle(knife.Rotation) * speed end
+        end
+    end
+end
+
 local function finishDamage(p, entity, amount, source, extraSource)
-    local ctx = contextFrom(p, source, extraSource)
+    local ctx, _, weaponSource = contextFrom(p, source, extraSource)
     if not ctx then return end
     local key = entityKey(entity)
     local plan = room.pending[key]
@@ -856,18 +1015,43 @@ local function finishDamage(p, entity, amount, source, extraSource)
     if amount <= 0 then return end
 
     local owned, stats = state(p)
-    ctx.accepted, ctx.hit[key] = true, true
+    if not plan.split then ctx.accepted = true end
+    ctx.hit[key] = true
     local driver = itemCombat(p)
-    if driver and driver.acceptHit then driver.acceptHit(ctx, clock) end
-    if not isYone(p) and kills and not plan.dummy then kills.acceptHit(entity, ctx, clock) end
+    if driver and driver.acceptHit then
+        local shot
+        if plan.healthBefore then
+            local flags = carriedTearFlags(weaponSource)
+            shot = {flags = flags, throughGrid = ricochetPassesGrid(ctx, weaponSource, flags),
+                heading = ricochetHeading(weaponSource, entity), lethal = amount >= plan.healthBefore}
+        elseif plan.split then
+            shot = {split = true}
+        end
+        driver.acceptHit(ctx,clock,entity,amount,plan.baseDamage,shot)
+    end
+    if isCorsair(p) and run.missFortuneRunes then
+        local frame = game:GetFrameCount()
+        if plan.firstStrikeBonus then
+            local coins = MissFortuneRunes.firstStrikeHit(run.missFortuneRunes, frame, plan.firstStrikeBonus)
+            if coins > 0 then p:AddCoins(coins) end
+        end
+        local rune, bonus
+        if not plan.split then rune, bonus = MissFortuneRunes.acceptHit(run.missFortuneRunes, ctx, key, frame) end
+        if rune then
+            local point = Vector(entity.Position.X, entity.Position.Y)
+            queues[#queues + 1] = {rune = rune, amount = p.Damage * bonus, entity = entity,
+                point = point, dummy = plan.dummy, ready = frame + (rune == 'arcane_comet' and 12 or 1)}
+        end
+    end
+    if driver == combat and kills and not plan.dummy then kills.acceptHit(entity, ctx, clock) end
     if plan.dummy then
         tryVamp(p, owned, stats, plan)
         return
     end
     local enemy = enemyState(entity)
     enemy.directAt = clock
-    enemy.axiomAt = game:GetFrameCount()
-    axiomRefund(p, entity, enemy)
+    enemy.lastChampionHit = game:GetFrameCount()
+    confirmTakedown(p, entity, enemy)
     if owned[2523] and not plan.mortalBefore and mortalDamage(entity) then
         enemy.hexopticsKill = true
         if enemy.deadSeen then defeat(p, entity, enemy) end
@@ -893,9 +1077,8 @@ local function finishDamage(p, entity, amount, source, extraSource)
         start('cleaverSpeed', 60)
     end
     if plan.steel then procHeartsteel(p, enemy) end
-    if ctx.kind == 'aa' then
-        autoProcs(p, entity, owned, plan, enemy)
-    else
+    if plan.onHit then autoProcs(p, entity, owned, plan, enemy) end
+    if ctx.kind ~= 'aa' then
         if plan.first then firstCastHit(owned) end
         if owned[6694] and plan.firstTarget and entity.HitPoints > 0 and entity.HitPoints < enemy.maxHP * .5 then
             slow(entity, p)
@@ -951,7 +1134,8 @@ local function beforeDamage(entity, amount, flags, source, _, extraSource)
         room.incoming = {life = currentLife(p), hostile = hostile}
         return
     end
-    local ctx, ranged = contextFrom(p, source, extraSource)
+    local ctx, ranged, _, nativeSplit = contextFrom(p, source, extraSource)
+    local split = nativeSplit and isCorsair(p)
     local incidental = (DamageFlag.DAMAGE_POISON_BURN or 0) | (DamageFlag.DAMAGE_EXPLOSION or 0)
         | (DamageFlag.DAMAGE_LASER or 0) | (DamageFlag.DAMAGE_FIRE or 0)
     local dummy = trainingDummy(entity)
@@ -961,10 +1145,15 @@ local function beforeDamage(entity, amount, flags, source, _, extraSource)
         return
     end
     if dummy then
-        room.pending[entityKey(entity)] = {ctx = ctx, first = not ctx.accepted, dummy = true}
-        if ctx.damageMultiplier and ctx.damageMultiplier ~= 1 then return {Damage = amount * ctx.damageMultiplier} end
+        local first = not split and not ctx.accepted
+        room.pending[entityKey(entity)] = {ctx = ctx, first = first, dummy = true, baseDamage = amount,
+            healthBefore = isCorsair(p) and ctx.kind == 'q' and not ctx.corsairSecondary and not split and entity.HitPoints,
+            split = split, onHit = not split and appliesOnHit(p, ctx, first, not ctx.hit[entityKey(entity)])}
+        local multiplier, firstStrike = directDamageMultiplier(p, entity, ctx, split)
+        if firstStrike then room.pending[entityKey(entity)].firstStrikeBonus = 0 end
+        if multiplier ~= 1 then return {Damage = amount * multiplier} end
     elseif validEnemy(entity) then
-        return prepareDamage(p, entity, amount, ctx, ranged)
+        return prepareDamage(p, entity, amount, ctx, ranged, split)
     elseif ctx.damageMultiplier and ctx.damageMultiplier ~= 1 then
         return {Damage = amount * ctx.damageMultiplier}
     end
@@ -993,6 +1182,9 @@ local function afterDamage(entity, amount, flags, source, _, extraSource)
         p:SetMinDamageCooldown(math.ceil(p:GetDamageCooldown() * (1 + stats.iframes_pct / 100)))
     end
     if not hit.hostile then return end
+    if isCorsair(p) and run.missFortuneRunes then
+        MissFortuneRunes.tookDamage(run.missFortuneRunes, game:GetFrameCount())
+    end
 
     local capacity = p:GetEffectiveMaxHearts()
     if capacity <= 0 or p:GetHearts() > capacity * .30 or p:IsDead() or currentLife(p) <= 0 then return end
@@ -1016,7 +1208,7 @@ defeat = function(p, entity, enemy)
     end
     if enemy.deadSeen then return end
     enemy.deadSeen = true
-    axiomRefund(p, entity, enemy)
+    confirmTakedown(p, entity, enemy)
     if not boss(entity) then return end
     local owned = state(p)
     if owned[2517] and enemy.directAt and clock <= enemy.directAt + 90 then start('feast', 180) end
@@ -1047,15 +1239,16 @@ local function roomCleared(p, owned)
     end
 end
 
-local function showBolt(p, origin, target)
+local function showBolt(p, origin, target, comet)
     local velocity = (target - origin) * .25
     local bolt = Isaac.Spawn(EntityType.ENTITY_TEAR, TearVariant.BLUE, 0, origin, velocity, p):ToTear()
     bolt.CollisionDamage = 0
     bolt.EntityCollisionClass = EntityCollisionClass.ENTCOLL_NONE
     bolt.GridCollisionClass = EntityGridCollisionClass.GRIDCOLL_NONE
     bolt.Height, bolt.FallingSpeed, bolt.FallingAcceleration = -10, 1, .6
-    bolt.Scale = .55
-    bolt:SetColor(Color(.8, 1, .4, 1), 6, 1, false, false)
+    bolt.Scale = comet and 1.25 or .55
+    local color = comet and Color(.55, .78, 1.2, 1) or Color(.8, 1, .4, 1)
+    bolt:SetColor(color, 6, 1, false, false)
 end
 
 local function processQueued(p, owned)
@@ -1066,6 +1259,10 @@ local function processQueued(p, owned)
         local entity = proc.entity
         local enemy = proc.enemy
         if proc.ready and clock < proc.ready then
+            if proc.rune == 'arcane_comet' and not proc.cuePlayed then
+                proc.cuePlayed = true
+                showBolt(p, proc.point + Vector(-40, -55), proc.point, true)
+            end
             queues[#queues + 1] = proc
             if proc.confirm then confirming = true end
         elseif proc.confirm then
@@ -1083,6 +1280,16 @@ local function processQueued(p, owned)
                     queues[#queues + 1] = {entity = entity, enemy = enemy, confirm = true, ready = clock + 1}
                     confirming = true
                 end
+            end
+        elseif proc.rune then
+            if proc.rune == 'arcane_comet' then
+                for _, target in ipairs(Isaac.GetRoomEntities()) do
+                    if (validEnemy(target) or trainingDummy(target)) and target.Position:Distance(proc.point) <= 60 then
+                        target:TakeDamage(proc.amount, 0, EntityRef(p), 0)
+                    end
+                end
+            elseif validEnemy(entity) or proc.dummy and entity:Exists() and not entity:IsDead() then
+                entity:TakeDamage(proc.amount, 0, EntityRef(p), 0)
             end
         elseif validEnemy(entity) then
             showBolt(p, proc.origin, entity.Position)
@@ -1282,15 +1489,23 @@ local function newRoom()
     local old = room
     if rewindRoom then
         local selected = run.yoneProgress and run.yoneProgress.rune
+        local selectedMissFortune = run.missFortuneRunes and run.missFortuneRunes.rune
         run, old = rewindRoom, nil
         rewindRoom = nil
         if selected then
             run.yoneProgress = run.yoneProgress or YoneProgress.restore()
             if not run.yoneProgress.rune then YoneProgress.choose(run.yoneProgress, selected, run.seed) end
         end
+        if selectedMissFortune then
+            run.missFortuneRunes = run.missFortuneRunes or MissFortuneRunes.restore()
+            if not run.missFortuneRunes.rune then
+                MissFortuneRunes.choose(run.missFortuneRunes, selectedMissFortune, run.seed)
+            end
+        end
         resetRng()
     end
     if old then run.current = nil end
+    if run.missFortuneRunes then MissFortuneRunes.resetRoom(run.missFortuneRunes) end
     resetRoom()
     if old then
         for _, key in ipairs(roomCarry) do room[key] = old[key] end
@@ -1331,8 +1546,9 @@ local function vampStatus()
     end
 end
 
-function Items.init(host, currentGame, playerProvider, saveSettings, yoneModule)
-    mod, game, getPlayer, attachSettings, yone = host, currentGame, playerProvider, saveSettings, yoneModule
+function Items.init(host, currentGame, playerProvider, saveSettings, yoneModule, corsairModule)
+    mod, game, getPlayer, attachSettings = host, currentGame, playerProvider, saveSettings
+    yone, corsair = yoneModule, corsairModule
     ids = {}
     for _, row in ipairs(catalog) do
         local id = Isaac.GetItemIdByName(row.collectibleName)

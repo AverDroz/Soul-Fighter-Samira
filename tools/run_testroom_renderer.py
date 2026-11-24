@@ -8,10 +8,12 @@ from model import Model,GPURenderer,YONE_VIEW
 from bridge import BufferedTail
 from display_geometry import DisplayGate
 from layered_surface import LayeredFrame
+from mf_renderer import MissFortuneRenderer
 from samira_audio import MAX_PACKET_AGE_MS, Mixer, SamiraAudio
 from yone_combat_audio import YoneCombatAudio
 
 YONE_ASSETS=ROOT/'assets/yone-local'
+MF_ASSETS=ROOT/'assets/mf-local'
 YONE_EMOTES={'joke','taunt','dance','laugh'}
 YONE_DANCE_INTRO_SECONDS=3.1
 YONE_SPIRIT_SECONDS=5
@@ -181,7 +183,7 @@ class YoneRenderer:
             print('Mastery renderer unavailable: '+repr(error),flush=True)
         try:
             from yone_vfx import YoneVFX
-            self.vfx=YoneVFX(ctx)
+            self.vfx=YoneVFX(ctx,path.parent/'vfx')
         except Exception as error:
             print('Yone effects unavailable: '+repr(error),flush=True)
 
@@ -364,7 +366,7 @@ def acknowledge(folder,state,visible,capabilities=None):
 def run(args):
     from overlay import Windows,create_window,glfw
 
-    window=ctx=surface=tail=audio=renderer=yone=None
+    window=ctx=surface=tail=audio=renderer=yone=mf=None
     status=Path(args.status_dir);last_state={}
     stop=ROOT/'work/testroom-renderer.stop'
     windows=Windows()
@@ -375,6 +377,10 @@ def run(args):
         model=Model(ROOT/'src/samira/reference/source/model.glb')
         renderer=GPURenderer(ctx,model);surface=LayeredFrame(ctx)
         yone=YoneRenderer(ctx,YONE_ASSETS/'yone.glb')
+        mf_effects=ROOT/'src/samira-testroom/mod/resources/gfx/mf'
+        if not mf_effects.is_dir():
+            mf_effects=ROOT.parent/'samira_testroom/resources/gfx/mf'
+        mf=MissFortuneRenderer(ctx,MF_ASSETS/'mf.glb',mf_effects)
         dances=yone.actor.model.durations if yone.actor else {}
         dance_intro=dances.get('dance_in',YONE_DANCE_INTRO_SECONDS)
         vfx=None
@@ -441,12 +447,14 @@ def run(args):
             current=(hero,state.get('session'),state.get('room'))
             new_scene=current!=scene
             if new_scene:
-                renderer.reset();yone.reset();scene=current
+                renderer.reset();yone.reset();mf.reset();scene=current
                 if vfx:vfx.reset()
             surface.begin(tuple(box[2:]));ctx.clear(0,0,0,0)
             rendered=False;capabilities={}
             if hero=='yone':
                 rendered,capabilities=yone.draw(state,dt)
+            elif hero=='mf':
+                rendered,capabilities=mf.draw(state,dt)
             elif hero=='samira':
                 if vfx:
                     try:vfx.begin(state);vfx.ground(state)
@@ -484,6 +492,7 @@ def run(args):
         if tail:tail.close()
         if surface:surface.close()
         if yone:yone.close()
+        if mf:mf.close()
         if renderer:renderer.close()
         if ctx:ctx.release()
         if window:glfw.destroy_window(window)

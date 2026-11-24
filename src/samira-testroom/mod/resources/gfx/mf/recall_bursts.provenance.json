@@ -1,0 +1,230 @@
+{
+  "archives": {
+    "MVP-T1-Miss-Fortune-Skin69-Abilities.zip": "602f11876a05c99b310c9e5caa1b21ff19bb9d48cdc10ea6139ae0d5db877e24",
+    "PBE MissFortune.wad.client": "ec155cda0e61f3cea58d2fb775746b0143d5c12b9d9da80b60618889f4b4d362"
+  },
+  "animation": {
+    "name": "Recall_Real",
+    "state": "5a81bdb0",
+    "fps": 30
+  },
+  "graph_sha256": "d502b4fb9ee4a66a3da2ca6e5f38a0bd4ce06d24f398346b84141e2f9f352c8c",
+  "sprites": {
+    "RecallMuzzle": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin40_z_bullet02.skins_missfortune_skin69.tex",
+          "sha256": "92c316af0261f387990cf7f904a629703b8a8835e08c634632b862f059ed1917",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        }
+      ],
+      "effect_key": "ef004200",
+      "effect_chain": [
+        "MissFortune_Skin69_Emote_Recall_Gunshot1"
+      ],
+      "emitter": "Muzzle_Add_Vert",
+      "events": [
+        "22f715a2",
+        "9df6f669",
+        "ffc387a5",
+        "fcc382ec"
+      ],
+      "particle_lifetime_seconds": 0.10000000149011612,
+      "birth_rgba": [
+        1.0,
+        0.0,
+        0.0,
+        0.501960813999176
+      ],
+      "sheet_grid": [
+        1,
+        1
+      ],
+      "sheet_frame": 0,
+      "source_texture_size": [
+        128,
+        128
+      ],
+      "crop_bounds": [
+        10,
+        25,
+        128,
+        128
+      ],
+      "sprite_size": [
+        48,
+        42
+      ]
+    },
+    "RecallShotSpark": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin50_spark03.skins_missfortune_skin69.tex",
+          "sha256": "d353e6a1d202d832510a5642d5a028453abb2deea14a2426bc418fd1cde88fa8",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        }
+      ],
+      "effect_key": "ef004200",
+      "effect_chain": [
+        "MissFortune_Skin69_Emote_Recall_Gunshot1"
+      ],
+      "emitter": "Sparks_FORWARD",
+      "events": [
+        "22f715a2",
+        "9df6f669",
+        "ffc387a5",
+        "fcc382ec"
+      ],
+      "particle_lifetime_seconds": 0.5,
+      "birth_rgba": [
+        0.9327229857444763,
+        0.659983217716217,
+        0.3191271722316742,
+        1.0
+      ],
+      "sheet_grid": [
+        1,
+        1
+      ],
+      "sheet_frame": 0,
+      "source_texture_size": [
+        128,
+        128
+      ],
+      "crop_bounds": [
+        4,
+        4,
+        124,
+        124
+      ],
+      "sprite_size": [
+        48,
+        48
+      ]
+    },
+    "RecallBalloonHit": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/ahri_skin86_particles_1_96.skins_missfortune_skin69.tex",
+          "sha256": "55f09cc01867c76e9c75cdd93e51e2c8d3e84c7891ead554349a84a1e057e709",
+          "archive": "PBE MissFortune.wad.client"
+        }
+      ],
+      "effect_key": "6dd45aa5",
+      "effect_chain": [
+        "MissFortune_Skin69_Emote_Recall_EndTar"
+      ],
+      "emitter": "CenterFlare1",
+      "events": [
+        "01f193ca"
+      ],
+      "particle_lifetime_seconds": 0.20000000298023224,
+      "birth_rgba": null,
+      "sheet_grid": [
+        1,
+        1
+      ],
+      "sheet_frame": 0,
+      "source_texture_size": [
+        128,
+        128
+      ],
+      "crop_bounds": [
+        0,
+        0,
+        124,
+        128
+      ],
+      "sprite_size": [
+        62,
+        64
+      ]
+    },
+    "RecallBalloonSplash": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_emote_splatter_2x2_pool_pink.skins_missfortune_skin69.tex",
+          "sha256": "60239dcf47ce88ddc0282c299f45d55e77daa2da3fc07924ce7da897ba025cd5",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        }
+      ],
+      "effect_key": "87e8fe07",
+      "effect_chain": [
+        "MissFortune_Skin69_Emote_Recall_EndBigTar"
+      ],
+      "emitter": "sparks4",
+      "events": [
+        "0e40a60a"
+      ],
+      "particle_lifetime_seconds": 0.4000000059604645,
+      "birth_rgba": [
+        0.15599298477172852,
+        0.6808270215988159,
+        1.0,
+        1.0
+      ],
+      "sheet_grid": [
+        2,
+        2
+      ],
+      "sheet_frame": 0,
+      "source_texture_size": [
+        64,
+        64
+      ],
+      "crop_bounds": [
+        0,
+        2,
+        31,
+        30
+      ],
+      "sprite_size": [
+        31,
+        28
+      ]
+    },
+    "RecallBalloonDroplet": {
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_droplets_2x2_pink.skins_missfortune_skin69.tex",
+          "sha256": "a218be3ac9b7a4450b76d53e7a8e4057152c1db94056336e838dc6d5d5e1a73e",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        }
+      ],
+      "effect_key": "87e8fe07",
+      "effect_chain": [
+        "MissFortune_Skin69_Emote_Recall_EndBigTar"
+      ],
+      "emitter": "sparks3",
+      "events": [
+        "0e40a60a"
+      ],
+      "particle_lifetime_seconds": 0.4000000059604645,
+      "birth_rgba": [
+        0.22479590773582458,
+        0.3990539312362671,
+        0.845273494720459,
+        1.0
+      ],
+      "sheet_grid": [
+        2,
+        2
+      ],
+      "sheet_frame": 0,
+      "source_texture_size": [
+        64,
+        64
+      ],
+      "crop_bounds": [
+        4,
+        3,
+        29,
+        28
+      ],
+      "sprite_size": [
+        25,
+        25
+      ]
+    }
+  }
+}

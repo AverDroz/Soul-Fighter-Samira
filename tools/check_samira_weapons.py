@@ -15,7 +15,8 @@ end
 ButtonAction, InputHook, EntityType, ModCallbacks = names(), names(), names(), names()
 FamiliarVariant = {INCUBUS = 23, TWISTED_BABY = 238}
 WeaponType = {WEAPON_LUDOVICO_TECHNIQUE = 'ludo', WEAPON_ROCKETS = 'rockets', WEAPON_BRIMSTONE = 'brimstone',
-    WEAPON_LASER = 'laser', WEAPON_TECH_X = 'techx', WEAPON_BONE = 'bone', WEAPON_SPIRIT_SWORD = 'sword'}
+    WEAPON_LASER = 'laser', WEAPON_TECH_X = 'techx', WEAPON_BONE = 'bone', WEAPON_SPIRIT_SWORD = 'sword',
+    WEAPON_NOTCHED_AXE = 'axe'}
 EffectVariant = {TARGET = 30, ROCKET = 31, SMALL_ROCKET = 118}
 local vec = {}
 vec.__index = vec
@@ -57,7 +58,7 @@ local function object(kind, owner)
     function entity:ToFamiliar() return self end
     function entity:IsFlying() return self.flying == true end
     function entity:IsCircleLaser() return self.ring == true end
-    function entity:GetColor() return self.tint or 'native' end
+    function entity:GetColor() return self.tint or self.nativeColor or 'native' end
     function entity:SetColor(color, ...) self.tint = color end
     return entity
 end
@@ -70,11 +71,13 @@ Weapons.init({AddCallback = function(_, name, cb) assert(not callbacks[name]); c
     {GetFrameCount = function() return ticks end}, function() return p end, {
         newAttack = function(player, kind, clock)
             attacks = attacks + 1
-            return {player = player, kind = kind, clock = clock, id = attacks}
+            return {player = player, kind = kind, clock = clock, id = attacks, missFortune = player.missFortune}
         end,
-        tagTear = function(player, entity, context)
+        tagTear = function(player, entity, context, split)
             assert(player == p)
             entity.data.SamiraItemContext = context
+            entity.data.SamiraItemTaggedSplit = split
+            if not split then entity.TearFlags = (entity.TearFlags or 0) | 0x40 end
         end,
     }, function(kind, heading, ctx)
         announced[#announced + 1] = {kind = kind, heading = heading, ctx = ctx}
@@ -99,6 +102,127 @@ local function trigger(owner, nativeHeading)
 end
 local function endFrame() event('MC_POST_PLAYER_UPDATE', p) end
 local function ref(entity) return {Entity = entity} end
+
+-- Miss Fortune's cast timer and the native charge must run in parallel.
+local qDelay = 8
+for _, kind in ipairs({'brimstone','techx','knife'}) do
+    reset(kind, 3)
+    assert(Weapons.requestQ(p, aim, ticks, Vector(80,0), qDelay, true))
+    for i=1,qDelay-1 do
+        begin(nil)
+        assert(input('IS_ACTION_PRESSED','RIGHT'), kind .. ' must charge before the Q release gate')
+        weapon.charge = math.min(i, 3)
+        endFrame()
+        assert(#announced == 0 and Weapons.hasPendingQ(p))
+    end
+    begin(nil)
+    assert(not input('IS_ACTION_PRESSED','RIGHT'), kind .. ' releases on the first eligible tick')
+    local outputKind=kind=='knife' and 'KNIFE' or 'LASER'
+    local projectile=object(outputKind,p)
+    projectile.Rotation=0
+    weapon.entity=projectile
+    weapon.charge=0
+    trigger()
+    endFrame()
+    assert(#announced==1 and announced[1].kind=='q' and Weapons.context(p, ref(projectile))==announced[1].ctx)
+    assert(not Weapons.hasPendingQ(p))
+end
+
+reset('brimstone',10)
+assert(Weapons.requestQ(p,aim,ticks,nil,qDelay,true))
+for i=1,10 do
+    begin(nil)
+    assert(input('IS_ACTION_PRESSED','RIGHT'),'a slow charge must keep holding past the windup')
+    weapon.charge=i
+    endFrame()
+end
+begin(nil)
+assert(not input('IS_ACTION_PRESSED','RIGHT') and Weapons.hasPendingQ(p))
+trigger(); endFrame()
+assert(#announced==1 and announced[1].kind=='q')
+
+for _, mode in ipairs({{kind='tears', charge=0, precharge=true},{kind='brimstone', charge=3}}) do
+    reset(mode.kind,mode.charge)
+    assert(Weapons.requestQ(p,aim,ticks,nil,qDelay,mode.precharge))
+    for _=1,qDelay-1 do
+        begin(Vector(-1,0))
+        assert(input('GET_ACTION_VALUE','LEFT')==0 and input('GET_ACTION_VALUE','RIGHT')==0,
+            'ordinary weapons and the existing Samira cast must wait')
+        endFrame()
+    end
+    begin(nil)
+    assert(input('IS_ACTION_PRESSED','RIGHT') and Weapons.hasPendingQ(p))
+    endFrame()
+end
+
+reset('brimstone',4)
+assert(Weapons.requestQ(p,aim,ticks,nil,qDelay,true))
+begin(nil); weapon.charge=1; endFrame()
+begin(nil,false)
+assert(weapon.charge==0 and not Weapons.hasPendingQ(p),'cancelling the cast clears precharge')
+
+reset('ludo',0)
+local windupOrb=object('TEAR',p)
+weapon.entity=windupOrb
+assert(Weapons.requestQ(p,aim,ticks,nil,qDelay,true))
+for _=1,qDelay-1 do
+    begin(nil); endFrame()
+    assert(#announced==0 and Weapons.hasPendingQ(p),'Ludovico cannot pulse during preparation')
+end
+begin(nil); endFrame()
+assert(#announced==1 and announced[1].ctx.persistentPulse)
+
+-- A pending cast can survive an Isaac weapon change during its windup.
+reset('ludo',0)
+local switchedOrb=object('TEAR',p)
+weapon.entity=switchedOrb
+assert(Weapons.requestQ(p,aim,ticks,Vector(70,40),qDelay,true))
+begin(nil); endFrame()
+weapon.id,weapon.entity='tears',nil
+for _=2,qDelay-1 do begin(nil); endFrame() end
+begin(nil)
+local replacementShot=object('TEAR',p)
+event('MC_POST_FIRE_TEAR',replacementShot); trigger(); endFrame()
+assert(#announced==1 and announced[1].kind=='q' and not announced[1].ctx.persistentPulse
+    and Weapons.context(p,ref(replacementShot))==announced[1].ctx,
+    'swapping away from Ludovico transfers queued Q to the current weapon')
+assert(not Weapons.context(p,ref(switchedOrb)) and switchedOrb.Scale==1,
+    'the obsolete orb cannot consume or retain the queued charge')
+
+reset('tears',0)
+assert(Weapons.requestQ(p,aim,ticks,Vector(80,40),qDelay,true))
+begin(nil); endFrame()
+weapon.id='ludo'
+for _=2,qDelay+2 do begin(nil); endFrame() end
+assert(#announced==0 and Weapons.hasPendingQ(p),'Q waits for the active Ludovico orb to exist')
+local newOrb=object('TEAR',p)
+weapon.entity=newOrb
+begin(nil); endFrame()
+local switchedPulse=Weapons.context(p,ref(newOrb))
+assert(#announced==1 and switchedPulse.kind=='q' and switchedPulse.persistentPulse and newOrb.Scale==1.18,
+    'the new Ludovico orb receives the original queued Q once')
+weapon.id,weapon.entity='tears',nil
+event('MC_POST_TEAR_UPDATE',newOrb)
+assert(not Weapons.context(p,ref(newOrb)) and newOrb.Scale==1,
+    'an already-armed orb restores its art and loses Q if its weapon is removed')
+
+reset('rockets',3)
+local windupMarker=object('EFFECT',p)
+windupMarker.Variant,windupMarker.Position=EffectVariant.TARGET,Vector(30,20)
+weapon.entity=windupMarker
+assert(Weapons.requestQ(p,aim,ticks,Vector(30,40),qDelay,true))
+for _=1,qDelay-1 do
+    begin(nil)
+    assert(input('GET_ACTION_VALUE','DOWN')==0 and #announced==0,'remote marker waits for the Q release gate')
+    endFrame()
+end
+begin(nil); endFrame()
+Weapons.trackCursor(p,Vector(90,20))
+begin(nil)
+assert(input('GET_ACTION_VALUE','RIGHT')==0 and input('GET_ACTION_VALUE','DOWN')==1,
+    'Epic Fetus keeps steering to the Q point through projectile preparation')
+trigger(); endFrame()
+assert(#announced==1 and announced[1].kind=='q' and announced[1].ctx.weaponType==WeaponType.WEAPON_ROCKETS)
 
 reset('tears', 0)
 begin(aim)
@@ -135,11 +259,94 @@ assert(ctx.kind == 'q' and ctx.damageMultiplier == 1.5 and enhanced.Scale == 1.1
 assert(#announced == 2)
 local split = object('TEAR', enhanced)
 event('MC_POST_FIRE_SPLIT_TEAR', split, enhanced)
-assert(Weapons.context(p, ref(split)) == ctx and split.Scale == 1.18)
+local splitContext, ranged, outputType, isSplit = Weapons.context(p, ref(split))
+assert(splitContext == ctx and ranged and outputType == EntityType.ENTITY_TEAR and isSplit and split.Scale == 1.18)
+local descendant = object('TEAR', split)
+local ordinaryChild = object('TEAR', enhanced)
+local splitFirst = object('TEAR', p)
+local genericFirst = object('TEAR', p)
+assert(Weapons.requestQ(p, Vector(0, 1), ticks))
+begin(nil)
+for _, tear in ipairs({splitFirst, genericFirst, descendant}) do
+    tear.Velocity, tear.ContinueVelocity, tear.TearFlags = Vector(3, -4), Vector(-4, 3), 0x28
+end
+event('MC_POST_FIRE_SPLIT_TEAR', splitFirst, enhanced)
+event('MC_POST_FIRE_TEAR', splitFirst)
+event('MC_POST_FIRE_TEAR', genericFirst)
+event('MC_POST_WEAPON_FIRE', weapon, Vector(1, 0))
+event('MC_POST_FIRE_SPLIT_TEAR', genericFirst, enhanced)
+event('MC_POST_FIRE_TEAR', descendant)
+event('MC_POST_FIRE_TEAR', ordinaryChild)
+local splitBeam = object('LASER', split)
+event('MC_POST_FIRE_TECH_LASER', splitBeam)
+local splitRocket = object('EFFECT', split)
+splitRocket.Variant = EffectVariant.SMALL_ROCKET
+event('MC_POST_EFFECT_INIT', splitRocket)
+endFrame()
+assert(Weapons.hasPendingQ(p) and #announced == 2 and attacks == 2,
+    'children from an old attack must not consume the next Q')
+for _, tear in ipairs({splitFirst, genericFirst, descendant}) do
+    local sourceContext, _, _, splitOutput = Weapons.context(p, ref(tear))
+    assert(sourceContext == ctx and splitOutput and tear.data.SamiraItemTaggedSplit)
+    assert(tear.Velocity.X == 3 and tear.Velocity.Y == -4 and tear.ContinueVelocity.X == -4
+        and tear.ContinueVelocity.Y == 3 and tear.TearFlags == 0x28 and tear.Scale == 1.18)
+end
+local inheritedContext, _, _, inheritedSplit = Weapons.context(p, ref(ordinaryChild))
+assert(inheritedContext == ctx and inheritedSplit == false and ordinaryChild.TearFlags == 0x40,
+    'other inherited weapon outputs keep their original classification')
+for _, carrier in ipairs({splitBeam, splitRocket}) do
+    local inheritedContext, _, _, inheritedSplit = Weapons.context(p, ref(carrier))
+    assert(inheritedContext == ctx and inheritedSplit, 'a different carrier preserves split ancestry')
+end
+begin(nil)
+local nextQ = object('TEAR', p)
+local interleaved = object('TEAR', p)
+interleaved.Velocity, interleaved.TearFlags = Vector(-3, 4), 0x28
+event('MC_POST_FIRE_TEAR', interleaved)
+event('MC_POST_FIRE_TEAR', nextQ)
+trigger()
+event('MC_POST_FIRE_SPLIT_TEAR', interleaved, enhanced)
+endFrame()
+assert(not Weapons.hasPendingQ(p) and #announced == 3 and Weapons.context(p, ref(nextQ)) == announced[3].ctx)
+assert(Weapons.context(p, ref(interleaved)) == ctx and interleaved.Scale == 1.18
+    and interleaved.Velocity.X == -3 and interleaved.Velocity.Y == 4 and interleaved.TearFlags == 0x28)
 event('MC_POST_NEW_ROOM')
 assert(not Weapons.context(p, ref(enhanced)))
 
+reset('tears', 0)
+local twin = object('FAMILIAR', p)
+twin.Player, twin.Variant = p, FamiliarVariant.TWISTED_BABY
+assert(Weapons.requestQ(p, aim, ticks))
+begin(nil)
+local solo = object('TEAR', twin)
+event('MC_POST_FAMILIAR_FIRE_PROJECTILE', solo)
+event('MC_POST_FIRE_TEAR', solo)
+endFrame()
+assert(not Weapons.context(p, ref(solo)) and attacks == 0 and Weapons.hasPendingQ(p),
+    'a mirror firing on its own must not consume Q or create an attack')
+
+begin(nil)
+local earlyTear, earlyBeam = object('TEAR', fam), object('LASER', twin)
+earlyTear.Velocity, earlyBeam.AngleDegrees = Vector(10, 0), 0
+event('MC_POST_FAMILIAR_FIRE_PROJECTILE', earlyTear)
+event('MC_POST_FIRE_TEAR', earlyTear)
+event('MC_POST_TRIGGER_WEAPON_FIRED', Vector(1, 0), 1, twin,
+    {GetMainEntity = function() return earlyBeam end})
+assert(attacks == 0 and Weapons.hasPendingQ(p))
+trigger(p, Vector(1, 0))
+endFrame()
+local shared = announced[1].ctx
+assert(attacks == 1 and #announced == 1 and shared.kind == 'q' and not Weapons.hasPendingQ(p))
+assert(Weapons.context(p, ref(earlyTear)) == shared and Weapons.context(p, ref(earlyBeam)) == shared,
+    'early mirrored outputs must bind to the confirmed Q')
+assert(earlyTear.Scale == 1.18, 'overlapping callbacks must not apply Q scaling twice')
+assert(math.abs(earlyTear.Velocity.X - 8) < 1e-6, 'mirrored tear rotates and accelerates once')
+assert(math.abs(earlyBeam.AngleDegrees - aim:GetAngleDegrees()) < 1e-6, 'mirrored beam follows the player heading')
+assert(not Weapons.context(p, ref(solo)), 'an abandoned previous-frame copy must stay independent')
+
 reset('brimstone', 3)
+p.missFortune = true
+local defaultBeam = {R=1, G=1, B=1, A=1, RO=0, GO=0, BO=0}
 assert(Weapons.requestQ(p, aim, ticks))
 for i=1,3 do
     begin(nil)
@@ -151,6 +358,7 @@ end
 begin(nil)
 assert(input('GET_ACTION_VALUE', 'RIGHT') == 0 and not input('IS_ACTION_PRESSED', 'RIGHT'))
 local laser = object('LASER', p)
+laser.nativeColor = defaultBeam
 weapon.entity = laser
 event('MC_POST_FIRE_BRIMSTONE', laser)
 weapon.charge = 0
@@ -158,6 +366,8 @@ trigger()
 endFrame()
 local brim, ranged, entityType = Weapons.context(p, ref(p), ref(laser))
 assert(brim.kind == 'q' and ranged and entityType == EntityType.ENTITY_LASER and #announced == 1)
+assert(laser.tint[2] == .88 and laser.tint[6] == .35,
+    'Miss Fortune Q applies the warm T1 accent to the native Brimstone beam')
 for _ = 1,10 do assert(Weapons.context(p, ref(p), ref(laser)) == brim) end
 
 for repeatIndex=1,2 do
@@ -170,12 +380,20 @@ for repeatIndex=1,2 do
     begin(aim)
     assert(input('GET_ACTION_VALUE', 'RIGHT') == 0)
     weapon.entity = object('LASER', p)
+    weapon.entity.nativeColor = repeatIndex == 1 and defaultBeam or {R=.5, G=1, B=.5, A=1, RO=0, GO=0, BO=0}
     event('MC_POST_FIRE_BRIMSTONE', weapon.entity)
     weapon.charge = 0
     trigger()
     endFrame()
     assert(announced[repeatIndex + 1].kind == 'aa')
+    if repeatIndex == 1 then
+        assert(weapon.entity.tint and weapon.entity.tint[2] == .74,
+            'ordinary Miss Fortune Brimstone fires with the T1 accent')
+    else
+        assert(not weapon.entity.tint, 'native combo tints are preserved')
+    end
 end
+p.missFortune = nil
 assert(attacks == 3)
 begin(aim)
 weapon.charge = 2
@@ -204,6 +422,84 @@ knife.flying = false
 event('MC_POST_KNIFE_UPDATE', knife)
 assert(not Weapons.context(p, ref(knife)) and knife.SpriteScale.X == 1)
 
+reset('knife', 2)
+assert(Weapons.requestQ(p, aim, ticks))
+begin(nil)
+weapon.charge = 2
+endFrame()
+begin(nil)
+local hybridKnife, hybridBeam = object('KNIFE', p), object('LASER', p)
+hybridKnife.flying, hybridKnife.Rotation = true, 5
+hybridBeam.AngleDegrees = -7
+weapon.entity = hybridKnife
+trigger(p, Vector(1, 0))
+event('MC_POST_FIRE_BRIMSTONE', hybridBeam)
+endFrame()
+local hybrid = Weapons.context(p, ref(hybridKnife))
+assert(hybrid.kind == 'q' and Weapons.context(p, ref(hybridBeam)) == hybrid and #announced == 1,
+    'knife and beam outputs from one native discharge must share Q')
+assert(math.abs(hybridKnife.Rotation - 5 - aim:GetAngleDegrees()) < 1e-6)
+assert(math.abs(hybridBeam.AngleDegrees + 7 - aim:GetAngleDegrees()) < 1e-6)
+
+reset('bombs', 0)
+assert(Weapons.requestQ(p, aim, ticks))
+begin(nil)
+local launchBomb = object('BOMB', p)
+launchBomb.Velocity = Vector(7, 0)
+event('MC_POST_FIRE_BOMB', launchBomb)
+trigger(p, Vector(1, 0))
+endFrame()
+local bombQ = Weapons.context(p, ref(launchBomb))
+assert(bombQ.kind == 'q' and #announced == 1)
+
+assert(Weapons.requestQ(p, Vector(0, -1), ticks))
+local detachedBeam
+for _, notification in ipairs({'MC_POST_FIRE_BRIMSTONE', 'MC_POST_LASER_INIT'}) do
+    local delayed = object('LASER', p)
+    delayed.Parent, delayed.AngleDegrees = launchBomb, 57
+    delayed.TearFlags = 0x20
+    event(notification, delayed)
+    delayed.Parent = nil
+    local retained, isRanged = Weapons.context(p, ref(p), ref(delayed))
+    assert(retained == bombQ and isRanged, 'a delayed beam keeps its Q after losing its source bomb')
+    assert(delayed.AngleDegrees == 57 and delayed.TearFlags == 0x20,
+        'inheriting a volley preserves the child beam direction and status')
+    event('MC_POST_FIRE_BRIMSTONE', delayed)
+    assert(delayed.SpriteScale.X == 1.12 and Weapons.hasPendingQ(p) and #announced == 1,
+        'updating the child cannot consume the next Q or scale twice')
+    detachedBeam = delayed
+end
+local independent = object('LASER', p)
+event('MC_POST_LASER_INIT', independent)
+event('MC_POST_FIRE_BRIMSTONE', independent)
+assert(not Weapons.context(p, ref(independent)) and not independent.tint and Weapons.hasPendingQ(p),
+    'a player-owned beam without a tagged origin remains independent')
+begin(nil)
+event('MC_POST_FIRE_BRIMSTONE', detachedBeam)
+endFrame()
+assert(Weapons.hasPendingQ(p) and #announced == 1 and Weapons.context(p, ref(detachedBeam)) == bombQ,
+    'a repeated callback during the next player update still belongs to the original bomb')
+
+for _, kind in ipairs({'sword', 'bone', 'axe'}) do
+    reset(kind, 0)
+    local melee = object('KNIFE', p)
+    melee.Rotation = 0
+    weapon.entity = melee
+    assert(Weapons.requestQ(p, aim, ticks))
+    begin(nil)
+    trigger(p, Vector(1, 0))
+    endFrame()
+    local hitbox = object('KNIFE', p)
+    function hitbox:GetHitboxParentKnife() return melee end
+    local meleeContext = Weapons.context(p, ref(melee))
+    local hitContext, hitRanged, hitType = Weapons.context(p, ref(p), ref(hitbox))
+    assert(hitContext == meleeContext and hitContext.kind == 'q' and not hitRanged
+        and hitType == EntityType.ENTITY_KNIFE, kind .. ' swing hitbox must inherit the melee Q')
+    local unrelated = object('KNIFE', p)
+    function unrelated:GetHitboxParentKnife() return nil end
+    assert(not Weapons.context(p, ref(unrelated)), 'unrelated knife must not inherit Q from a shared player')
+end
+
 reset('fetus', 0)
 assert(Weapons.requestQ(p, aim, ticks))
 begin(nil)
@@ -225,7 +521,7 @@ assert(not Weapons.context(p, ref(marker)), 'the marker alone must not count as 
 trigger()
 endFrame()
 local rocketCtx = Weapons.context(p, ref(marker))
-assert(rocketCtx.kind == 'q')
+assert(rocketCtx.kind == 'q' and rocketCtx.weaponType == WeaponType.WEAPON_ROCKETS)
 ticks = ticks + 25
 local rocket = object('EFFECT', p)
 rocket.Variant, rocket.Parent = EffectVariant.ROCKET, marker
@@ -251,8 +547,16 @@ local pulse = Weapons.context(p, ref(orb))
 assert(pulse.persistentPulse and pulse.kind == 'q' and pulse.damageMultiplier == 1.5 and orb.Scale == 1.18)
 assert(not Weapons.requestQ(p, aim, ticks), 'a pending pulse cannot be stacked')
 assert(Weapons.context(p, ref(orb)) == pulse, 'unaccepted hit attempts do not spend the pulse')
+local pulseChild = object('TEAR', orb)
+event('MC_POST_FIRE_SPLIT_TEAR', pulseChild, orb)
+local childContext, _, _, childSplit = Weapons.context(p, ref(pulseChild))
+assert(childContext == pulse and childSplit, 'a split child inherits the pending Q pulse')
 pulse.accepted = true
 assert(Weapons.context(p, ref(orb)) == baseline and orb.Scale == 1 and orb.tint == 'native')
+event('MC_POST_TEAR_UPDATE', pulseChild)
+childContext, _, _, childSplit = Weapons.context(p, ref(pulseChild))
+assert(childContext == pulse and childSplit and childContext.damageMultiplier == 1.5,
+    'a late split keeps its Q context after the orb consumes the pulse')
 ticks = ticks + 5
 local nextPulse = Weapons.context(p, ref(orb))
 assert(nextPulse.kind == 'aa' and nextPulse ~= baseline and Weapons.context(p, ref(orb)) == nextPulse)
@@ -267,6 +571,7 @@ assert(input('GET_ACTION_VALUE', 'LEFT') == 0 and input('GET_ACTION_VALUE', 'DOW
 endFrame()
 
 reset('rockets', 4)
+assert(not Weapons.context(p, ref(pulseChild)), 'a split child cannot retain its context after reset')
 marker = object('EFFECT', p)
 marker.Variant, marker.Position = EffectVariant.TARGET, Vector(30, 20)
 weapon.entity = marker
@@ -399,5 +704,5 @@ endFrame()
 near(ring.Velocity:GetAngleDegrees(), 45)
 near(ring.Velocity:Length(), 8)
 
-print('Passed native charge, grouped volleys, cardinal-to-cursor rotation, rockets and Ludovico.')
+print('Passed native charge, grouped volleys, melee hitboxes, cardinal-to-cursor rotation, rockets and Ludovico.')
 ''')

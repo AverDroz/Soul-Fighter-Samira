@@ -17,6 +17,33 @@ function Navigation.worldCursor(room)
     return Vector(delta.X / axis.X, delta.Y / axis.Y)
 end
 
+function Navigation.clearPoint(room, player, point)
+    local radius = math.min(14, math.max(6, player.Size * .6))
+    if not room:IsPositionInRoom(point, radius) then return false end
+    for _, offset in ipairs({Vector.Zero, Vector(radius, 0), Vector(-radius, 0),
+        Vector(0, radius), Vector(0, -radius)}) do
+        local cell = room:GetGridCollision(room:GetGridIndex(point + offset))
+        if cell ~= GridCollisionClass.COLLISION_NONE
+            and (not player:IsFlying() or cell >= GridCollisionClass.COLLISION_WALL) then return false end
+    end
+    return true
+end
+
+function Navigation.safeDestination(room, player, start, goal)
+    local delta, lastSafe = goal - start, start
+    local steps = math.max(1, math.ceil(delta:Length() / 4))
+    for step = 1, steps do
+        local nextPosition = start + delta * (step / steps)
+        if not Navigation.clearPoint(room, player, nextPosition) then break end
+        lastSafe = nextPosition
+    end
+    return lastSafe
+end
+
+function Navigation.clearSegment(room, player, start, goal)
+    return Navigation.safeDestination(room, player, start, goal):Distance(goal) < .5
+end
+
 local function doorNormal(slot)
     return Vector(-1, 0):Rotated((slot % 4) * 90)
 end

@@ -1,0 +1,75 @@
+{
+  "archive": "PBE MissFortune.wad.client",
+  "archive_sha256": "ec155cda0e61f3cea58d2fb775746b0143d5c12b9d9da80b60618889f4b4d362",
+  "crop_format": "Left, top, right, bottom in source pixels, with exclusive right and bottom",
+  "pivot_format": "Centered in each crop, measured from its top-left in pixels",
+  "conversion": "CDTB TEX to DDS, decoded to RGBA with Pillow and cropped to nonzero alpha",
+  "sprites": {
+    "HomeguardGlow": {
+      "texture": "assets/characters/missfortune/skins/skin69/particles/udyr_base_vgu_awaken_glow.skins_missfortune_skin69.tex",
+      "sha256": "86f854b46438453832b37a304d0bd9c9e656ca74cf196ea9c0f31055f4d3baaa",
+      "texture_size": [
+        128,
+        128
+      ],
+      "crop_bounds": [
+        2,
+        2,
+        126,
+        126
+      ],
+      "pivot": [
+        62,
+        62
+      ],
+      "effect": "MissFortune_Skin69_Emote_Homeguard_Trail01",
+      "emitter": "glowFast",
+      "attachment_bone": "C_BUFFBONE_GLB_CENTER_LOC",
+      "particle_lifetime_seconds": 0.5
+    },
+    "HomeguardTrail": {
+      "texture": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_trail.skins_missfortune_skin69.tex",
+      "sha256": "8782d2e0ee70ab90a7064c266c8598672502a4d16c75abed453557615a6b54ee",
+      "texture_size": [
+        256,
+        64
+      ],
+      "crop_bounds": [
+        0,
+        0,
+        256,
+        64
+      ],
+      "pivot": [
+        128,
+        32
+      ],
+      "effect": "MissFortune_Skin69_Emote_Homeguard_Trail01",
+      "emitter": "trail3",
+      "attachment_bone": "C_BUFFBONE_GLB_CENTER_LOC",
+      "particle_lifetime_seconds": 0.6
+    },
+    "PentakillSignature": {
+      "texture": "assets/characters/missfortune/skins/skin69/particles/cassiopeia_skin38_cirlcle_01.skins_missfortune_skin69.tex",
+      "sha256": "6ce600a5c83b9e3bc60659e2a6f5471d67c7e07557aa3790cfe11ef02871494a",
+      "texture_size": [
+        128,
+        128
+      ],
+      "crop_bounds": [
+        0,
+        0,
+        128,
+        128
+      ],
+      "pivot": [
+        64,
+        64
+      ],
+      "effect": "MissFortune_Skin69_Emote_Pentakill",
+      "emitter": "SignatureAdd",
+      "attachment_bone": "C_BUFFBONE_GLB_LAYOUT_LOC",
+      "particle_lifetime_seconds": 2.0
+    }
+  }
+}

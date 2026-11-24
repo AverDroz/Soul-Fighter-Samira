@@ -1,0 +1,60 @@
+{
+  "source_graph_state": "5a81bdb0",
+  "source_graph_animation": "assets/characters/missfortune/skins/skin69/animations/recall_real.skins_missfortune_skin69.anm",
+  "effect_name": "MissFortune_Skin69_Emote_Recall_Dog",
+  "effect_key": "7236f3f5",
+  "anchor_bone": "C_BUFFBONE_GLB_LAYOUT_LOC",
+  "start_frame": 136,
+  "emitter_lifetime_seconds": 8.5,
+  "emitter_scale": [
+    1.2000000476837158,
+    1.0,
+    1.0
+  ],
+  "emitter_rotation_degrees": [
+    0.0,
+    180.0,
+    0.0
+  ],
+  "source_assets": {
+    "data/characters/missfortune/skins/skin69.bin": "240943c7fd62908d021ed3028e60295098403e82bc81b4d6cb3d9255d77e312b",
+    "data/characters/missfortune/animations/skin69.bin": "d502b4fb9ee4a66a3da2ca6e5f38a0bd4ce06d24f398346b84141e2f9f352c8c",
+    "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_death1.skins_missfortune_skin69.skn": "8acdc399a2c3f5a1409e1557ec552cfd5830dc321ffb64445e6051e4aa9a2633",
+    "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_death1.skins_missfortune_skin69.skl": "f156b0fc6dfaf3f2d11fe58e8b124ef7a06df7e397346884e788fb2eb0d7dae0",
+    "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_recall_dog.skins_missfortune_skin69.anm": "6a0ca5c1e778b15c70e412974152c16dd3ad086e8f2df55be03d013eb3ae8cb9",
+    "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_emote_dog.skins_missfortune_skin69.tex": "f5b4dfdf888e306ea99157430059ddddad3da5ff659038840f2c6c78c1a36fc6"
+  },
+  "abilities_archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip",
+  "abilities_archive_sha256": "602f11876a05c99b310c9e5caa1b21ff19bb9d48cdc10ea6139ae0d5db877e24",
+  "attachment_model_sha256": "b52fc3810e3a90f94d79626b56f0355d435ccb9f0933296facae3e5924f04fa5",
+  "copyright": "Riot Games",
+  "fps": 30,
+  "frame_count": 125,
+  "animation_seconds": 4.133333333333334,
+  "end_frame": 260,
+  "direction_count": 8,
+  "atlas_size": [
+    1024,
+    150
+  ],
+  "frame_pivot": [
+    0,
+    0
+  ],
+  "animation": "RecallDog",
+  "directions": [
+    "RecallDog0",
+    "RecallDog1",
+    "RecallDog2",
+    "RecallDog3",
+    "RecallDog4",
+    "RecallDog5",
+    "RecallDog6",
+    "RecallDog7"
+  ],
+  "offsets": "Per-frame XPosition and YPosition relative to the Miss Fortune scene anchor",
+  "output_sha256": {
+    "recall_pet.anm2": "570b6088e1da10229864ed9f4f65535abf3ee7c0f093a685d5bfe7374c9bc882",
+    "recall_pet.png": "19ad70f05fec893f14ffa0d02a49a60a5244114f52559b92aba87683d3d48336"
+  }
+}

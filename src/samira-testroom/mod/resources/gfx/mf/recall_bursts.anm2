@@ -1,0 +1,76 @@
+<?xml version='1.0' encoding='utf-8'?>
+<AnimatedActor>
+    <Info Version="1" Fps="30" />
+    <Content>
+        <Spritesheets>
+            <Spritesheet Path="recall_bursts.png" Id="0" />
+        </Spritesheets>
+        <Layers>
+            <Layer Name="Particle" Id="0" SpritesheetId="0" />
+        </Layers>
+        <Nulls />
+        <Events />
+    </Content>
+    <Animations DefaultAnimation="RecallMuzzle">
+        <Animation Name="RecallMuzzle" FrameNum="1" Loop="true">
+            <RootAnimation>
+                <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" />
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" XCrop="0" YCrop="0" Width="48" Height="42" XPivot="24" YPivot="21" />
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations />
+            <Triggers />
+        </Animation>
+        <Animation Name="RecallShotSpark" FrameNum="1" Loop="true">
+            <RootAnimation>
+                <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" />
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" XCrop="50" YCrop="0" Width="48" Height="48" XPivot="24" YPivot="24" />
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations />
+            <Triggers />
+        </Animation>
+        <Animation Name="RecallBalloonHit" FrameNum="1" Loop="true">
+            <RootAnimation>
+                <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" />
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" XCrop="100" YCrop="0" Width="62" Height="64" XPivot="31" YPivot="32" />
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations />
+            <Triggers />
+        </Animation>
+        <Animation Name="RecallBalloonSplash" FrameNum="1" Loop="true">
+            <RootAnimation>
+                <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" />
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" XCrop="164" YCrop="0" Width="31" Height="28" XPivot="15" YPivot="14" />
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations />
+            <Triggers />
+        </Animation>
+        <Animation Name="RecallBalloonDroplet" FrameNum="1" Loop="true">
+            <RootAnimation>
+                <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" />
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false" XPosition="0" YPosition="0" XCrop="197" YCrop="0" Width="25" Height="25" XPivot="12" YPivot="12" />
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations />
+            <Triggers />
+        </Animation>
+    </Animations>
+</AnimatedActor>

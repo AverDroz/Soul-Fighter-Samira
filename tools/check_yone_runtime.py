@@ -14,7 +14,7 @@ MOD = ROOT / "src/samira-testroom/mod"
 
 def main():
     roster = ET.parse(MOD / "content/players.xml").getroot()
-    assert [player.get("name") for player in roster] == ["Samira", "Yone"]
+    assert [player.get("name") for player in roster] == ["Samira", "Yone", "Miss Fortune"]
     for attribute in ("nameimage", "portrait"):
         path = MOD / "resources" / roster.get(f"{attribute}root") / roster[1].get(attribute)
         assert path.is_file(), path
@@ -37,7 +37,10 @@ include('main')
 start()
 local kind = 130
 Options.Fullscreen, Options.UseBorderlessFullscreen = false, false
-Isaac.GetPlayerTypeByName = function(name) assert(name == 'Yone'); return 130 end
+Isaac.GetPlayerTypeByName = function(name)
+    assert(name == 'Yone' or name == 'Miss Fortune')
+    return name == 'Yone' and 130 or 131
+end
 function player:GetPlayerType() return kind end
 function player:IsFlying() return self.CanFly == true end
 function player:GetTrinket(slot) return slot == 0 and 1 or 0 end
@@ -49,7 +52,7 @@ Isaac.RenderScaledText = function() end
 Isaac.GetTextWidth = function(text) return #text * 6 end
 Isaac.DrawLine = function() end
 KColor = Color
-local draws = {}
+local draws, progressionDraws = {}, {}
 local function captureHud(cursor)
     local originalRender, originalScaled, originalLine = Isaac.RenderText, Isaac.RenderScaledText, Isaac.DrawLine
     local originalCursor = input.cursor
@@ -57,6 +60,8 @@ local function captureHud(cursor)
     local text = {pips = 0, ring = 0, qRing = 0, icons = {}, statMarks = {}, shield = 0, upgradeArrows = 0}
     text.conquerorPips, text.tempoPips, text.electroBolt, text.electroFill = 0, 0, 0, 0
     draws = text.icons
+    text.art = {}
+    progressionDraws = text.art
     Isaac.RenderText = function(label, x, y, r, g, b, a)
         text[label] = {x = x, y = y, scale = 1, color = {r, g, b, a}}
     end
@@ -95,6 +100,7 @@ local function captureHud(cursor)
     Isaac.RenderText, Isaac.RenderScaledText, Isaac.DrawLine = originalRender, originalScaled, originalLine
     input.cursor = originalCursor
     draws = {}
+    progressionDraws = {}
     local previousX = -1
     for _, key in ipairs({'Q', 'W', 'E', 'R'}) do
         local slot = assert(text[key], 'native HUD did not draw a separate ' .. key .. ' slot')
@@ -150,6 +156,16 @@ Sprite = function(path)
             SetFrame=function(self, animation, frame) assert(frame == 0); self.animation = animation end,
             Render=function(self, pos)
                 draws[#draws + 1] = {name = self.animation, x = pos.X, y = pos.Y, size = self.Scale.X * 64}
+            end,
+        }, true
+    end
+    if path == 'gfx/yone/progression_hud.anm2' then
+        return {
+            SetFrame = function(self, animation, frame) assert(frame == 0); self.animation = animation end,
+            Render = function(self, pos)
+                local positions = progressionDraws[self.animation] or {}
+                positions[#positions + 1] = pos
+                progressionDraws[self.animation] = positions
             end,
         }, true
     end
@@ -969,6 +985,35 @@ seed = 102
 for _ = 1, 5 do tick() end
 assert(packet.session == recoveredSession and packet.room == recoveredRoom + 2 and not packet.occluded,
     'floor recovery required a room callback despite observing the new room')
+
+-- Cellar II live trace: the room and game clock advance, but the transition
+-- gate keeps publishing an occluded session after the nightmare scene.
+local transitionMode = RoomTransition.GetTransitionMode
+local mode = 1
+RoomTransition.GetTransitionMode = function() return mode end
+event('PRE_ROOM_EXIT', player, true)
+seed = 103
+event('POST_NEW_ROOM')
+event('POST_NEW_LEVEL')
+event('PRE_CHANGE_ROOM')
+player.ControlsEnabled = false
+for _ = 1, 10 do tick() end
+assert(packet.transition and packet.occluded, 'floor camera opened before the player regained controls')
+player.ControlsEnabled = true
+for _ = 1, 10 do tick() end
+assert(packet.active and packet.session == recoveredSession and packet.room == recoveredRoom + 3
+    and not packet.transition and not packet.occluded,
+    'stale transition hid Yone after the new floor was playable')
+captureHud()
+castKey('KEY_Q')
+assert(packet.clip == 'q', 'QWER remained blocked after a stale floor transition')
+mode = 0
+tick()
+mode = 1
+event('PRE_CHANGE_ROOM')
+assert(packet.transition and packet.occluded, 'the next real transition did not hide Yone')
+RoomTransition.GetTransitionMode = transitionMode
+player.ControlsEnabled = nil
 event('PRE_GAME_EXIT')
 
 -- Use the production progression module behind the items boundary. Run-save
@@ -1027,7 +1072,8 @@ do
     tick()
     assert(#casts == 0 and not pickerText()['Choose a keystone'], 'picker confirm leaked held Q or left the menu open')
     local startHud = captureHud()
-    assert(startHud['LVL 1  0/60 XP'] and startHud['Q1 W1 E1 R1'] and startHud.Conqueror and startHud.upgradeArrows == 0,
+    assert(startHud['LVL 1  0/60 XP'] and startHud['Q1 W1 E1 R1'] and startHud.Conqueror
+        and #startHud.art.Conqueror == 1 and not startHud.art.Upgrade and not startHud.art.XP,
         'fresh progression HUD lost XP, rune name, or a starting rank')
 
     assert(progress.award(run, 65) == 1)
@@ -1037,7 +1083,7 @@ do
     assert(xp.x >= bounds.progress.x
         and xp.x + Isaac.GetTextWidth('LVL 2  5/72 XP') * xp.scale <= bounds.combat.x
         and bounds.progress.y == bounds.combat.y and bounds.height == 39 * bounds.scale
-        and earned['Alt+QWER: 1 pt'] and earned.upgradeArrows == 6,
+        and earned['Alt+QWER: 1 pt'] and #earned.art.Upgrade == 3 and #earned.art.XP == 1 and #earned.art.AbilityFrame == 4,
         'XP must stay left of the combat HUD without increasing its height')
     do
         local width, height = Isaac.GetScreenWidth, Isaac.GetScreenHeight
@@ -1051,7 +1097,7 @@ do
                 and wide.combat.x + wide.combat.width <= Isaac.GetScreenWidth() - 5,
                 'wide HUD did not fit the left panel and the skills beside the backpack')
             local hud = captureHud()
-            assert(hud['LVL 2  5/72 XP'].x < hud.icons[1].x and hud.upgradeArrows == 6)
+            assert(hud['LVL 2  5/72 XP'].x < hud.icons[1].x and #hud.art.Upgrade == 3)
         end
         Isaac.GetScreenWidth, Isaac.GetScreenHeight, hudScale = width, height, 1
     end
@@ -1075,7 +1121,15 @@ do
     local expected = player.Damage * 1.4 * 1.08 * 1.02
     assert(casts[1] == 'q' and #target.damage == 2 and math.abs(target.damage[2] - expected) < .001,
         'the real Q impact did not combine skill rank with the prior rune stack')
-    assert(captureHud().conquerorPips == 2, 'Conqueror pips did not reflect confirmed hits')
+    local stacked = captureHud()
+    assert(stacked.conquerorPips == 2 and #stacked.art.Conqueror == 2, 'Conqueror stacks did not render at player and HUD')
+    local anchor = stacked.art.Conqueror[1]
+    assert(anchor.X == player.Position.X * projection - 16 and anchor.Y == player.Position.Y * projection + 10)
+    mirror = true
+    anchor = captureHud().art.Conqueror[1]
+    assert(anchor.X == Isaac.GetScreenWidth() - player.Position.X * projection - 16
+        and anchor.Y == player.Position.Y * projection + 10, 'mirror displaced the Conqueror player indicator')
+    mirror = false
     event('PRE_GAME_EXIT')
 
     local nativeMouse = Input.IsMouseBtnPressed
@@ -1122,7 +1176,10 @@ do
     tick(nil, false, arrow(q))
     assert(progress.rank(run, 'q') == 2 and progress.points(run) == 1, 'Q arrow click did not spend exactly one point')
     for _ = 1, 7 do progress.onStrike(run, 'attack', frame) end
-    assert(captureHud().tempoPips == 6, 'Lethal Tempo pips did not show the stack cap')
+    stacked = captureHud()
+    assert(stacked.tempoPips == 6 and #stacked.art.Tempo == 2, 'Lethal Tempo pips did not show the stack cap')
+    frame = frame + 120
+    assert(#captureHud().art.Tempo == 1, 'Lethal Tempo player indicator survived expiration')
     progress.resetRoom(run)
     assert(captureHud().tempoPips == 0, 'Lethal Tempo pips survived a room reset')
     event('PRE_GAME_EXIT')
@@ -1135,13 +1192,13 @@ do
     tick()
     local electro = captureHud()
     local runeCursor = Vector(electro.Electrocute.x + 2, electro.Electrocute.y + 3)
-    assert(electro.electroBolt > 0 and captureHud(runeCursor)['Electrocute ready'])
+    assert(#electro.art.Electrocute == 1 and captureHud(runeCursor)['Electrocute ready'])
     for _, hit in ipairs({'attack', 'q', 'w'}) do progress.onStrike(run, hit, frame) end
     electro = captureHud(runeCursor)
-    assert(electro.electroBolt == 0 and electro.electroFill == 0 and electro['Electrocute  8.0s'])
+    assert(#electro.art.ElectrocuteDark == 1 and electro.electroFill == 0 and electro['Electrocute  8.0s'])
     frame = frame + 120
     electro = captureHud(runeCursor)
-    assert(electro.electroBolt == 0 and math.abs(electro.electroFill - 22 * bounds.scale) < .001
+    assert(#electro.art.ElectrocuteDark == 1 and math.abs(electro.electroFill - 22 * bounds.scale) < .001
         and electro['Electrocute  4.0s'], 'Electrocute cooldown fill did not track time')
     frame = frame + 120
     assert(captureHud(runeCursor)['Electrocute ready'])

@@ -19,6 +19,10 @@ local function weaponOf(p)
     return p and p:GetWeapon(1)
 end
 
+local function isRocketWeapon(weapon)
+    return WeaponType and weapon:GetWeaponType() == WeaponType.WEAPON_ROCKETS
+end
+
 local function ludovico(weapon, entity)
     if WeaponType and weapon:GetWeaponType() == WeaponType.WEAPON_LUDOVICO_TECHNIQUE then return true end
     if not entity then return false end
@@ -27,6 +31,23 @@ local function ludovico(weapon, entity)
     end
     return entity.Type == EntityType.ENTITY_LASER and LaserSubType
         and entity.SubType == LaserSubType.LASER_SUBTYPE_RING_LUDOVICO
+end
+
+local function currentPulse(weapon)
+    local primary = weapon:GetMainEntity()
+    if not ludovico(weapon, primary) then return nil, false end
+    return primary and primary:Exists() and primary or nil, true
+end
+
+local function pulseAvailable(pulse)
+    if not pulse then return false end
+    local tag = pulse:GetData().SamiraNativeWeapon
+    return not (tag and tag.generation == generation and tag.context.persistentPulse and not tag.context.accepted)
+end
+
+local function activePulse(context)
+    local weapon = weaponOf(context.player)
+    return weapon and same(currentPulse(weapon), context.pulse)
 end
 
 function Weapons.attackRange(p, base)
@@ -74,22 +95,13 @@ function Weapons.update(p, _, aim, enabled, point)
     direction, aimPoint, allow = aim, point, enabled
 end
 
-function Weapons.requestQ(p, aim, clock, point, releaseAt)
+function Weapons.requestQ(p, aim, clock, point, releaseAt, chargeDuringWindup)
     local weapon = weaponOf(p)
     if request or not weapon or not aim or aim:Length() <= .001 then return false end
-    local pulse
-    local primary = weapon:GetMainEntity()
-    if ludovico(weapon, primary) then
-        pulse = primary
-        if not pulse or not pulse:Exists() then return false end
-        local tag = pulse:GetData().SamiraNativeWeapon
-        if tag and tag.generation == generation and tag.context.persistentPulse and not tag.context.accepted then
-            return false
-        end
-        restorePulse(pulse)
-    end
+    local pulse, remote = currentPulse(weapon)
+    if remote and not pulseAvailable(pulse) then return false end
     request = {player = p, heading = aim:Normalized(), clock = clock, pulse = pulse, point = point,
-        releaseAt = releaseAt or clock}
+        releaseAt = releaseAt or clock, chargeDuringWindup = chargeDuringWindup == true}
     currentHeld, lastHeld, frame = nil, nil, nil
     return true
 end
@@ -106,6 +118,7 @@ end
 function Weapons.trackCursor(p, point)
     if request and same(request.player, p) and not request.pulse and game:GetFrameCount() > request.releaseAt
         and Weapons.isChargeWeapon(p) then
+        if request.chargeDuringWindup and isRocketWeapon(weaponOf(p)) then return end
         local delta = point - p.Position
         if delta:Length() > .001 then request.heading = delta:Normalized() end
         request.point = point
@@ -116,7 +129,7 @@ local function remoteAim(weapon, point, aim)
     if not point then return aim, false end
     local remote = weapon:GetMainEntity()
     if not remote or not remote:Exists() or not remote.Position then return aim, false end
-    local rocketMarker = WeaponType and weapon:GetWeaponType() == WeaponType.WEAPON_ROCKETS
+    local rocketMarker = isRocketWeapon(weapon)
         and EffectVariant and remote.Type == EntityType.ENTITY_EFFECT and remote.Variant == EffectVariant.TARGET
     if not ludovico(weapon, remote) and not rocketMarker then
         return aim, false
@@ -132,11 +145,27 @@ local function beginFrame(p)
     if not weapon then return end
     local clock = game:GetFrameCount()
     if request and not same(request.player, p) then request = nil end
-    if request and clock < request.releaseAt then return end
     local maxCharge, charge = weapon:GetMaxCharge(), weapon:GetCharge()
+    if charge < maxCharge - .001 then releasedWeapon = nil end
     if request and clock - request.clock > math.max(240, math.ceil(maxCharge * 2) + 30) then
         stopCharge(p)
         request = nil
+    end
+    if request then
+        local pulse, remote = currentPulse(weapon)
+        request.pulse = pulse
+        if remote and not pulseAvailable(pulse) then
+            lastHeld, currentHeld, frame = currentHeld, nil, nil
+            return
+        end
+    end
+    if request and clock < request.releaseAt then
+        -- Charge by holding the native input. The firing batch opens at releaseAt.
+        local precharge = request.chargeDuringWindup and maxCharge > 0 and not request.pulse
+            and not isRocketWeapon(weapon)
+        lastHeld, currentHeld, frame = currentHeld, precharge and request.heading or nil, nil
+        if precharge then lastAim = request.heading end
+        return
     end
     local aimingRequest = request
     if request and request.pulse then armPulse(p, clock) end
@@ -148,7 +177,6 @@ local function beginFrame(p)
     -- Release once at full charge, then let the native weapon finish its
     -- discharge while the button is held again. Releasing on every full
     -- charge frame interrupts weapons that keep charge during their beam.
-    if charge < maxCharge - .001 then releasedWeapon = nil end
     if releasedWeapon and releasedCount == firedCount and clock - releasedAt >= 6 then
         releasedWeapon = nil
     end
@@ -172,7 +200,7 @@ local function beginFrame(p)
         player = p, weapon = weapon, clock = clock, request = request,
         heading = aim or lastAim or request and request.heading, count = weapon:GetNumFired(),
         outputs = {}, remote = remote or ludovico(weapon, weapon:GetMainEntity())
-            or WeaponType and weapon:GetWeaponType() == WeaponType.WEAPON_ROCKETS,
+            or isRocketWeapon(weapon),
     }
     lastAim = aim or lastAim
 end
@@ -208,6 +236,8 @@ local function newContext(batch)
         local kind = batch.request and 'q' or 'aa'
         local context = items.newAttack(batch.player, kind, batch.clock)
         context.nativeWeapon = true
+        context.weaponType = batch.weapon and batch.weapon:GetWeaponType()
+        context.shotHeading = kind == 'q' and batch.heading or nil
         context.damageMultiplier = kind == 'q' and 1.5 or 1
         batch.context = context
     end
@@ -219,6 +249,13 @@ local function shotTag(entity, depth)
     local tag = entity:GetData().SamiraNativeWeapon
     if tag and tag.generation == generation then return tag end
     if depth == 0 then return end
+    if entity.Type == EntityType.ENTITY_KNIFE then
+        -- Native melee hitboxes can reference the swing through the knife API.
+        local knife = entity:ToKnife()
+        local mainKnife = knife.GetHitboxParentKnife and knife:GetHitboxParentKnife()
+        local inherited = shotTag(mainKnife, depth - 1)
+        if inherited then return inherited end
+    end
     return shotTag(entity.Parent, depth - 1) or shotTag(entity.SpawnerEntity, depth - 1)
 end
 
@@ -241,6 +278,7 @@ end
 local function rotateOutput(batch, entity)
     if not batch.turn or not entity:Exists() then return end
     local data = entity:GetData()
+    if data.SamiraSplitTear == generation then return end
     local previous = data.SamiraAim
     local speed = entity.Type == EntityType.ENTITY_TEAR and batch.context.kind == 'q' and qTearSpeed or 1
     if speed == 1 and math.abs(batch.turn) < .001 and not previous and entity.Type ~= EntityType.ENTITY_LASER then return end
@@ -308,24 +346,45 @@ local function aimOutput(batch, entity)
     else batch.outputs[#batch.outputs + 1] = entity end
 end
 
-local function tag(p, entity, context)
+local function tintShot(entity, context, split)
+    local brimstone = WeaponType and WeaponType.WEAPON_BRIMSTONE
+    local q = context.kind == 'q'
+    if context.missFortune and brimstone and context.weaponType == brimstone
+        and entity.Type == EntityType.ENTITY_LASER and not split and not context.persistentPulse then
+        local native = entity:GetColor()
+        if native.R == 1 and native.G == 1 and native.B == 1 and native.RO == 0 and native.GO == 0 and native.BO == 0 then
+            local color = q and Color(1, .88, .57, native.A, .14, .35, .12)
+                or Color(.98, .74, .45, native.A, .06, .26, .11)
+            entity:SetColor(color, math.max(1, entity.Timeout or 90), 5, false, false)
+        end
+    elseif q then
+        local seconds = entity.Type == EntityType.ENTITY_KNIFE and 1 or 3
+        entity:SetColor(Color(.9, .55, .62, 1, .18, .04, .1), seconds * 30, 5, false, false)
+    end
+end
+
+local function tag(p, entity, context, split, derived)
     if not entity or not entity:Exists() then return end
     local data = entity:GetData()
+    if data.SamiraSplitTear == generation and not split then return end
     local old = data.SamiraNativeWeapon
-    if old and old.context == context then return end
+    if old and old.context == context then
+        old.split = old.split or split
+        old.derived = old.derived or derived
+        return
+    end
     if old and old.generation == generation and old.context.persistentPulse and not old.context.accepted then return end
-    local tagged = {context = context, generation = generation}
+    local tagged = {context = context, generation = generation, split = split, derived = derived}
     data.SamiraNativeWeapon = tagged
     if context.persistentPulse then
         tagged.previous, tagged.preColor = old, entity:GetColor()
     end
-    if entity.Type == EntityType.ENTITY_TEAR then items.tagTear(p, entity:ToTear(), context) end
+    if entity.Type == EntityType.ENTITY_TEAR then items.tagTear(p, entity:ToTear(), context, split) end
+    tintShot(entity, context, split)
     if context.kind ~= 'q' then
         if old and old.preScale then entity.SpriteScale = old.preScale end
         return
     end
-    local seconds = entity.Type == EntityType.ENTITY_KNIFE and 1 or 3
-    entity:SetColor(Color(.9, .55, .62, 1, .18, .04, .1), seconds * 30, 5, false, false)
     if entity.Type == EntityType.ENTITY_TEAR then
         entity = entity:ToTear()
         if context.persistentPulse then tagged.preTearScale = entity.Scale end
@@ -338,24 +397,90 @@ local function tag(p, entity, context)
     end
 end
 
+local function mirroredOutput(entity, familiar)
+    local volley = frame or lastVolley
+    if not volley or volley.clock ~= game:GetFrameCount() or not entity or not familiar
+        or familiar.Type ~= EntityType.ENTITY_FAMILIAR or not mirrorsPlayer(familiar)
+        or not same(familiar:ToFamiliar().Player, volley.player) then return end
+    if entity:GetData().SamiraSplitTear == generation then return true end
+    if volley.completed then
+        tag(volley.player, entity, volley.context)
+        aimOutput(volley, entity)
+    else
+        volley.mirrored = volley.mirrored or {}
+        volley.mirrored[#volley.mirrored + 1] = entity
+    end
+    return true
+end
+
+local function inheritOutput(entity)
+    local data = entity:GetData()
+    local tagAtSpawn = data.SamiraNativeWeapon
+    if tagAtSpawn and tagAtSpawn.generation == generation and tagAtSpawn.derived then return true end
+    local inherited = shotTag(entity.Parent, 3) or shotTag(entity.SpawnerEntity, 3)
+    if not inherited then return false end
+    if inherited.split and entity.Type == EntityType.ENTITY_TEAR then
+        data.SamiraSplitTear = generation
+    end
+    tag(inherited.context.player, entity, inherited.context, inherited.split, true)
+    return true
+end
+
+local function claimOutput(batch, entity)
+    if inheritOutput(entity) then return end
+    if mirroredOutput(entity, entity.SpawnerEntity or entity.Parent) then return end
+    tag(batch.player, entity, newContext(batch))
+    aimOutput(batch, entity)
+    batch.hadOutput = true
+end
+
 local function output(entity)
+    if not entity then return end
     local batch = frame
-    if batch and entity and ownerMatches(batch.player, entity) then
-        local inherited = shotTag(entity.Parent, 3) or shotTag(entity.SpawnerEntity, 3)
-        if inherited then
-            tag(inherited.context.player, entity, inherited.context)
-            return
-        end
-        tag(batch.player, entity, newContext(batch))
-        aimOutput(batch, entity)
-        batch.hadOutput = true
+    if not batch or not ownerMatches(batch.player, entity) then
+        -- A bomb or tear can spawn a beam outside the player update.
+        -- Capture the original volley before the engine drops the parent.
+        if entity.Type == EntityType.ENTITY_LASER then inheritOutput(entity) end
+        return
+    end
+    local data = entity:GetData()
+    if data.SamiraSplitTear == generation then return end
+    if entity.Type == EntityType.ENTITY_TEAR then
+        -- The generic callback can arrive before MC_POST_FIRE_SPLIT_TEAR.
+        if data.SamiraPendingTear == batch then return end
+        batch.tears = batch.tears or {}
+        batch.tears[#batch.tears + 1] = entity
+        data.SamiraPendingTear = batch
+    else
+        claimOutput(batch, entity)
     end
 end
 
+local function resolveTear(batch, tear)
+    local data = tear:GetData()
+    if data.SamiraPendingTear ~= batch then return end
+    data.SamiraPendingTear = nil
+    claimOutput(batch, tear)
+end
+
+local function resolveTears(batch)
+    for _, tear in ipairs(batch.tears or {}) do
+        if tear:Exists() then resolveTear(batch, tear) end
+    end
+    batch.tears = nil
+end
+
 local function inheritedOutput(tear, source)
+    if not tear or tear.Type ~= EntityType.ENTITY_TEAR then return end
+    local data = tear:GetData()
+    data.SamiraSplitTear, data.SamiraPendingTear = generation, nil
     local inherited = shotTag(source, 3)
+    if frame and source:Exists() and source:GetData().SamiraPendingTear == frame then
+        resolveTear(frame, source)
+        inherited = shotTag(source, 3)
+    end
     if inherited and inherited.generation == generation then
-        tag(inherited.context.player, tear, inherited.context)
+        tag(inherited.context.player, tear, inherited.context, true)
     end
 end
 
@@ -365,13 +490,25 @@ local function complete(batch, heading, weapon)
         local entity = weapon:GetMainEntity()
         -- Reused knives and beam handles are only claimed on real discharge.
         if entity and ownerMatches(batch.player, entity) then
-            tag(batch.player, entity, newContext(batch))
-            aimOutput(batch, entity)
+            local data = entity:GetData()
+            if data.SamiraSplitTear ~= generation and data.SamiraPendingTear ~= batch then
+                tag(batch.player, entity, newContext(batch))
+                aimOutput(batch, entity)
+            end
         end
     end
     if batch.completed then return end
     batch.completed = true
     local context = newContext(batch)
+    if batch.mirrored then
+        for _, entity in ipairs(batch.mirrored) do
+            if entity:Exists() then
+                tag(batch.player, entity, context)
+                aimOutput(batch, entity)
+            end
+        end
+        batch.mirrored = nil
+    end
     if not context.persistentPulse then lastVolley = batch end
     if batch.rocketMarker then tag(batch.player, batch.rocketMarker, context) end
     if request == batch.request then request = nil end
@@ -388,12 +525,11 @@ local function rocketEffect(effect)
     if shotTag(effect, 0) then return end
     local inherited = shotTag(effect.Parent, 3) or shotTag(effect.SpawnerEntity, 3)
     if inherited then
-        tag(inherited.context.player, effect, inherited.context)
+        tag(inherited.context.player, effect, inherited.context, inherited.split)
         return
     end
     local batch = frame
-    if variant == EffectVariant.TARGET and batch and WeaponType
-        and batch.weapon:GetWeaponType() == WeaponType.WEAPON_ROCKETS
+    if variant == EffectVariant.TARGET and batch and isRocketWeapon(batch.weapon)
         and ownerMatches(batch.player, effect) then
         if batch.completed then
             tag(batch.player, effect, batch.context)
@@ -411,7 +547,8 @@ armPulse = function(p, clock)
     end
     local batch = {player = p, clock = clock, request = request, heading = heading}
     local context = newContext(batch)
-    context.persistentPulse = true
+    context.persistentPulse, context.pulse = true, pulse
+    restorePulse(pulse)
     tag(p, pulse, context)
     complete(batch, heading)
 end
@@ -421,32 +558,18 @@ local function trigger(_, heading, amount, owner, weapon)
     if amount < 1 then return end
     if batch and same(owner, batch.player) then
         complete(batch, heading, weapon)
-    elseif lastVolley and lastVolley.clock == game:GetFrameCount() and owner and owner.Type == EntityType.ENTITY_FAMILIAR
-        and mirrorsPlayer(owner) and same(owner:ToFamiliar().Player, lastVolley.player) then
+    elseif weapon and owner and owner.Type == EntityType.ENTITY_FAMILIAR then
         -- Incubus-like copies share the current action but cannot consume Q first.
-        local entity = weapon:GetMainEntity()
-        if entity then
-            tag(lastVolley.player, entity, lastVolley.context)
-            aimOutput(lastVolley, entity)
-        end
-    end
-end
-
-local function mirroredOutput(entity)
-    local volley = lastVolley
-    local familiar = entity and entity.SpawnerEntity
-    if volley and volley.clock == game:GetFrameCount() and familiar and familiar.Type == EntityType.ENTITY_FAMILIAR
-        and mirrorsPlayer(familiar) and same(familiar:ToFamiliar().Player, volley.player) then
-        tag(volley.player, entity, volley.context)
-        aimOutput(volley, entity)
+        mirroredOutput(weapon:GetMainEntity(), owner)
     end
 end
 
 local function endFrame(p)
     local batch = frame
     if not batch or not same(batch.player, p) then return end
+    resolveTears(batch)
     if not batch.completed and (batch.hadOutput or batch.weapon:GetNumFired() > batch.count) then
-        complete(batch, batch.weapon:GetDirection(), batch.weapon)
+        complete(batch, batch.reportedHeading or batch.weapon:GetDirection(), batch.weapon)
     end
     if not currentHeld then lastAim = nil end
     frame = nil
@@ -469,18 +592,23 @@ function Weapons.context(p, source, extraSource)
             tag = {context = context, generation = generation}
             entity:GetData().SamiraNativeWeapon = tag
         end
-    elseif tag and tag.context.persistentPulse and tag.context.accepted then
+    elseif tag and tag.context.persistentPulse and same(entity, tag.context.pulse)
+        and (tag.context.accepted or not activePulse(tag.context)) then
+        restorePulse(entity)
         tag = tag.previous
     end
     if tag and tag.generation == generation and same(tag.context.player, p) then
-        return tag.context, entity.Type ~= EntityType.ENTITY_KNIFE, entity.Type
+        return tag.context, entity.Type ~= EntityType.ENTITY_KNIFE, entity.Type, tag.split == true
     end
 end
 
 restorePulse = function(entity)
     local data = entity:GetData()
     local tag = data.SamiraNativeWeapon
-    if not tag or not tag.context.persistentPulse or not tag.context.accepted and tag.generation == generation then return end
+    if not tag or not tag.context.persistentPulse then return end
+    -- Children inherit the pulse as a shot context, but are not the reused orb.
+    if not same(entity, tag.context.pulse) then return end
+    if tag.generation == generation and not tag.context.accepted and activePulse(tag.context) then return end
     if tag.preTearScale then entity:ToTear().Scale = tag.preTearScale end
     if tag.preScale then entity.SpriteScale = tag.preScale end
     if tag.preColor then entity:SetColor(tag.preColor, 1, 5, false, false) end
@@ -514,6 +642,7 @@ function Weapons.init(mod, currentGame, getPlayer, itemModule, onFired)
     callback('MC_PRE_PLAYER_UPDATE', function(_, p) beginFrame(p) end)
     callback('MC_POST_PLAYER_UPDATE', function(_, p) endFrame(p) end)
     callback('MC_POST_TEAR_UPDATE', function(_, tear) restorePulse(tear) end)
+    callback('MC_POST_LASER_INIT', function(_, laser) inheritOutput(laser) end)
     callback('MC_POST_LASER_UPDATE', function(_, laser)
         restorePulse(laser)
         local data = laser:GetData()
@@ -531,8 +660,9 @@ function Weapons.init(mod, currentGame, getPlayer, itemModule, onFired)
     callback('MC_POST_TRIGGER_WEAPON_FIRED', trigger)
     callback('MC_POST_WEAPON_FIRE', function(_, weapon, heading)
         local batch = frame
-        if batch and same(weapon:GetOwner(), batch.player) and batch.hadOutput then
-            setNativeAim(batch, heading)
+        if batch and same(weapon:GetOwner(), batch.player) then
+            if batch.hadOutput then setNativeAim(batch, heading)
+            elseif batch.tears then batch.reportedHeading = heading end
         end
     end)
     for _, name in ipairs({
@@ -541,7 +671,9 @@ function Weapons.init(mod, currentGame, getPlayer, itemModule, onFired)
         'MC_POST_FAMILIAR_FIRE_PROJECTILE', 'MC_POST_FAMILIAR_FIRE_BRIMSTONE', 'MC_POST_FAMILIAR_FIRE_TECH_LASER',
     }) do
         if name:find('FAMILIAR', 1, true) then
-            callback(name, function(_, entity) mirroredOutput(entity) end)
+            callback(name, function(_, entity)
+                if entity then mirroredOutput(entity, entity.SpawnerEntity or entity.Parent) end
+            end)
         else
             callback(name, function(_, entity) output(entity) end)
         end

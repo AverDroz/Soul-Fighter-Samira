@@ -9,7 +9,12 @@ local cooling = {.64, .68, .72, 1}
 local recast = {.63, .90, 1, 1}
 local gold = {.98, .78, .46, 1}
 local ink = {.02, .029, .065, 1}
-local icons, palette
+local icons, progressionArt, palette
+local runeFrames = {conqueror = 'Conqueror', lethal_tempo = 'Tempo', electrocute = 'Electrocute'}
+local fieldRunes = {
+    conqueror = {ember = {.98, .46, .16}, flare = {1, .81, .41}},
+    lethal_tempo = {ember = {.18, .66, .90}, flare = {.68, .95, 1}},
+}
 
 -- Each sequence is one pen stroke on an eight-by-eight grid.
 local statCells = {
@@ -35,6 +40,8 @@ local statCells = {
 }
 local shieldMark = {{1, 1, 7, 1, 7, 5, 4, 8, 1, 5, 1, 1}}
 local boltMark = {{5, 0, 1, 5, 4, 5, 3, 8, 7, 3, 4, 3, 5, 0}}
+local statGlyphs = {}
+for _, cell in ipairs(statCells) do statGlyphs[cell.key] = cell.strokes end
 
 function HUD.bounds(requestedScale, backpack, hasProgress)
     local leftInset = hasProgress and progressWidth + panelGap or 0
@@ -107,6 +114,10 @@ local function setup()
         local sprite, loaded = Sprite('gfx/yone/ability_icons.anm2', true)
         icons = loaded and sprite or false
     end
+    if progressionArt == nil then
+        local sprite, loaded = Sprite('gfx/yone/progression_hud.anm2', true)
+        progressionArt = loaded and sprite or false
+    end
     if not palette then
         palette = {
             edge = KColor(.49, .37, .24, 1), cap = KColor(.76, .57, .33, 1),
@@ -118,7 +129,57 @@ local function setup()
             hover = KColor(.10, .17, .20, 1), shield = KColor(.55, .87, 1, 1),
             conqueror = KColor(1, .73, .32, 1), lethal_tempo = KColor(.47, .85, .98, 1),
             electrocute = KColor(1, .40, .40, 1), runeCooldown = KColor(.54, .30, .37, 1),
+            press_the_attack = KColor(1, .83, .43, 1), arcane_comet = KColor(.56, .72, 1, 1),
+            first_strike = KColor(.57, .94, .96, 1),
         }
+    end
+end
+
+local function art(frame, x, y, w, h, alpha)
+    if not progressionArt or not frame then return false end
+    local frameWidth, frameHeight = 64, 64
+    if frame == 'XP' then
+        frameWidth, frameHeight = 224, 16
+    elseif frame == 'Upgrade' or frame == 'UpgradeHover' then
+        frameWidth, frameHeight = 56, 56
+    end
+    progressionArt:SetFrame(frame, 0)
+    progressionArt.Scale = Vector(w / frameWidth, h / frameHeight)
+    progressionArt.Color = Color(1, 1, 1, alpha or 1)
+    progressionArt:Render(Vector(x, y))
+    return true
+end
+
+function HUD.renderPlayerRune(position, progress, clock)
+    local rune = progress and progress.rune
+    local style = fieldRunes[rune]
+    if not style or not Isaac.DrawLine or not KColor then return end
+    local status = Progression.runeStatus(progress, clock)
+    if status.stacks == 0 then return end
+    setup()
+    local x = math.max(24, math.min(Isaac.GetScreenWidth() - 24, position.X))
+    local y = math.min(Isaac.GetScreenHeight() - 12, position.Y + 12)
+    local full = status.stacks == status.limit
+    local alpha = math.min(1, status.remaining / 15)
+    local step = 4
+    local rowWidth = status.limit * step + 14
+    local start = x - rowWidth / 2
+    fill(start, y, rowWidth, 9, KColor(.045, .035, .06, .88 * alpha))
+    art(runeFrames[rune], start + 1, y - 2, 12, 12, alpha)
+    local shadow = KColor(.32, .29, .34, .88 * alpha)
+    local r, g, b = table.unpack(full and style.flare or style.ember)
+    local tint = KColor(r, g, b, alpha)
+    for i = 1, status.limit do
+        local pip = start + 14 + (i - 1) * step
+        local color = i <= status.stacks and tint or shadow
+        line(pip, y + 6, pip + 2, y + (full and 2 or 3), color, 1.6)
+    end
+    if full then
+        line(start - 4, y + 4.5, start - 1, y + 1, tint, 1)
+        line(start - 4, y + 4.5, start - 1, y + 8, tint, 1)
+        local finish = start + rowWidth
+        line(finish + 1, y + 1, finish + 4, y + 4.5, tint, 1)
+        line(finish + 1, y + 8, finish + 4, y + 4.5, tint, 1)
     end
 end
 
@@ -146,6 +207,10 @@ local function drawMark(strokes, x, y, s, tint)
     end
 end
 
+function HUD.drawStatGlyph(key, x, y, scale, tint)
+    drawMark(statGlyphs[key], x, y, scale, tint)
+end
+
 local function mousePosition()
     -- Like the backpack, the stat hitboxes stay fixed in mirrored rooms.
     local raw = Input.GetMousePosition(false)
@@ -171,7 +236,7 @@ local function drawStats(b, stats, pointer)
         local value = stats[cell.key]
         local activeCrit = cell.key == 'crit' and value > 0
         if cell.key == 'crit' then value = math.floor(value * 100 + .5) end
-        drawMark(cell.strokes, x + 1.5 * s, y + s, s, activeCrit and palette.statCrit or palette.stat)
+        HUD.drawStatGlyph(cell.key, x + 1.5 * s, y + s, s, activeCrit and palette.statCrit or palette.stat)
         local formatted = cell.format:format(value)
         local textWidth = Isaac.GetTextWidth(formatted)
         local scale = math.min(.9 * s, 20 * s / math.max(1, textWidth))
@@ -226,21 +291,28 @@ local function runePickerLayout(choices, hudScale)
         descriptions[i] = lines
         maxLines = math.max(maxLines, #lines)
     end
-    local cardHeight = 24 + 10 * maxLines
-    local width = 2 * padding + #choices * cardWidth + (#choices - 1) * gutter
-    local height = cardHeight + 63
+    local cardHeight = 36 + 10 * maxLines
+    local columns = #choices > 4 and math.ceil(#choices / 2) or #choices
+    local rows = math.ceil(#choices / columns)
+    local gridHeight = rows * cardHeight + (rows - 1) * gutter
+    local width = 2 * padding + columns * cardWidth + (columns - 1) * gutter
+    local height = gridHeight + 63
     local screenWidth, screenHeight = Isaac.GetScreenWidth(), Isaac.GetScreenHeight()
     local s = math.min(hudScale or 1, (screenWidth - 16) / width, (screenHeight - 16) / height)
     if s <= 0 then return end
     local x, y = (screenWidth - width * s) / 2, (screenHeight - height * s) / 2
     local cards = {}
     for i, lines in ipairs(descriptions) do
-        cards[i] = {x = x + (padding + (i - 1) * (cardWidth + gutter)) * s, y = y + 24 * s,
+        local column, row = (i - 1) % columns, math.floor((i - 1) / columns)
+        local rowColumns = math.min(columns, #choices - row * columns)
+        local offset = (columns - rowColumns) * (cardWidth + gutter) / 2
+        cards[i] = {x = x + (padding + offset + column * (cardWidth + gutter)) * s,
+            y = y + (24 + row * (cardHeight + gutter)) * s,
             width = cardWidth * s, height = cardHeight * s, lines = lines}
     end
     return {x = x, y = y, width = width * s, height = height * s, scale = s, cards = cards,
         descriptionScale = descriptionScale, confirm = {x = screenWidth / 2 - 44 * s,
-            y = y + (cardHeight + 29) * s, width = 88 * s, height = 16 * s}}
+            y = y + (gridHeight + 29) * s, width = 88 * s, height = 16 * s}}
 end
 
 local function pickerHit(layout, pointer)
@@ -272,9 +344,14 @@ function HUD.renderRunePicker(choices, selectedIndex, hudScale)
         local selected = i == selectedIndex
         panel(card.x, card.y, card.width, card.height, s, selected and palette.cap or palette.seam,
             (selected or hovered == i) and palette.hover or palette.rail)
-        centered(choices[i].name, cardCenter, card.y + 5 * s, s, selected and gold or ready, card.width - 10 * s)
+        local icon = runeFrames[choices[i].id]
+        local iconLeft, iconTop = cardCenter - 6 * s, card.y + 3 * s
+        if not art(icon, iconLeft, iconTop, 12 * s, 12 * s, selected and 1 or .82) then
+            centered(choices[i].id == 'random' and '?' or '*', cardCenter, iconTop, 1.1 * s, gold, 12 * s)
+        end
+        centered(choices[i].name, cardCenter, card.y + 17 * s, s, selected and gold or ready, card.width - 10 * s)
         for row, label in ipairs(card.lines) do
-            centered(label, cardCenter, card.y + (17 + (row - 1) * 10) * s,
+            centered(label, cardCenter, card.y + (29 + (row - 1) * 10) * s,
                 layout.descriptionScale * s, selected and ready or cooling, card.width - 10 * s)
         end
     end
@@ -286,15 +363,17 @@ function HUD.renderRunePicker(choices, selectedIndex, hudScale)
         .86 * s, ready, w - 16 * s)
 end
 
-local function drawRune(progress, clock, x, y, s, pointer)
-    local status = Progression.runeStatus(progress, clock)
+local function drawRune(rules, progress, clock, x, y, s, pointer)
+    local status = rules.runeStatus(progress, clock)
     if not status then return end
     local name
-    for _, choice in ipairs(Progression.choices) do
+    for _, choice in ipairs(rules.choices) do
         if choice.id == progress.rune then name = choice.name; break end
     end
     local runeColor = palette[progress.rune]
     local label
+    local frame = progress.rune == 'electrocute' and not status.ready and 'ElectrocuteDark' or runeFrames[progress.rune]
+    local hasIcon = art(frame, x - 12 * s, y - 2.5 * s, 11 * s, 11 * s)
     if status.limit then
         centered(name, x + 22 * s, y - s, .66 * s, ready, 43 * s)
         local step = 44 * s / status.limit
@@ -305,16 +384,32 @@ local function drawRune(progress, clock, x, y, s, pointer)
         label = ('%s  %d/%d'):format(name, status.stacks, status.limit)
         if status.stacks > 0 then label = label .. ('  %.1fs'):format(status.remaining / 30) end
     else
-        drawMark(boltMark, x, y - .5 * s, .73 * s, status.ready and runeColor or palette.divider)
-        centered(name, x + 26 * s, y - s, .66 * s, status.ready and ready or cooling, 35 * s)
-        fill(x, y + 5.5 * s, 44 * s, 2 * s, palette.divider)
-        local fraction = math.max(0, 1 - status.remaining / status.duration)
-        if fraction > 0 then
-            fill(x, y + 5.5 * s, 44 * s * fraction, 2 * s, status.ready and runeColor or palette.runeCooldown)
+        local lit = status.ready or status.active
+        if not hasIcon then
+            drawMark(boltMark, x, y - .5 * s, .73 * s, lit and runeColor or palette.divider)
         end
-        label = status.ready and 'Electrocute ready' or ('Electrocute  %.1fs'):format(math.ceil(status.remaining / 3) / 10)
+        centered(name, x + 26 * s, y - s, .66 * s, lit and ready or cooling, 35 * s)
+        fill(x, y + 5.5 * s, 44 * s, 2 * s, palette.divider)
+        local fraction = status.active and status.remaining / status.duration
+            or math.max(0, 1 - status.remaining / status.duration)
+        if fraction > 0 then
+            fill(x, y + 5.5 * s, 44 * s * fraction, 2 * s, lit and runeColor or palette.runeCooldown)
+        end
+        label = status.ready and (name .. ' ready') or ('%s  %.1fs'):format(name, math.ceil(status.remaining / 3) / 10)
     end
-    if contains(pointer, x - s, y - s, 46 * s, 9 * s) then return label, x end
+    if contains(pointer, x - 12 * s, y - 2.5 * s, 57 * s, 11 * s) then return label, x end
+end
+
+function HUD.renderRuneStatus(rules, progress, clock, x, y, scale)
+    if not progress or not Isaac.DrawLine or not KColor then return end
+    setup()
+    local label, anchor = drawRune(rules, progress, clock, x, y, scale, mousePosition())
+    if label then
+        local width = 100 * scale
+        local left = math.max(1, math.min(anchor, Isaac.GetScreenWidth() - width - 1))
+        panel(left, y - 19 * scale, width, 15 * scale, scale, palette.edge, palette.body)
+        centered(label, left + width / 2, y - 16 * scale, .83 * scale, ready, width - 6 * scale)
+    end
 end
 
 local function drawProgress(b, progress, clock, pointer)
@@ -333,9 +428,16 @@ local function drawProgress(b, progress, clock, pointer)
     panel(x, y, b.width, b.height, s, palette.edge, palette.body)
     centered(level .. (atMax and '  MAX' or ('  %d/%d XP'):format(progress.xp, required)),
         x + 35 * s, y + 2 * s, .78 * s, gold, 62 * s)
-    fill(x + 5 * s, y + 11 * s, b.width - 10 * s, 1.5 * s, palette.divider)
-    if fraction > 0 then fill(x + 5 * s, y + 11 * s, (b.width - 10 * s) * fraction, 1.5 * s, palette.wind) end
-    local runeTip, runeX = drawRune(progress, clock, x + 13 * s, y + 17 * s, s, pointer)
+    local trackX, trackY, trackWidth = x + 5 * s, y + 10.5 * s, b.width - 10 * s
+    fill(trackX, trackY, trackWidth, 4 * s, palette.divider)
+    fill(trackX + s, trackY + s, trackWidth - 2 * s, 2 * s, palette.shade)
+    if fraction > 0 then
+        local filledWidth = (trackWidth - 2 * s) * fraction
+        if not art('XP', trackX + s, trackY + s, filledWidth, 2 * s) then
+            fill(trackX + s, trackY + s, filledWidth, 2 * s, palette.wind)
+        end
+    end
+    local runeTip, runeX = drawRune(Progression, progress, clock, x + 13 * s, y + 17 * s, s, pointer)
     if points > 0 then
         centered(('Alt+QWER: %d pt'):format(points), x + 35 * s, y + 31 * s, .66 * s, gold, 62 * s)
         centered(table.concat(ranks, ' '), x + 35 * s, y + 24.5 * s, .60 * s, cooling, 62 * s)
@@ -365,6 +467,7 @@ local function drawUpgrade(b, index, pointer)
     local s, center = b.scale, x + w / 2
     local hovered = contains(pointer, x, y, w, h)
     panel(x, y, w, h, s, hovered and palette.cap or palette.edge, hovered and palette.hover or palette.body)
+    if art(hovered and 'UpgradeHover' or 'Upgrade', center - 5 * s, y + .5 * s, 10 * s, 10 * s) then return end
     line(center - 4 * s, y + 7 * s, center, y + 3 * s, palette.cap, 1.5 * s)
     line(center, y + 3 * s, center + 4 * s, y + 7 * s, palette.cap, 1.5 * s)
 end
@@ -393,6 +496,7 @@ function HUD.render(b, combat, clock, aiming, picture, stats, aimColors, progres
             centered(key:upper(), x + size / 2, y + 3 * s, 1.35 * s, tint, size)
         end
         if remaining > 0 and not spirit then fill(x, y, size, size, palette.shade) end
+        art('AbilityFrame', x - s, y - s, size + 2 * s, size + 2 * s, .88)
         if q3 then outline(x, y, size, s, picture.qRemaining, palette.wind) end
         if spirit then outline(x, y, size, s, picture.spirit.remaining, palette.spirit) end
         if aiming == key then

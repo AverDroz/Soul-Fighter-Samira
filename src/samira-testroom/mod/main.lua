@@ -14,6 +14,7 @@ local ItemRoom = include('samira_items_room')
 local Inventory = include('samira_inventory')
 local InventoryHUD = include('samira_inventory_hud')
 local ShopCrafting = include('samira_shop_crafting')
+local Shopkeeper = include('samira_shopkeeper')
 local StyleHUD = include('samira_style_hud')
 local Character = include('samira_character')
 local Weapons = include('samira_weapons')
@@ -21,6 +22,7 @@ local Kills = include('samira_kills')
 local Encounters = include('samira_encounters')
 local Yone = include('yone_character')
 local YoneArtifacts = include('yone_artifacts')
+local MissFortune = include('miss_fortune_character')
 local CometLittleHorn = include('comet_little_horn')
 local Display = include('samira_display')
 Combat.bindItems(Items)
@@ -131,7 +133,7 @@ local function player()
 end
 
 local function itemPlayer()
-    return player() or Yone.player(game)
+    return player() or MissFortune.player(game) or Yone.player(game)
 end
 
 local restartForPress
@@ -265,8 +267,8 @@ mod:AddCallback(ModCallbacks.MC_EXECUTE_CMD, function(_, command, args)
             Isaac.ConsoleOutput('Usage: samiratest [off]\n')
         elseif not Isaac.IsInGame() or game:GetNumPlayers() ~= 1 then
             Isaac.ConsoleOutput('Start a single-player run first.\n')
-        elseif Yone.is(Isaac.GetPlayer(0)) then
-            Isaac.ConsoleOutput('Samira preview is unavailable in a Yone run.\n')
+        elseif Yone.is(Isaac.GetPlayer(0)) or MissFortune.is(Isaac.GetPlayer(0)) then
+            Isaac.ConsoleOutput('Samira preview is unavailable in another champion run.\n')
         else
             start()
             Isaac.ConsoleOutput('Samira test skin enabled. Close the console to continue.\n')
@@ -297,32 +299,42 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_RENDER, function(_, p, offset)
     if Character.is(p) and Character.drawFallback(p, face, offset, game:GetFrameCount()) then return false end
 end)
 
-local function canControl(p)
+local function samiraCanControl(p)
     return p.ControlsEnabled ~= false and not occluded(p, Isaac.GetTime())
+end
+local function canControl(p)
+    return not Shopkeeper.isBlocking() and samiraCanControl(p)
+end
+local function canVisitShop(p)
+    if MissFortune.is(p) then return MissFortune.canUseItems(p) end
+    if Yone.is(p) then return Yone.canUseItems(p) end
+    return samiraCanControl(p)
 end
 
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
     local p = player()
-    local owner = p or Yone.player(game)
-    local actionable = p and canControl(p) or not p and owner and Yone.canUseItems(owner) or false
+    local mf = not p and MissFortune.player(game)
+    local yone = not p and not mf and Yone.player(game)
+    local owner = p or mf or yone
+    local actionable = (p and samiraCanControl(p)) or (mf and MissFortune.canUseItems(mf))
+        or (yone and Yone.canUseItems(yone)) or false
+    local shopping = Shopkeeper.isBlocking()
     local scale = ControlsSettings.hudScale()
-    InventoryHUD.input(owner, actionable and not ShopCrafting.isOpen(), scale)
-    if p then Combat.sampleInput(game:GetRoom(), game:GetFrameCount(), actionable, readR() == true) end
-    local shopOwner, backpack, avoid
+    InventoryHUD.input(owner, actionable and not shopping, scale)
+    if p then Combat.sampleInput(game:GetRoom(), game:GetFrameCount(), actionable and not shopping, readR() == true) end
     if actionable then
-        backpack = InventoryHUD.bounds(owner, scale)
+        local backpack = InventoryHUD.bounds(owner, scale)
         local style = p and StyleHUD.bounds(scale, backpack)
-        local yoneHud = not p and Yone.hudBounds(scale, backpack) or nil
-        avoid = style or yoneHud
-        InventoryHUD.render(owner, scale, yoneHud)
-        if not ShopCrafting.isOpen() then ItemRoom.render(owner, backpack, avoid) end
-        if game:GetRoom():GetType() == RoomType.ROOM_SHOP then shopOwner = owner end
+        local championHud = (yone and Yone.hudBounds(scale, backpack))
+            or (mf and MissFortune.hudBounds(scale, backpack))
+        InventoryHUD.render(owner, scale, championHud)
+        if not shopping then ItemRoom.render(owner, backpack, style or championHud) end
         if p then
             StyleHUD.render(p, Combat.styleStatus(game:GetFrameCount()),
                 ackStyleHud and ackAt and Isaac.GetTime() - ackAt < leaseMs, style)
         end
     end
-    ShopCrafting.render(shopOwner, backpack, avoid, Inventory)
+    Shopkeeper.render()
     if active then emit(false) end
 end)
 
@@ -341,6 +353,7 @@ mod:AddCallback(ModCallbacks.MC_INPUT_ACTION, function(_, entity, hook, action)
     local p = player()
     local owner = entity and entity:ToPlayer()
     if not p or entity and (not owner or owner.Index ~= p.Index) then return end
+    if Shopkeeper.isBlocking() then return hook == InputHook.GET_ACTION_VALUE and 0 or false end
     if not canControl(p) then
         if blockedActions[action] then return hook == InputHook.GET_ACTION_VALUE and 0 or false end
         return
@@ -389,7 +402,7 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, function()
         end
     end
     local p = player()
-    if p and Yone.is(p) then stop(); return end
+    if p and (Yone.is(p) or MissFortune.is(p)) then stop(); return end
     if not p then return end
     local clock = game:GetFrameCount()
     Combat.syncCooldownClock(clock)
@@ -482,16 +495,32 @@ mod:AddCallback(ModCallbacks.MC_POST_NIGHTMARE_SCENE_RENDER, hideDuringCinematic
 -- Register item damage hooks after the dash guard so a protected dash never
 -- spends an item shield. Items stay native collectibles in the run inventory.
 ControlsSettings.init(mod, Combat, itemPlayer, InventoryHUD.statsSummary, Inventory)
-Items.init(mod, game, itemPlayer, ControlsSettings.attachToSave, Yone)
+Items.init(mod, game, itemPlayer, ControlsSettings.attachToSave, Yone, MissFortune)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, function(_, p, flag)
+    if not MissFortune.is(p) then return end
+    local clock = game:GetFrameCount()
+    if flag == CacheFlag.CACHE_SPEED then
+        p.MoveSpeed = math.min(2, p.MoveSpeed * MissFortune.speed(p, clock))
+    elseif flag == CacheFlag.CACHE_FIREDELAY then
+        local rate = MissFortune.attackSpeed(p, clock)
+        if rate ~= 1 then p.MaxFireDelay = math.max(1, (p.MaxFireDelay + 1) / rate - 1) end
+    end
+end)
 YoneArtifacts.init(mod)
 CometLittleHorn.init(mod, game)
 Inventory.init(mod, game, itemPlayer, Items)
 InventoryHUD.init(game, Inventory)
 ItemRoom.init(mod, game, itemPlayer, Items)
+ShopCrafting.init(Inventory)
+Shopkeeper.init(mod, game, itemPlayer, canVisitShop, ShopCrafting)
 Encounters.init(mod, game, function()
     if Isaac.IsInGame() then return Character.player(game) end
 end, Items)
-Weapons.init(mod, game, player, Items, function(kind, heading, context)
+Weapons.init(mod, game, function() return player() or MissFortune.player(game) end, Items, function(kind, heading, context)
+    if MissFortune.is(context.player) then
+        MissFortune.weaponFired(kind, heading, context, game:GetFrameCount())
+        return
+    end
     local p = player()
     if not p then return end
     -- Q already started its windup when the player pressed the key.
@@ -500,7 +529,7 @@ Weapons.init(mod, game, player, Items, function(kind, heading, context)
 end)
 Kills.init(mod, game, player, Combat.onKill)
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, function(_, continued)
-    if Yone.isNative(Isaac.GetPlayer(0)) then return end
+    if Yone.isNative(Isaac.GetPlayer(0)) or MissFortune.isNative(Isaac.GetPlayer(0)) then return end
     if Character.player(game) or continued and Items.isEnabled and Items.isEnabled() then start(continued) end
 end)
 Yone.init(mod, game, Items, Inventory, InventoryHUD.bounds, Display, ControlsSettings.hudScale, readR, function(enable)
@@ -509,4 +538,6 @@ Yone.init(mod, game, Items, Inventory, InventoryHUD.bounds, Display, ControlsSet
     elseif not active and Character.player(game) then
         start()
     end
-end, ShopCrafting.isOpen)
+end, Shopkeeper.isBlocking)
+MissFortune.init(mod, game, Items, Inventory, Weapons, ControlsSettings.hudScale, readR, Display, Shopkeeper.isBlocking,
+    Yone.is, InventoryHUD.bounds)

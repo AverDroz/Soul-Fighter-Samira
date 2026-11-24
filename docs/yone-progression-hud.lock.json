@@ -1,0 +1,98 @@
+{
+  "source": "Riot Games, League-HUD-Rune-QWER-XP-Source.zip",
+  "atlas_sha256": "ff7f2dc216b491539ac2d84644ffc92120bdf5aefbf0cdbd464d7e80979679a8",
+  "frames": {
+    "Conqueror": {
+      "member": "png/assets/perks/styles/precision/conqueror/conqueror.png",
+      "source_png_sha256": "05153c366ccade149cf147ed039d69521d6feb87b90b5c409a90f39c49733429",
+      "source_crop": null,
+      "sprite_size": [
+        64,
+        64
+      ]
+    },
+    "Tempo": {
+      "member": "png/assets/perks/styles/precision/lethaltempo/lethaltempotemp.png",
+      "source_png_sha256": "38a3ddccc4005616f70cc8363f1077cd72fccb0d584f0071548c2be0e0ee3636",
+      "source_crop": null,
+      "sprite_size": [
+        64,
+        64
+      ]
+    },
+    "Electrocute": {
+      "member": "png/assets/perks/styles/domination/electrocute/electrocute.png",
+      "source_png_sha256": "3c3f31fb1ff444addf8739d856bcff441faceb4a3493067140dea63f62c139e1",
+      "source_crop": null,
+      "sprite_size": [
+        64,
+        64
+      ]
+    },
+    "ElectrocuteDark": {
+      "member": "png/assets/perks/styles/domination/electrocute/electrocute_grey.png",
+      "source_png_sha256": "6765d66d38aff69ffb9320ca9f1759f361fb60ff0057a5027c8de8b75332e0b8",
+      "source_crop": null,
+      "sprite_size": [
+        64,
+        64
+      ]
+    },
+    "Upgrade": {
+      "member": "png/assets/ux/lol/clarity_hudatlas.png",
+      "source_png_sha256": "0040823f560fcea9d6b59decc4de74aed3271670e508f5ae9fc55b92f1351074",
+      "source_crop": [
+        486,
+        204,
+        542,
+        260
+      ],
+      "sprite_size": [
+        56,
+        56
+      ]
+    },
+    "UpgradeHover": {
+      "member": "png/assets/ux/lol/clarity_hudatlas.png",
+      "source_png_sha256": "0040823f560fcea9d6b59decc4de74aed3271670e508f5ae9fc55b92f1351074",
+      "source_crop": [
+        544,
+        204,
+        600,
+        260
+      ],
+      "sprite_size": [
+        56,
+        56
+      ]
+    },
+    "AbilityFrame": {
+      "member": "png/assets/ux/lol/clarity_hudatlas.png",
+      "source_png_sha256": "0040823f560fcea9d6b59decc4de74aed3271670e508f5ae9fc55b92f1351074",
+      "source_crop": [
+        488,
+        265,
+        540,
+        317
+      ],
+      "sprite_size": [
+        64,
+        64
+      ]
+    },
+    "XP": {
+      "member": "png/assets/ux/lol/clarity_resourceatlas.png",
+      "source_png_sha256": "a6580dc0ce80713d046188e066d4792b8ef6812b5fcc8de978c2c23bdb9870fc",
+      "source_crop": [
+        17,
+        16,
+        476,
+        33
+      ],
+      "sprite_size": [
+        224,
+        16
+      ]
+    }
+  }
+}

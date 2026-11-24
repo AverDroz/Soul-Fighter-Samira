@@ -70,13 +70,18 @@ local function packet(payload)
     Isaac.DebugString('[SAMIRA_EXTERNAL] ' .. json.encode(payload))
 end
 
-local function obscured(game, state, player, ignoreDeparture)
+local function roomTransition(state)
+    return RoomTransition.GetTransitionMode() ~= 0 and not state.staleTransitionMode
+end
+
+local function obscured(game, state, player, checkingArrival)
     local sprite = player:GetSprite()
     local name = sprite:GetAnimation()
     local travel = name:find('Trapdoor', 1, true) ~= nil or name:find('Teleport', 1, true) ~= nil
         or name == 'LightTravel' or name == 'HoleIn' or name == 'FallIn'
-    return game:IsPaused() or ImGui.IsVisible() or (state.leaving and not ignoreDeparture)
-        or RoomTransition.GetTransitionMode() ~= 0 or RoomTransition.IsRenderingBossIntro()
+    return game:IsPaused() or ImGui.IsVisible()
+        or not checkingArrival and (state.leaving or roomTransition(state))
+        or RoomTransition.IsRenderingBossIntro()
         or state.coverFrame == game:GetFrameCount() or player:IsDead()
         or travel and sprite:IsPlaying(name)
 end
@@ -266,11 +271,20 @@ local function drawAim(room, combat, player, clock, key)
     end
 end
 
-local function visualSnapshot(room, picture)
+local function visualSnapshot(room, picture, pendingUltimate)
     local function point(world)
         return {mirrorPosition(room, Isaac.WorldToScreen(world))}
     end
     local snapshot = {shield = picture.shield, qReady = picture.qReady, qRemaining = picture.qRemaining, fx = {}}
+    local function ultimateTelegraph(area)
+        local side = area.facing:Rotated(90) * area.width
+        local start, finish = area.origin, area.origin + area.facing * area.reach
+        if area.reach > 0 then
+            return {corners = {point(start + side), point(finish + side),
+                point(finish - side), point(start - side)}}
+        end
+    end
+    if pendingUltimate then snapshot.rTelegraph = ultimateTelegraph(pendingUltimate) end
     for i, event in ipairs(picture.fx) do
         snapshot.fx[i] = {id = event.id, kind = event.kind, age = event.age,
             origin = point(event.origin), target = point(event.target), travel = event.travel}
@@ -286,6 +300,9 @@ local function visualSnapshot(room, picture)
         end
         if event.footprint then
             local area = event.footprint
+            if event.kind == 'r' and event.age < .1 and not snapshot.rTelegraph then
+                snapshot.rTelegraph = ultimateTelegraph(area)
+            end
             if area.shape == 'sector' then
                 snapshot.fx[i].arc = sectorArc(area, point)
             else
@@ -365,6 +382,7 @@ local function emit(game, state, player, force, picture)
         phase = clock / (action == 'run' and 38 or 60) % 1
     end
     local mastery = not hidden and Emotes.mastery(state.emotes, clock)
+    local footprint, activeKey = Combat.activeFootprint(state.combat, player, room)
     local bodyScale = player.SpriteScale
     local masteryRise = mastery and (masteryCrestRise + masteryModelHeight * math.abs(bodyScale and bodyScale.Y or 1))
     packet({
@@ -378,11 +396,12 @@ local function emit(game, state, player, force, picture)
         yoneMoving = player.Velocity:Length() > .6,
         actionFrame = actionFrame, actionId = expression and (clock - actionFrame) or nil,
         bodyScale = bodyScale and {bodyScale.X, bodyScale.Y} or {1, 1},
-        paused = game:IsPaused(), transition = state.leaving or RoomTransition.GetTransitionMode() ~= 0,
+        paused = game:IsPaused(), transition = state.leaving or roomTransition(state),
         occluded = hidden, hurt = clock < (state.hurtUntil or 0),
         nativeCursor = Options.MouseControl == true, sfxVolume = Options.SFXVolume,
         mastery = mastery and {at = mastery, position = {x, y - masteryRise}, rise = masteryRise} or nil,
-        yone = not hidden and visualSnapshot(room, picture or Combat.visual(state.combat, clock)) or nil,
+        yone = not hidden and visualSnapshot(room, picture or Combat.visual(state.combat, clock),
+            activeKey == 'r' and footprint or nil) or nil,
     })
 end
 
@@ -778,19 +797,41 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
         -- callback can arrive late). Never let the departure flag itself
         -- prevent recovery once the new room is playable.
         local roomChanged = state.departureRoomSeed ~= nil and room:GetSpawnSeed() ~= state.departureRoomSeed
-        if state.leaving and (state.floorRoomArrived or roomChanged) then
+        local arrived = state.floorRoomArrived or roomChanged or state.floorLevelArrived
+        if (state.floorRebinding and arrived) or (state.leaving and roomChanged) then
             if player.ControlsEnabled ~= false and not obscured(game, state, player, true) then
-                state.floorReadyTicks = (state.floorReadyTicks or 0) + 1
-                if state.floorReadyTicks >= 2 then
-                    state.floorPending, state.floorRoomArrived, state.floorReadyTicks = nil, nil, nil
-                    enterRoom()
+                if clock ~= state.floorReadyFrame then
+                    state.floorReadyFrame = clock
+                    state.floorReadyTicks = (state.floorReadyTicks or 0) + 1
+                end
+                -- The engine can retain its transition mode after the floor
+                -- arrives. Require several unblocked gameplay frames before
+                -- ignoring it, and only for the room that just arrived.
+                local transitioning = roomTransition(state)
+                local requiredTicks = transitioning and 6 or (state.leaving and 2 or 1)
+                if state.floorReadyTicks >= requiredTicks then
+                    if state.leaving then
+                        if state.floorLevelArrived then
+                            state.leaving, state.departureRoomSeed = nil, nil
+                        else
+                            enterRoom()
+                            state.floorRecovered = state.floorRebinding or nil
+                        end
+                    end
+                    state.floorPending, state.floorRoomArrived, state.floorLevelArrived = nil, nil, nil
+                    state.floorReadyTicks, state.floorReadyFrame = nil, nil
+                    state.staleTransitionMode = transitioning or nil
                 end
             else
-                state.floorReadyTicks = nil
+                state.floorReadyTicks, state.floorReadyFrame = nil, nil
             end
         end
+        if state.staleTransitionMode and RoomTransition.GetTransitionMode() == 0 then
+            state.staleTransitionMode = nil
+        end
         if items and items.applyCooldownCheckpoint then items.applyCooldownCheckpoint(clock) end
-        local allowed = canControl(game, state, player)
+        local shopping = isCrafting and isCrafting()
+        local allowed = canControl(game, state, player) and not shopping
         local mouse = Input.IsMouseBtnPressed(0)
         local clicked = mouse and not state.leftClick
         state.leftClick = mouse
@@ -801,6 +842,7 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
         end
         sampleInput(room, allowed)
         if not allowed then
+            if shopping then stopMoving(state) end
             sampleExpressions(state, clock, false, player:IsDead())
             if player:IsDead() then
                 stopSpiritWarning(state)
@@ -809,8 +851,8 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
             end
             return
         end
-        if not state.floorPending then state.floorRebinding = nil end
-        sampleUpgrades(clicked and not (isCrafting and isCrafting()), player)
+        if not state.floorPending and not state.floorLevelArrived then state.floorRebinding = nil end
+        sampleUpgrades(clicked, player)
 
         if inventory then inventory.update(player, clock) end
         if items and items.update then items.update(player, clock) end
@@ -859,14 +901,16 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
 
     mod:AddCallback(ModCallbacks.MC_INPUT_ACTION, function(_, entity, hook, action)
         local direction, key = axes[action], rebound[action]
-        local pickerAction = (action == ButtonAction.ACTION_ITEM or action == ButtonAction.ACTION_DROP) and selectionPending()
+        local shopping = isCrafting and isCrafting()
+        local pickerAction = (action == ButtonAction.ACTION_ITEM or action == ButtonAction.ACTION_DROP)
+            and (selectionPending() or shopping)
         if not direction and not key and not blocked[action] and not pickerAction then return end
         local player = state and driver()
         local owner = entity and entity:ToPlayer()
         if not player or entity and (not owner or owner.Index ~= player.Index)
             or (player.ControllerIndex or 0) ~= 0 then return end
         local value = 0
-        local allowed = canControl(game, state, player) and not selectionPending()
+        local allowed = canControl(game, state, player) and not selectionPending() and not shopping
         if action == ButtonAction.ACTION_PILLCARD then
             local clock = game:GetFrameCount()
             local combatAction = Combat.presentation(state.combat, clock)
@@ -907,15 +951,17 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
         if selectable and picking then HUD.renderRunePicker(Progress.choices, state.runeSelection, scale) end
         sampleInput(game:GetRoom(), allowed)
         local action = Combat.presentation(state.combat, clock)
-        sampleExpressions(state, clock, allowed, action ~= nil or player.Velocity:Length() > .6)
+        sampleExpressions(state, clock, allowed and not (isCrafting and isCrafting()), action ~= nil or player.Velocity:Length() > .6)
         local picture = allowed and Combat.visual(state.combat, clock) or nil
         if picture then
-            drawAim(game:GetRoom(), state.combat, player, clock, state.aimAbility)
+            local room, activeProgress = game:GetRoom(), progress()
+            drawAim(room, state.combat, player, clock, state.aimAbility)
             drawRoomEffects(game, state, player, clock, picture)
-            drawHeartsteel(game:GetRoom(), items)
+            drawHeartsteel(room, items)
+            HUD.renderPlayerRune(screenPoint(room, player.Position), activeProgress, clock)
             local bounds = combatHudBounds(player, scale)
             HUD.render(bounds, state.combat, clock, state.aimAbility, picture,
-                Combat.hudStats(state.combat, player, clock), aimColors, progress())
+                Combat.hudStats(state.combat, player, clock), aimColors, activeProgress)
         end
         emit(game, state, player, false, picture)
     end)
@@ -951,6 +997,7 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
 
     local function beginDeparture(player)
         if state.leaving then return end
+        state.staleTransitionMode, state.floorRecovered = nil, nil
         state.leaving, state.ackAt = true, nil
         local room = game:GetRoom()
         state.departureRoomSeed = room.GetSpawnSeed and room:GetSpawnSeed() or nil
@@ -981,6 +1028,7 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
         state.room = state.room + 1
         state.leaving, state.ackAt, state.emitAt, state.pollAt = nil, nil, nil, nil
         state.departureRoomSeed, state.floorRoomArrived, state.floorReadyTicks = nil, nil, nil
+        state.staleTransitionMode, state.floorReadyFrame, state.floorRecovered = nil, nil, nil
         state.coverFrame, state.hurtUntil = nil, nil
         state.continuingRoom = nil
         state.debugCommands, state.debugAnimation = nil, nil
@@ -999,9 +1047,10 @@ function Yone.init(mod, game, items, inventory, inventoryBounds, display, readHu
 
     mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, function()
         if not state then return end
+        if state.floorRecovered then return end
         if state.floorPending or state.leaving then enterRoom() end
         state.floorPending, state.floorRoomArrived, state.floorReadyTicks, state.coverFrame = nil, nil, nil, nil
-        state.floorRebinding = true
+        state.floorRebinding, state.floorLevelArrived = true, true
     end)
 
     Debug.init(mod, function(enable)

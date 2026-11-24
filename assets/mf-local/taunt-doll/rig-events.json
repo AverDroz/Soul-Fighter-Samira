@@ -1,0 +1,52 @@
+{
+  "sources": {
+    "simpleSkin": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_taunt_doll1.skins_missfortune_skin69.skn",
+    "skeleton": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_taunt_doll1.skins_missfortune_skin69.skl",
+    "texture": "assets/characters/missfortune/skins/skin69/missfortune_skin69_doll_tx_cm.skins_missfortune_skin69.tex"
+  },
+  "authored_event": {
+    "body_state": "986d8fe5",
+    "body_anm": "assets/characters/missfortune/skins/skin69/animations/taunt_spam.skins_missfortune_skin69.anm",
+    "frame": 0,
+    "joint": "C_BUFFBONE_GLB_LAYOUT_LOC"
+  },
+  "effects": {
+    "spam": {
+      "effect_key": "240dd941",
+      "entry": "552050c6",
+      "rotation_degrees": [
+        0.0,
+        180.0,
+        0.0
+      ],
+      "scale": [
+        1.2000000476837158,
+        1.0,
+        1.0
+      ],
+      "source_anm": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_taunt_doll_spam.skins_missfortune_skin69.anm",
+      "clip": "spam"
+    },
+    "loop": {
+      "effect_key": "5338aa86",
+      "entry": "59edd83d",
+      "rotation_degrees": [
+        0.0,
+        180.0,
+        0.0
+      ],
+      "scale": [
+        1.2000000476837158,
+        1.0,
+        1.0
+      ],
+      "source_anm": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_taunt_doll_loop.skins_missfortune_skin69.anm",
+      "clip": "idle"
+    }
+  },
+  "archives": {
+    "MVP-T1-Miss-Fortune-Skin69.zip": "b6d528cba92f384ee1c809da13a609aa07248c576de4e3fa2e935d43eedf0ce6",
+    "MVP-T1-Miss-Fortune-Skin69-Abilities.zip": "602f11876a05c99b310c9e5caa1b21ff19bb9d48cdc10ea6139ae0d5db877e24",
+    "MVP-T1-Miss-Fortune-Skin69-Abilities-manifest.json": "69f128c718b1c73827207e50efdf539bbedb7a98c4637b9b66a94888646f1872"
+  }
+}

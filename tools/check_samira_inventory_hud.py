@@ -46,6 +46,17 @@ Isaac = {
     end,
 }
 function Sprite(path, loadGraphics)
+    if path == 'gfx/league_shop/shop_ui.anm2' then
+        return {
+            SetFrame = function(self, name, index)
+                assert((name == 'Panel' or name == 'Coin' or name == 'Shop') and index == 0)
+                self.frame = name
+            end,
+            Render = function(self, pos)
+                icons[#icons + 1] = {self.frame, pos.X, pos.Y, self.Scale.X}
+            end,
+        }, true
+    end
     assert(path == 'gfx/items/collectibles/samira_hud_icon.anm2' and not loadGraphics)
     return {
         ReplaceSpritesheet = function(self, layer, texture, reload)
@@ -225,28 +236,30 @@ do
     local craft = include('samira_shop_crafting')
     local rows = {}
     for _, row in ipairs(include('samira_items_data')) do rows[row.riotId] = row end
-    local coins, hasSword, purchases = 3, true, 0
+    local coins, daggers, purchases = 5, 1, 0
     function player:GetNumCoins() return coins end
     inventory.recipes = function(owner)
         assert(owner == player)
         local recipes = {}
-        for _, id in ipairs({6696, 1053, 3133, 2020, 3031, 3046, 6673}) do
+        local missing = {{1042, 3086, 1042}, {1042}, {}}
+        for _, id in ipairs({6696, 1053, 6675, 3031, 3046, 6673, 3179, 3181, 6692}) do
             local row = rows[id]
             recipes[#recipes + 1] = {row = row, combinePrice = row.combinePrice,
-                missing = id == 1053 and hasSword and {} or row.components}
+                missing = id == 6675 and missing[daggers + 1] or row.components}
         end
         return recipes
     end
     inventory.craft = function(owner, id)
-        assert(owner == player and id == 1053 and coins == 4 and hasSword)
-        coins, hasSword, purchases = 0, false, purchases + 1
+        assert(owner == player and id == 6675 and coins == 6 and daggers == 2)
+        coins, daggers, purchases = 0, 0, purchases + 1
         return true
     end
+    craft.init(inventory)
     width, height, left = 640, 270, false
-    local shop, scale = player, 1
+    local pointer = Vector.Zero
     local function render()
-        words, rectangles = {}, {}
-        craft.render(shop, hud.bounds(player, scale), nil, inventory)
+        words, rectangles, icons = {}, {}, {}
+        craft.render(pointer)
     end
     local function find(label)
         for _, row in ipairs(words) do
@@ -254,41 +267,57 @@ do
         end
     end
     local function click(label)
-        left = false
         render()
         local target = assert(find(label), label)
-        mouse = Vector((target[2] + 1) / .35, (target[3] + 1) / .4)
-        left = true
+        pointer = Vector(target[2] + 1, target[3] + 1)
+        assert(craft.onMousePressed(pointer, 0))
         render()
     end
     render()
-    assert(find('Сборка') and not craft.isOpen())
-    click('Сборка')
+    assert(#words == 0 and not craft.isOpen())
+    assert(craft.open(player))
+    render()
     assert(craft.isOpen() and find('Рецепты') and find('1 / 2'))
+    assert(icons[1][1] == 'Panel' and icons[2][1] == 'Shop' and icons[3][1] == 'Coin')
+    assert(not find('Вампирский скипетр'), 'floor component appeared in recipe catalog')
     click('>')
     assert(find('2 / 2'), 'second recipe page is unreachable')
     click('<')
-    click('Вампирский скипетр')
-    assert(find('Все детали в рюкзаке') and find('Доплата: 4 мон. · Есть: 3'))
+    click('Летающий нож Навори')
+    assert(find('Темп автоатак') and find('Успешные автоатаки') and find('Доплата 6 мон.'))
+    local ingredientNames, ingredientStatus = {}, {}
+    for _, word in ipairs(words) do
+        if word[1] == 'Кинжал' or word[1] == 'Рвение' then
+            ingredientNames[#ingredientNames + 1] = word[1]
+        elseif word[1] == 'Есть' or word[1] == 'Нет' then
+            ingredientStatus[#ingredientStatus + 1] = word[1]
+        end
+    end
+    assert(table.concat(ingredientNames, ',') == 'Кинжал,Рвение,Кинжал')
+    assert(table.concat(ingredientStatus, ',') == 'Есть,Есть,Нет')
+    coins = 6
     click('Собрать')
-    assert(purchases == 0, 'unaffordable recipe was submitted')
-    coins = 4
+    assert(purchases == 0, 'recipe with a missing duplicate was submitted')
+    coins, daggers = 5, 2
+    click('Собрать')
+    assert(purchases == 0 and find('Не хватает монет'), 'unaffordable recipe was submitted')
+    coins = 6
     click('Собрать')
     assert(purchases == 1 and find('Собран предмет'))
-    render()
-    assert(purchases == 1, 'held mouse submitted twice')
     click('Собрать')
     assert(purchases == 1, 'missing material allowed another purchase')
-    shop = nil
+    assert(craft.onMousePressed(pointer, 1))
     render()
-    assert(not craft.isOpen() and not find('Сборка'))
-    shop = player
-    width, height, scale = 240, 120, 1.5
-    click('Сборка')
+    assert(not craft.isOpen() and #words == 0)
+    width, height = 240, 120
+    assert(craft.open(player))
+    render()
     assert(craft.isOpen() and find('Собрать'), 'scaled compact shop lost crafting controls')
     for _, row in ipairs(rectangles) do
         assert(row[1] >= 0 and row[2] >= 0 and row[3] <= width and row[4] <= height)
     end
+    click('X')
+    assert(not craft.isOpen())
 end
 ''')
 print('Passed inventory HUD, scaling, input and mouse-driven shop crafting.')

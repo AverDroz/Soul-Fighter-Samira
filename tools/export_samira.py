@@ -11,22 +11,33 @@ MODULES = ("overlay model bridge layered_surface samira_vfx client_vfx canvas sy
            "combat_effects hud status visibility native_cursor shop_ui localization mastery_renderer mastery_glb "
            "mastery_particles yone_combat_audio yone_vfx display_geometry").split()
 YONE_FILES = ("yone.glb", "actions.json", "rig-events.json")
+MF_FILES = ("mf.glb", "actions.json", "rig-events.json")
 YONE_AUDIO = (
     "manifest.json", "joke.wav", "taunt.wav", "dance.wav", "dance_loop.wav", "laugh.wav",
     "attack.wav", "attack2.wav", "q.wav", "q3.wav", "w.wav", "e.wav", "e_return.wav", "r.wav", "shield.wav",
 )
 
 
-def build(output, *, include_local_yone=False, staging_area=None):
+def build(output, *, include_local_yone=False, include_local_mf=False, staging_area=None,
+          python_runtime=None, yone_assets=None):
+    python_runtime = python_runtime or ROOT / "work/export-runtime/python"
+    yone_assets = yone_assets or ROOT / "assets/yone-local"
+    mf_assets = ROOT / "assets/mf-local"
     if include_local_yone:
-        missing = [name for name in YONE_FILES if not (ROOT / "assets/yone-local" / name).is_file()]
+        missing = [name for name in YONE_FILES if not (yone_assets / name).is_file()]
         if missing:
             raise FileNotFoundError("Run tools/import_yone_assets.py first. Missing from assets/yone-local: "
+                                    + ", ".join(missing))
+    if include_local_mf:
+        missing = [name for name in MF_FILES if not (mf_assets / name).is_file()]
+        if missing:
+            raise FileNotFoundError("Run tools/import_miss_fortune_assets.py first. Missing files: "
                                     + ", ".join(missing))
     output.mkdir(parents=True, exist_ok=True)
     dedicated_stage = staging_area is not None
     if staging_area is None:
-        staging_area = ROOT / "work" / ("friend-export-yone-local" if include_local_yone else "friend-export")
+        stage_name = "friend-export-yone-local" if include_local_yone else "friend-export"
+        staging_area = ROOT / "work" / ("miss-fortune-local" if include_local_mf else stage_name)
     stage = staging_area / "Soul-Fighter-Samira"
     if stage.exists():
         if dedicated_stage:
@@ -45,7 +56,7 @@ def build(output, *, include_local_yone=False, staging_area=None):
             shutil.copy2(source, target)
 
     copy("src/samira-testroom/mod", "samira_testroom")
-    copy("work/export-runtime/python", "companion/python")
+    copy(python_runtime, "companion/python")
     # NumPy build command launchers encode the build machine's interpreter path.
     for name in ("bin", "include"):
         tooling = stage / "companion/python/Lib/site-packages" / name
@@ -54,6 +65,10 @@ def build(output, *, include_local_yone=False, staging_area=None):
             shutil.rmtree(tooling)
     for name in MODULES:
         copy(f"src/samira/external/{name}.py", f"companion/src/samira/external/{name}.py")
+    for name in ("mf_renderer", "mf_taunt_doll", "mf_muzzle"):
+        path = f"src/samira/external/{name}.py"
+        if (ROOT / path).is_file():
+            copy(path, f"companion/{path}")
     copy("src/samira/external/assets/mastery", "companion/src/samira/external/assets/mastery")
     for name in ("model.glb", "rig-events.json"):
         copy(f"src/samira/reference/source/{name}", f"companion/src/samira/reference/source/{name}")
@@ -63,13 +78,25 @@ def build(output, *, include_local_yone=False, staging_area=None):
         copy(f"assets/samira-soul-fighter/{name}", f"companion/assets/samira-soul-fighter/{name}")
     if include_local_yone:
         for name in YONE_FILES:
-            copy(f"assets/yone-local/{name}", f"companion/assets/yone-local/{name}")
+            copy(yone_assets / name, f"companion/assets/yone-local/{name}")
+        local_vfx = ROOT / "assets/yone-local/vfx"
+        vfx = local_vfx if local_vfx.is_dir() else yone_assets / "vfx"
+        if vfx.is_dir():
+            copy(vfx, "companion/assets/yone-local/vfx")
         for name in YONE_AUDIO:
-            if (ROOT / "assets/yone-local/audio" / name).is_file():
-                copy(f"assets/yone-local/audio/{name}", f"companion/assets/yone-local/audio/{name}")
-        if (ROOT / "assets/yone-local/yone-portrait.png").is_file():
-            copy("assets/yone-local/yone-portrait.png", "samira_testroom/resources/gfx/samira/yone-portrait.png")
-    for name in ("yone-ability-icons.lock.json", "yone-spirit-audio.lock.json", "items-icons.lock.json", "components-data.lock.json",
+            if (yone_assets / "audio" / name).is_file():
+                copy(yone_assets / "audio" / name, f"companion/assets/yone-local/audio/{name}")
+        if (yone_assets / "yone-portrait.png").is_file():
+            copy(yone_assets / "yone-portrait.png", "samira_testroom/resources/gfx/samira/yone-portrait.png")
+    if include_local_mf:
+        for name in MF_FILES:
+            copy(mf_assets / name, f"companion/assets/mf-local/{name}")
+        doll = mf_assets / "taunt-doll"
+        if doll.is_dir():
+            copy(doll, "companion/assets/mf-local/taunt-doll")
+        copy("docs/miss-fortune-audio.lock.json", "provenance/miss-fortune-audio.lock.json")
+        copy("docs/miss-fortune-hud.lock.json", "provenance/miss-fortune-hud.lock.json")
+    for name in ("yone-ability-icons.lock.json", "yone-progression-hud.lock.json", "yone-spirit-audio.lock.json", "items-icons.lock.json", "components-data.lock.json",
                  "components-icons.lock.json"):
         copy(f"docs/{name}", f"provenance/{name}")
     for source, target in (("export-launcher.cmd", "launch.cmd"), ("export-launcher.ps1", "launcher.ps1"), ("export-INSTALL.txt", "INSTALL.txt")):
@@ -86,19 +113,40 @@ def build(output, *, include_local_yone=False, staging_area=None):
         "https://github.com/TFOS4/Isaac-LoL-HeroStudio/releases/tag/v1.0.0\n"
         "Asset provenance is retained in companion/assets/samira-soul-fighter manifests.\n"
         "Yone ability icon provenance: provenance/yone-ability-icons.lock.json.\n"
+        "Yone keystone icons and HUD texture crops: provenance/yone-progression-hud.lock.json.\n"
         "Yone spirit warning provenance: provenance/yone-spirit-audio.lock.json.\n"
         "Item and component artwork: provenance/items-icons.lock.json and provenance/components-icons.lock.json.\n"
         "Riot Data Dragon component recipes: provenance/components-data.lock.json.\n"
         "Python and dependency notices/licenses accompany companion/python.\n"
         "Liberation font license: samira_testroom/resources/font/LIBERATION-LICENSE.txt.\n"
         "No blanket license is granted for third-party materials.\n"
+        + ("Summoner's Rift shopkeeper and visual provenance: "
+           "samira_testroom/resources/gfx/league_shop/sources.json.\n"
+           if (ROOT / "src/samira-testroom/mod/resources/gfx/league_shop/sources.json").is_file() else "")
         + ("Classic Yone materials were imported locally from the user's League of Legends installation.\n"
-           if include_local_yone else ""), encoding="utf-8")
+           if include_local_yone else "")
+        + ("The Yone effects bundle uses materials supplied in the user's classic ability visual archive.\n"
+           if include_local_yone and (vfx / "manifest.json").is_file() else "")
+        + ("MVP T1 Miss Fortune model and animation source checksums are recorded in companion/assets/mf-local/rig-events.json.\n"
+           "Miss Fortune sound provenance: provenance/miss-fortune-audio.lock.json.\n"
+           "Miss Fortune HUD artwork provenance: provenance/miss-fortune-hud.lock.json.\n"
+           "Miss Fortune Homeguard and Pentakill effect provenance: samira_testroom/resources/gfx/mf/special_effects.provenance.json.\n"
+           "Miss Fortune Bullet Time effect provenance: samira_testroom/resources/gfx/mf/ultimate_effects.provenance.json.\n"
+           "Miss Fortune shot effect provenance: samira_testroom/resources/gfx/mf/shot_effects.provenance.json.\n"
+           "Miss Fortune Recall effect provenance: samira_testroom/resources/gfx/mf/recall_effects.provenance.json.\n"
+           "Miss Fortune Recall props and pet provenance: samira_testroom/resources/gfx/mf/recall_props.provenance.json and recall_pet.provenance.json.\n"
+           "Miss Fortune Joke effect provenance: samira_testroom/resources/gfx/mf/joke_effects.provenance.json.\n"
+           "Miss Fortune Dance effect provenance: samira_testroom/resources/gfx/mf/dance_effects.provenance.json.\n"
+           "Miss Fortune Death and Respawn effect provenance: samira_testroom/resources/gfx/mf/lifecycle_effects.provenance.json.\n"
+           if include_local_mf else ""), encoding="utf-8")
     files = sorted(p for p in stage.rglob("*") if p.is_file())
     manifest = {p.relative_to(stage).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
     (stage / "SHA256SUMS.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
-    archive_name = ("Soul-Fighter-Samira-Yone-Local-Windows.zip" if include_local_yone
-                    else "Soul-Fighter-Samira-0.3.2-Windows.zip")
+    archive_name = "Soul-Fighter-Samira-0.3.2-Windows.zip"
+    if include_local_mf:
+        archive_name = "Soul-Fighter-Miss-Fortune-Local-Windows.zip"
+    elif include_local_yone:
+        archive_name = "Soul-Fighter-Samira-Yone-Local-Windows.zip"
     archive = output / archive_name
     with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as z:
         for path in sorted(stage.rglob("*")):
@@ -120,5 +168,10 @@ if __name__ == "__main__":
     parser.add_argument("--staging-area", type=Path, help="Use a fresh directory for the temporary release tree.")
     parser.add_argument("--include-local-yone", action="store_true",
                         help="Include the locally imported classic Yone model in a personal ZIP.")
+    parser.add_argument("--include-local-mf", action="store_true",
+                        help="Include the supplied Miss Fortune model in a personal ZIP.")
+    parser.add_argument("--python-runtime", type=Path, help="Path to the prepared embedded Python installation.")
+    parser.add_argument("--yone-assets", type=Path, help="Path to the locally imported Yone assets.")
     arguments = parser.parse_args()
-    build(arguments.output, include_local_yone=arguments.include_local_yone, staging_area=arguments.staging_area)
+    build(arguments.output, include_local_yone=arguments.include_local_yone, include_local_mf=arguments.include_local_mf,
+          staging_area=arguments.staging_area, python_runtime=arguments.python_runtime, yone_assets=arguments.yone_assets)

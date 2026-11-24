@@ -132,22 +132,26 @@ function include(name)
     assert(name == 'samira_items_data')
     return {piece, second, output, other}
 end
-local text, inputs, options = {}, {}, {}
+local text, inputs, options, renders = {}, {}, {}, {}
 local owner, inShop, assembled = {GetNumCoins = function() return 9 end}, false, 0
 RoomType = {ROOM_SHOP = 2}
 Game = function() return {GetRoom = function()
     return {GetType = function() return inShop and RoomType.ROOM_SHOP or 0 end}
 end} end
-ImGuiData.Options = 2
+ImGuiData.ListValues = 2
 ImGui = {
     AddElement = function() end,
-    AddCombobox = function(_, key, _, run) inputs[key] = run end,
+    AddCombobox = function(_, key, _, run, list) inputs[key], options[key] = run, list end,
     AddButton = function(_, key, _, run) inputs[key] = run end,
-    AddCallback = function(key, _, run) inputs[key] = run end,
+    AddCallback = function(key, kind, run)
+        assert(kind == ImGuiCallback.Render)
+        renders[key] = run
+    end,
     AddText = function() end,
     UpdateText = function(key, value) text[key] = value end,
     UpdateData = function(key, kind, value)
-        if kind == ImGuiData.Options then options[key] = value end
+        assert(kind == ImGuiData.ListValues or kind == ImGuiData.Value, 'unknown ImGuiData')
+        if kind == ImGuiData.ListValues then options[key] = value end
     end,
 }
 local current = owner
@@ -164,22 +168,29 @@ assert(load(craft_source))().init('window', function() return current end, {
         return true
     end,
 })
-inputs.samiraCraftInfo()
+local function paintRecipePicker()
+    -- REPENTOGON invokes the callback before painting the combobox.
+    if renders.samiraCraftChoice then renders.samiraCraftChoice() end
+    local drawn = options.samiraCraftChoice
+    if renders.samiraCraftInfo then renders.samiraCraftInfo() end
+    return drawn
+end
+assert(#paintRecipePicker() == 2, 'first paint must have recipes')
 assert(#options.samiraCraftChoice == 2)
 assert(text.samiraCraftInfo:find('2× Длинный меч', 1, true))
 assert(text.samiraCraftInfo:find('Не хватает: Длинный меч', 1, true))
 inputs.samiraCraftChoice(1)
-inputs.samiraCraftInfo()
+paintRecipePicker()
 assert(text.samiraCraftInfo:find('Доплата: 8 мон.', 1, true))
 inputs.samiraCraftChoice(0)
 inputs.samiraCraftApply()
 assert(assembled == 0 and text.samiraCraftFeedback == 'Собирать можно в магазине.')
 inShop = true
 inputs.samiraCraftApply()
-inputs.samiraCraftInfo()
+paintRecipePicker()
 assert(assembled == 1 and text.samiraCraftInfo:find('Все компоненты в рюкзаке.', 1, true))
 current = nil
-inputs.samiraCraftInfo()
+paintRecipePicker()
 assert(#options.samiraCraftChoice == 1 and options.samiraCraftChoice[1] == 'Нет доступных рецептов')
 ''')
 print("Passed settings, slot saves and the crafting menu.")

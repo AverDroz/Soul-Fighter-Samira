@@ -1,0 +1,594 @@
+{
+  "source": "User-provided MVP T1 Miss Fortune Skin69 ZIP archives",
+  "sources": {
+    "MVP-T1-Miss-Fortune-Skin69.zip": "b6d528cba92f384ee1c809da13a609aa07248c576de4e3fa2e935d43eedf0ce6",
+    "MVP-T1-Miss-Fortune-Skin69-Abilities.zip": "602f11876a05c99b310c9e5caa1b21ff19bb9d48cdc10ea6139ae0d5db877e24",
+    "MVP-T1-Miss-Fortune-Skin69-Abilities-manifest.json": "69f128c718b1c73827207e50efdf539bbedb7a98c4637b9b66a94888646f1872"
+  },
+  "supplemental_animation_source": {
+    "file": "MissFortune.wad.client",
+    "sha256": "ec155cda0e61f3cea58d2fb775746b0143d5c12b9d9da80b60618889f4b4d362",
+    "entries": {
+      "assets/characters/missfortune/skins/skin69/animations/attack2_to_run.skins_missfortune_skin69.anm": "673572e11e8fd4491ace310ba3a8c5663cd6224b0f245a5b735637e78340d6e7",
+      "assets/characters/missfortune/skins/skin69/animations/attack2_to_run2.skins_missfortune_skin69.anm": "eb7c08a864ac5473e775abf138d3ff2a5b93d70350c7852214d956416fe51c9d",
+      "assets/characters/missfortune/skins/skin69/animations/crlt_ldle.skins_missfortune_skin69.anm": "ab5ae2ec33c79ffcc5a33173bb0f26c8cc81d6a157e29b7c840857a1fd328514",
+      "assets/characters/missfortune/skins/skin69/animations/dance.skins_missfortune_skin69.anm": "20667c2c73d3677d932ccdc8c7ec871eac37dc8ba53f38f31a3de86d0c48022b",
+      "assets/characters/missfortune/skins/skin69/animations/homeguard_torun.skins_missfortune_skin69.anm": "b7398d2a44e53627533ed867c9a9035574a13b2640571420ea22242fec6af718",
+      "assets/characters/missfortune/skins/skin69/animations/idle01.skins_missfortune_skin69.anm": "9ce6e562f85bcc811d01271b1f145ccccfd296439e6843da0a82bed8fd5296cf",
+      "assets/characters/missfortune/skins/skin69/animations/idle_in.skins_missfortune_skin69.anm": "483c68ff66fe9791e08d783b8f7d5af9e2f9c128b03aaecf0d2e2a69494df941",
+      "assets/characters/missfortune/skins/skin69/animations/jokein.skins_missfortune_skin69.anm": "c054af88ddfec7964cbadd93611b8ce4109c2ee723bdb5e50d77abf288a79df5",
+      "assets/characters/missfortune/skins/skin69/animations/pentakill_bonus.skins_missfortune_skin69.anm": "61eb689263b22470e2451d5a7d44a8ecabfd3769b11290bc3f5c7f0b7f9dc2e5",
+      "assets/characters/missfortune/skins/skin69/animations/recall_real.skins_missfortune_skin69.anm": "9297673dac0b34beb9cec6068dcda58723daee26adfdaa56a3c2db18d11e0fec",
+      "assets/characters/missfortune/skins/skin69/animations/run2.skins_missfortune_skin69.anm": "37536be24a0acea4961ad0bf7d06d3f083df1686a0e01f4651ab2443a902f30a",
+      "assets/characters/missfortune/skins/skin69/animations/spell1_toidle.skins_missfortune_skin69.anm": "4a71c4a43ce9e950b6796387366e3855097f004e4bb7fb96d12172dbf9f0c6ea",
+      "assets/characters/missfortune/skins/skin69/animations/spell4_loop.skins_missfortune_skin69.anm": "8fc356084dab57caab2df3561e588918f3a62ac511cbd0349f891cc424a93a48",
+      "assets/characters/missfortune/skins/skin69/animations/taunt_spam.skins_missfortune_skin69.anm": "4fdea35d877efa5efc006b39c98f4777f1de13eaeec12bf0864a479966862e3c"
+    }
+  },
+  "supplemental_material_source": {
+    "file": "MissFortune.wad.client",
+    "sha256": "ec155cda0e61f3cea58d2fb775746b0143d5c12b9d9da80b60618889f4b4d362",
+    "entries": {
+      "assets/characters/missfortune/skins/skin69/missfortune_skin69_gun24_gold_tx_cm.skins_missfortune_skin69.tex": "a193bea6ee50b83c32c0e3fb0ea12987fba7d35bd26be1f9d18a549b6933c439"
+    }
+  },
+  "frames_per_second": 30,
+  "motion_root": "Root",
+  "hidden_materials": [
+    "B_Gun24",
+    "C_Gun23",
+    "C_Gun23_Wings",
+    "C_Gun24",
+    "C_Gun25",
+    "C_Gun25_Gem",
+    "Throne"
+  ],
+  "skin_default_hidden": [
+    "A_Gun24",
+    "A_Gun23",
+    "A_Gun23_Wings",
+    "B_Gun25",
+    "B_Gun24",
+    "B_Gun23",
+    "B_Gun23_Wings",
+    "C_Gun25",
+    "C_Gun24",
+    "C_Gun23",
+    "C_Gun23_Wings",
+    "Hair_Ult",
+    "B_Gun25_Gem",
+    "C_Gun25_Gem",
+    "A_Gun25",
+    "A_Gun25_Gem",
+    "Stairs",
+    "Throne"
+  ],
+  "gun_pair": [
+    "A_Gun25",
+    "A_Gun25_Gem"
+  ],
+  "materials": {
+    "C_Gun25": "assets/characters/missfortune/skins/skin69/missfortune_skin69_gun25_gold_tx_cm.skins_missfortune_skin69.tex",
+    "C_Gun25_Gem": "assets/characters/missfortune/skins/skin69/missfortune_skin69_gun25_gold_tx_cm.skins_missfortune_skin69.tex",
+    "C_Gun24": "assets/characters/missfortune/skins/skin69/missfortune_skin69_gun24_gold_tx_cm.skins_missfortune_skin69.tex",
+    "A_Gun25": "assets/characters/missfortune/skins/skin69/missfortune_skin69_gun25_tx_cm.skins_missfortune_skin69.tex",
+    "A_Gun25_Gem": "assets/characters/missfortune/skins/skin69/missfortune_skin69_gun25_tx_cm.skins_missfortune_skin69.tex",
+    "B_Gun24": "assets/characters/missfortune/skins/skin69/missfortune_skin69_gun24_tx_cm.skins_missfortune_skin69.tex",
+    "C_Gun23": "assets/characters/missfortune/skins/skin69/missfortune_skin69_gun23_tx_cm.skins_missfortune_skin69.tex",
+    "C_Gun23_Wings": "assets/characters/missfortune/skins/skin69/missfortune_skin69_gun23_tx_cm.skins_missfortune_skin69.tex",
+    "Body": "assets/characters/missfortune/skins/skin69/missfortune_skin69_tx_cm.skins_missfortune_skin69.tex",
+    "Hair": "assets/characters/missfortune/skins/skin69/missfortune_skin69_tx_cm.skins_missfortune_skin69.tex",
+    "Head": "assets/characters/missfortune/skins/skin69/missfortune_skin69_tx_cm.skins_missfortune_skin69.tex",
+    "Fur": "assets/characters/missfortune/skins/skin69/missfortune_skin69_tx_cm.skins_missfortune_skin69.tex",
+    "Throne": "assets/characters/missfortune/skins/skin69/missfortune_skin69_throne_tx_cm.skins_missfortune_skin69.tex",
+    "Headdress": "assets/characters/missfortune/skins/skin69/missfortune_skin69_tx_cm.skins_missfortune_skin69.tex"
+  },
+  "states": {
+    "dfe2e631": {
+      "clip": "idle",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/idle02.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "f112f5b2": {
+      "clip": "run",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/run.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "059c45f2": {
+      "clip": "run_in",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/run_in.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "3ee785b1": {
+      "clip": "attack",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/attack1.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "f0462cf0": {
+      "clip": "attack2",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/attack2.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "9f54849b": {
+      "clip": "attack_out",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/attack1_to_idle.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "730e2516": {
+      "clip": "attack2_out",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/attack2_to_idle.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "2f52c472": {
+      "clip": "attack_run",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/attack1_to__run.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "bf4af0c0": {
+      "clip": "attack_strut",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/attack1_to__run2.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "dbda692e": {
+      "clip": "q_in",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/spell1_in.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "b2f63868": {
+      "clip": "q",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/spell1.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "36dcd151": {
+      "clip": "q_run",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/spell1_torun.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "d788712e": {
+      "clip": "w",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/run2_in.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "b4f63b8e": {
+      "clip": "e",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/spell3.skins_missfortune_skin69.anm",
+      "events": [
+        {
+          "__type": "JointSnapEventData",
+          "mJointNameToOverride": "L_weapon",
+          "mJointNameToSnapTo": "L_weapon_snap"
+        },
+        {
+          "__type": "JointSnapEventData",
+          "mJointNameToOverride": "R_weapon",
+          "mJointNameToSnapTo": "R_weapon_snap"
+        }
+      ]
+    },
+    "f9cfed98": {
+      "clip": "e_out",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/spell3_toidle.skins_missfortune_skin69.anm",
+      "events": [
+        {
+          "__type": "JointSnapEventData",
+          "mJointNameToOverride": "L_weapon",
+          "mJointNameToSnapTo": "L_weapon_snap"
+        },
+        {
+          "__type": "JointSnapEventData",
+          "mJointNameToOverride": "R_weapon",
+          "mJointNameToSnapTo": "R_weapon_snap"
+        }
+      ]
+    },
+    "a968c147": {
+      "clip": "e_run",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/spell3_torun.skins_missfortune_skin69.anm",
+      "events": [
+        {
+          "__type": "JointSnapEventData",
+          "mJointNameToOverride": "L_weapon",
+          "mJointNameToSnapTo": "L_weapon_snap"
+        },
+        {
+          "__type": "JointSnapEventData",
+          "mJointNameToOverride": "R_weapon",
+          "mJointNameToSnapTo": "R_weapon_snap"
+        }
+      ]
+    },
+    "34edfa7b": {
+      "clip": "r_in",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/spell4_windup.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "3279c7ac": {
+      "clip": "r_out",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/spell4_toidle.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "7af345ae": {
+      "clip": "r_run",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/spell4_torun.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "93f45fa2": {
+      "clip": "joke",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/jokespam.skins_missfortune_skin69.anm",
+      "events": [
+        {
+          "__type": "SubmeshVisibilityEventData",
+          "mShowSubmeshList": [],
+          "mHideSubmeshList": [
+            "A_Gun25",
+            "A_Gun25_Gem"
+          ]
+        }
+      ]
+    },
+    "fd5d4579": {
+      "clip": "joke_loop",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/jokeloop.skins_missfortune_skin69.anm",
+      "events": [
+        {
+          "__type": "SubmeshVisibilityEventData",
+          "mShowSubmeshList": [],
+          "mHideSubmeshList": [
+            "A_Gun25",
+            "A_Gun25_Gem"
+          ]
+        }
+      ]
+    },
+    "3f614d6b": {
+      "clip": "taunt",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/taunt_in.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "60842cca": {
+      "clip": "taunt_loop",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/taunt_loop.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "981caad3": {
+      "clip": "dance",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/dance_in.skins_missfortune_skin69.anm",
+      "events": [
+        {
+          "__type": "SubmeshVisibilityEventData",
+          "mShowSubmeshList": [],
+          "mHideSubmeshList": [
+            "A_Gun25",
+            "A_Gun25_Gem"
+          ]
+        }
+      ]
+    },
+    "b695ccbe": {
+      "clip": "laugh",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/laugh.skins_missfortune_skin69.anm",
+      "events": [
+        {
+          "__type": "SubmeshVisibilityEventData",
+          "mShowSubmeshList": [],
+          "mHideSubmeshList": [
+            "A_Gun25",
+            "A_Gun25_Gem"
+          ],
+          "mEndFrame": 96.0
+        }
+      ]
+    },
+    "a432c30d": {
+      "clip": "recall",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/channel_in.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "21c252a4": {
+      "clip": "recall_loop",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/channel_loop.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "a8dbe66b": {
+      "clip": "recall_out",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/recall_winddown.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "326695ad": {
+      "clip": "homeguard_in",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/homeguard_in.skins_missfortune_skin69.anm",
+      "events": [
+        {
+          "__type": "SubmeshVisibilityEventData",
+          "mShowSubmeshList": [
+            "Throne"
+          ],
+          "mHideSubmeshList": []
+        },
+        {
+          "__type": "SubmeshVisibilityEventData",
+          "mShowSubmeshList": [
+            "C_Gun25",
+            "C_Gun25_Gem",
+            "C_Gun24"
+          ],
+          "mHideSubmeshList": [
+            "A_Gun25",
+            "A_Gun25_Gem"
+          ],
+          "mStartFrame": 10.0
+        }
+      ]
+    },
+    "52314779": {
+      "clip": "homeguard",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/homeguard.skins_missfortune_skin69.anm",
+      "events": [
+        {
+          "__type": "SubmeshVisibilityEventData",
+          "mShowSubmeshList": [
+            "Throne",
+            "C_Gun25",
+            "C_Gun25_Gem",
+            "C_Gun24"
+          ],
+          "mHideSubmeshList": [
+            "A_Gun25",
+            "A_Gun25_Gem"
+          ]
+        }
+      ]
+    },
+    "0bd31c4d": {
+      "clip": "homeguard_out",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/homeguard_torun02.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "ff637ec5": {
+      "clip": "pentakill",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/pentakill_in.skins_missfortune_skin69.anm",
+      "events": [
+        {
+          "__type": "SubmeshVisibilityEventData",
+          "mShowSubmeshList": [],
+          "mHideSubmeshList": [
+            "A_Gun25",
+            "A_Gun25_Gem"
+          ]
+        }
+      ]
+    },
+    "bd28bd4d": {
+      "clip": "death",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/death.skins_missfortune_skin69.anm",
+      "events": [
+        {
+          "__type": "JointSnapEventData",
+          "mJointNameToOverride": "L_weapon",
+          "mJointNameToSnapTo": "L_weapon_snap"
+        },
+        {
+          "__type": "JointSnapEventData",
+          "mJointNameToOverride": "R_weapon",
+          "mJointNameToSnapTo": "R_weapon_snap"
+        }
+      ]
+    },
+    "9f77283f": {
+      "clip": "respawn",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/respawn.skins_missfortune_skin69.anm",
+      "events": [
+        {
+          "__type": "SubmeshVisibilityEventData",
+          "mShowSubmeshList": [
+            "A_Gun25",
+            "A_Gun25_Gem"
+          ],
+          "mHideSubmeshList": [],
+          "mEndFrame": 63.0
+        },
+        {
+          "__type": "JointSnapEventData",
+          "mJointNameToOverride": "R_weapon",
+          "mJointNameToSnapTo": "R_weapon_snap"
+        },
+        {
+          "__type": "JointSnapEventData",
+          "mJointNameToOverride": "L_weapon",
+          "mJointNameToSnapTo": "L_weapon_snap"
+        },
+        {
+          "__type": "JointSnapEventData",
+          "mJointNameToOverride": "R_Rweapon01",
+          "mJointNameToSnapTo": "R_Rweapon01_snap"
+        },
+        {
+          "__type": "JointSnapEventData",
+          "mJointNameToOverride": "R_Rweapon02",
+          "mJointNameToSnapTo": "R_Rweapon02_snap"
+        },
+        {
+          "__type": "JointSnapEventData",
+          "mJointNameToOverride": "L_Rweapon01",
+          "mJointNameToSnapTo": "L_Rweapon01_snap"
+        },
+        {
+          "__type": "JointSnapEventData",
+          "mJointNameToOverride": "L_Rweapon02",
+          "mJointNameToSnapTo": "L_Rweapon02_snap"
+        },
+        {
+          "__type": "SubmeshVisibilityEventData",
+          "mShowSubmeshList": [],
+          "mHideSubmeshList": [
+            "Body",
+            "Head",
+            "Fur",
+            "Hair",
+            "Headdress"
+          ],
+          "mEndFrame": 8.0
+        }
+      ]
+    },
+    "6c2b2ee6": {
+      "clip": "base_idle",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/idle01.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "b781551b": {
+      "clip": "idle_in",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/idle_in.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "e5575908": {
+      "clip": "joke_in",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/jokein.skins_missfortune_skin69.anm",
+      "events": [
+        {
+          "__type": "SubmeshVisibilityEventData",
+          "mShowSubmeshList": [],
+          "mHideSubmeshList": [
+            "A_Gun25",
+            "A_Gun25_Gem"
+          ],
+          "mStartFrame": 37.0
+        }
+      ]
+    },
+    "59335068": {
+      "clip": "strut_run_loop",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/run2.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "556ce909": {
+      "clip": "attack2_run",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/attack2_to_run.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "b57327e1": {
+      "clip": "attack2_strut",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/attack2_to_run2.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "644e4e20": {
+      "clip": "crit",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/crlt.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "462b0526": {
+      "clip": "crit_out",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/crlt_ldle.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "adc4ecbe": {
+      "clip": "q_out",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/spell1_toidle.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "a98dac96": {
+      "clip": "r",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/spell4_loop.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "589c6ca2": {
+      "clip": "dance_loop",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/dance.skins_missfortune_skin69.anm",
+      "events": [
+        {
+          "__type": "SubmeshVisibilityEventData",
+          "mShowSubmeshList": [],
+          "mHideSubmeshList": [
+            "A_Gun25",
+            "A_Gun25_Gem"
+          ]
+        }
+      ]
+    },
+    "5a81bdb0": {
+      "clip": "recall_cinematic",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/recall_real.skins_missfortune_skin69.anm",
+      "events": [
+        {
+          "__type": "SubmeshVisibilityEventData",
+          "mHideSubmeshList": [
+            "A_Gun25",
+            "A_Gun25_Gem"
+          ]
+        },
+        {
+          "__type": "SubmeshVisibilityEventData",
+          "mShowSubmeshList": [
+            "C_Gun23",
+            "C_Gun23_Wings"
+          ],
+          "mHideSubmeshList": [
+            "A_Gun25",
+            "A_Gun25_Gem",
+            "B_Gun24"
+          ],
+          "mEndFrame": 61.0
+        },
+        {
+          "__type": "SubmeshVisibilityEventData",
+          "mShowSubmeshList": [
+            "B_Gun24"
+          ],
+          "mHideSubmeshList": [
+            "A_Gun25",
+            "A_Gun25_Gem",
+            "C_Gun23",
+            "C_Gun23_Wings"
+          ],
+          "mStartFrame": 62.0,
+          "mEndFrame": 102.0
+        },
+        {
+          "__type": "SubmeshVisibilityEventData",
+          "mShowSubmeshList": [
+            "A_Gun25",
+            "A_Gun25_Gem"
+          ],
+          "mHideSubmeshList": [
+            "B_Gun24",
+            "C_Gun23",
+            "C_Gun23_Wings"
+          ],
+          "mStartFrame": 103.0
+        }
+      ]
+    },
+    "986d8fe5": {
+      "clip": "taunt_spam",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/taunt_spam.skins_missfortune_skin69.anm",
+      "events": []
+    },
+    "d788acbd": {
+      "clip": "pentakill_bonus",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/pentakill_bonus.skins_missfortune_skin69.anm",
+      "events": [
+        {
+          "__type": "SubmeshVisibilityEventData",
+          "mShowSubmeshList": [],
+          "mHideSubmeshList": [
+            "A_Gun25",
+            "A_Gun25_Gem"
+          ]
+        }
+      ]
+    },
+    "6c4296ad": {
+      "clip": "homeguard_out_run",
+      "source_anm": "assets/characters/missfortune/skins/skin69/animations/homeguard_torun.skins_missfortune_skin69.anm",
+      "events": []
+    }
+  },
+  "missing_source_clips": {},
+  "missing_source_materials": {},
+  "strut": {
+    "graph_buff": "MissFortuneStrutMax",
+    "entry": "w",
+    "movement_fallback": "run",
+    "spell2_graph_reference": "assets/characters/missfortune/skins/skin31/animations/spell1.anm"
+  }
+}

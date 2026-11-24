@@ -1,0 +1,87 @@
+{
+  "animation": "Recall_Real",
+  "state": "5a81bdb0",
+  "fps": 30,
+  "archives": {
+    "MVP-T1-Miss-Fortune-Skin69-Abilities.zip": "602f11876a05c99b310c9e5caa1b21ff19bb9d48cdc10ea6139ae0d5db877e24",
+    "PBE MissFortune.wad.client": "ec155cda0e61f3cea58d2fb775746b0143d5c12b9d9da80b60618889f4b4d362"
+  },
+  "sprites": {
+    "RecallSpear": {
+      "event_key": "a251a2b8",
+      "attachment": "VFX_buffbone02",
+      "start_frame": 9,
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_emote_spear_avatar.skins_missfortune_skin69.tex",
+          "sha256": "9ab70e9334976827b651c79bf92146559e916d4bb4f8d0ba11d52d03b98d289d",
+          "archive": "PBE MissFortune.wad.client"
+        },
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_emote_spear.skins_missfortune_skin69.scb",
+          "sha256": "5d2c3a28d6a26e2f84b4571e92aeaaee5868dc8d82057e8fc71882360021185f",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        }
+      ],
+      "projection_yaw_degrees": -90,
+      "sprite_size": [
+        95,
+        3
+      ]
+    },
+    "RecallArrow": {
+      "event_key": "a77ceb02",
+      "attachment": "VFX_buffbone03",
+      "start_frame": 57,
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_arrow.skins_missfortune_skin69.tex",
+          "sha256": "e77a460e9a51d769b6f126769ddbd22ce600cef71615fb114c4a8ffbc495a1ea",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        }
+      ],
+      "sprite_size": [
+        59,
+        106
+      ]
+    },
+    "RecallBalloon": {
+      "event_key": "7e9e4977",
+      "attachment": "VFX_buffbone04",
+      "start_frame": 103,
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_balloon.skins_missfortune_skin69.tex",
+          "sha256": "481965d54f63cad1898d13e0b2700f00f39f6b802b22b629c1c967a36861a50c",
+          "archive": "PBE MissFortune.wad.client"
+        },
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_balloon.skins_missfortune_skin69.scb",
+          "sha256": "1d45f13b486bca5374d2b1193798e3f3317925430c1c875537510fd02161e871",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        }
+      ],
+      "projection_yaw_degrees": 90,
+      "sprite_size": [
+        96,
+        100
+      ]
+    },
+    "RecallWaterTrail": {
+      "event_key": "7e9e4977",
+      "attachment": "VFX_buffbone04",
+      "start_frame": 103,
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_watertrailloop.skins_missfortune_skin69.tex",
+          "sha256": "a95b207d9d3866065ca70ef792a895ec943191d983f1f9d0ea150dedfbfb62ce",
+          "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip"
+        }
+      ],
+      "sprite_size": [
+        128,
+        64
+      ]
+    }
+  }
+}

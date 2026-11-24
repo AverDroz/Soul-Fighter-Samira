@@ -1,0 +1,389 @@
+{
+  "archive": "MVP-T1-Miss-Fortune-Skin69-Abilities.zip",
+  "sha256": "602f11876a05c99b310c9e5caa1b21ff19bb9d48cdc10ea6139ae0d5db877e24",
+  "conversion": "SCB side projection and source TEX with emitter tint",
+  "sprites": {
+    "QBullet": {
+      "effect": "5c7810ca",
+      "emitters": [
+        "bullets2",
+        "bullets6"
+      ],
+      "body_rgba": [
+        0.634,
+        0,
+        0,
+        1
+      ],
+      "glint_rgba": [
+        1,
+        0.76,
+        0.49,
+        0.45
+      ],
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_q_bullet01.skins_missfortune_skin69.scb",
+          "sha256": "ca36190ff3b591e2446857c108c37241e93fa4ee438df480256a04250a7bcbf1"
+        },
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_q_bullet01.skins_missfortune_skin69.tex",
+          "sha256": "fd3cc36bfa96ced8cd3d7328eb7c75806500af37e68b9bec9ed3b5bc50aa502e"
+        },
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/masteryi_skin52_trails_03.skins_missfortune_skin69.tex",
+          "sha256": "df750a819cc536f47b5cd3baf3901346de666dc1b2584a45af614978a467bd8f"
+        }
+      ]
+    },
+    "QDud": {
+      "effect": "6183dc78",
+      "emitters": [
+        "bullets2",
+        "bullets4"
+      ],
+      "body_rgba": [
+        0.46,
+        0.02,
+        0,
+        1
+      ],
+      "glint_rgba": [
+        1,
+        0.76,
+        0.49,
+        0.45
+      ],
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_q_bullet02.skins_missfortune_skin69.scb",
+          "sha256": "59fb589b83c97c4be74ae719588a7313c3c1facb1143354c604e73e1847097d1"
+        },
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_q_bullet01.skins_missfortune_skin69.tex",
+          "sha256": "fd3cc36bfa96ced8cd3d7328eb7c75806500af37e68b9bec9ed3b5bc50aa502e"
+        },
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/masteryi_skin52_trails_03.skins_missfortune_skin69.tex",
+          "sha256": "df750a819cc536f47b5cd3baf3901346de666dc1b2584a45af614978a467bd8f"
+        }
+      ]
+    },
+    "RCore": {
+      "effect": "d2d2c9bc",
+      "emitters": [
+        "bullets",
+        "bullets4"
+      ],
+      "body_rgba": [
+        0.519,
+        0.296,
+        0.142,
+        1
+      ],
+      "glint_rgba": [
+        1,
+        0.76,
+        0.49,
+        0.45
+      ],
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_q_bullet01.skins_missfortune_skin69.scb",
+          "sha256": "ca36190ff3b591e2446857c108c37241e93fa4ee438df480256a04250a7bcbf1"
+        },
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_q_bullet01.skins_missfortune_skin69.tex",
+          "sha256": "fd3cc36bfa96ced8cd3d7328eb7c75806500af37e68b9bec9ed3b5bc50aa502e"
+        },
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/masteryi_skin52_trails_03.skins_missfortune_skin69.tex",
+          "sha256": "df750a819cc536f47b5cd3baf3901346de666dc1b2584a45af614978a467bd8f"
+        }
+      ]
+    },
+    "AATrail": {
+      "effect": "f98fc5e2",
+      "emitter": "trail",
+      "rgba": [
+        0.936,
+        0.707,
+        0.27,
+        1
+      ],
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_trail.skins_missfortune_skin69.tex",
+          "sha256": "8782d2e0ee70ab90a7064c266c8598672502a4d16c75abed453557615a6b54ee"
+        }
+      ]
+    },
+    "AACast": {
+      "effect": "7495d294",
+      "emitter": "Flash",
+      "rgba": [
+        0.79,
+        0.483,
+        0.28,
+        0.502
+      ],
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin50_ba_flash_sharp_01.skins_missfortune_skin69.tex",
+          "sha256": "f0f0a424afb52d7409ba5e83a4a1da2d6b40260f6c90ddc44dff806bcbfd25b5"
+        }
+      ]
+    },
+    "AACritCast": {
+      "effect": "7c0942a9",
+      "emitter": "Flash",
+      "rgba": [
+        0.784,
+        0.561,
+        0.166,
+        1
+      ],
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin50_ba_flash_sharp_01.skins_missfortune_skin69.tex",
+          "sha256": "f0f0a424afb52d7409ba5e83a4a1da2d6b40260f6c90ddc44dff806bcbfd25b5"
+        }
+      ]
+    },
+    "AACritSpark": {
+      "effect": "7c0942a9",
+      "emitter": "Flash1",
+      "rgba": [
+        0.944,
+        0.596,
+        0.231,
+        1
+      ],
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/vayne_skin64_sparkle.skins_missfortune_skin69.tex",
+          "sha256": "28323dcb25499bb0762767d308d9237e5067f5993bc47c08789ee5d9dc3e133c"
+        }
+      ]
+    },
+    "QGlow": {
+      "effect": "5c7810ca",
+      "emitter": "bullets_OuterGlow",
+      "rgba": [
+        0.901,
+        0.61,
+        0.304,
+        0.8
+      ],
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/3161glow.skins_missfortune_skin69.tex",
+          "sha256": "270f9724771bcf2ecec770255d73b635f954283c4bc678ccc0954eacc7b00c39"
+        }
+      ]
+    },
+    "QCast": {
+      "effect": "9c2a03a4",
+      "emitter": "Flash",
+      "rgba": [
+        1,
+        0.737,
+        0.183,
+        0.302
+      ],
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin50_ba_flash_sharp_01.skins_missfortune_skin69.tex",
+          "sha256": "f0f0a424afb52d7409ba5e83a4a1da2d6b40260f6c90ddc44dff806bcbfd25b5"
+        }
+      ]
+    },
+    "QImpact": {
+      "effect": "e40b94f6",
+      "emitter": "Flash",
+      "rgba": [
+        0.98,
+        0.75,
+        0.33,
+        1
+      ],
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/vayne_skin64_sparkle.skins_missfortune_skin69.tex",
+          "sha256": "28323dcb25499bb0762767d308d9237e5067f5993bc47c08789ee5d9dc3e133c"
+        }
+      ]
+    },
+    "QSecondImpact": {
+      "effect": "b696c2b7",
+      "emitter": "Basic",
+      "rgba": [
+        0.84,
+        0.6,
+        0.23,
+        1
+      ],
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin50_ba_flash_sharp_01.skins_missfortune_skin69.tex",
+          "sha256": "f0f0a424afb52d7409ba5e83a4a1da2d6b40260f6c90ddc44dff806bcbfd25b5"
+        }
+      ]
+    },
+    "RainGround": {
+      "effect": "83a848bd",
+      "emitter": "AOE_Indicator",
+      "rgba": [
+        0.09,
+        0.09,
+        0.17,
+        1
+      ],
+      "uv_repeat": [
+        2,
+        2
+      ],
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_groundt1.skins_missfortune_skin69.tex",
+          "sha256": "3dcfb7f95396d3a5f59ae8bd903b45190114458fc3fbbc86bd4e01255457b4d3"
+        },
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/zoe_skin20_aura_self.skins_missfortune_skin69.tex",
+          "sha256": "41241eafa700d7aa8a280bc7d943c090005324d146d33777a5b8b4bda3ab977b"
+        }
+      ]
+    },
+    "RainGold": {
+      "effect": "83a848bd",
+      "emitter": "AOE_Indicator1",
+      "rgba": [
+        1,
+        0.671,
+        0.384,
+        1
+      ],
+      "uv_repeat": [
+        2,
+        2
+      ],
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_r_ground01.skins_missfortune_skin69.tex",
+          "sha256": "8dc072cbccb32526f353521b8f6e04b9ee1d6b8577271f1bc024b6a188a97cfb"
+        },
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/zoe_skin20_aura_self.skins_missfortune_skin69.tex",
+          "sha256": "41241eafa700d7aa8a280bc7d943c090005324d146d33777a5b8b4bda3ab977b"
+        }
+      ]
+    },
+    "RainRingGlow": {
+      "effect": "83a848bd",
+      "emitter": "ProjectionRing2",
+      "rgba": [
+        0.768,
+        0.468,
+        0.242,
+        1
+      ],
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_e_teamring_blur.skins_missfortune_skin69.tex",
+          "sha256": "a0397810512a3ca539190027546e094de5da91fdfe3fe653aedfe64b9fa0f06d"
+        }
+      ]
+    },
+    "RainStreak": {
+      "effect": "74c6e72c",
+      "emitter": "Trail1",
+      "rgba": [
+        0.95,
+        0.574,
+        0.268,
+        1
+      ],
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_e_trail_01.skins_missfortune_skin69.tex",
+          "sha256": "60513cf6349bfe2ed7fb2018ec0e05dbbfbdab8cd340c0b54ab37d2971448fb8"
+        }
+      ]
+    },
+    "RainImpact": {
+      "effect": "7f1dcbdc",
+      "emitter": "Flash",
+      "rgba": [
+        1,
+        0.602,
+        0.241,
+        1
+      ],
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin50_ba_flash_sharp_01.skins_missfortune_skin69.tex",
+          "sha256": "f0f0a424afb52d7409ba5e83a4a1da2d6b40260f6c90ddc44dff806bcbfd25b5"
+        }
+      ]
+    },
+    "RainImpactGlow": {
+      "effect": "7f1dcbdc",
+      "emitter": "Glow_Add",
+      "rgba": [
+        1,
+        0.68,
+        0.31,
+        0.6
+      ],
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/3161glow.skins_missfortune_skin69.tex",
+          "sha256": "270f9724771bcf2ecec770255d73b635f954283c4bc678ccc0954eacc7b00c39"
+        }
+      ]
+    },
+    "RainCore": {
+      "effect": "6414b462",
+      "emitters": [
+        "bullets1",
+        "bullets2"
+      ],
+      "body_rgba": [
+        0.67,
+        0.28,
+        0.22,
+        1
+      ],
+      "glint_rgba": [
+        0.81,
+        0.56,
+        0.37,
+        0.3
+      ],
+      "sources": [
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_q_bullet01.skins_missfortune_skin69.scb",
+          "sha256": "ca36190ff3b591e2446857c108c37241e93fa4ee438df480256a04250a7bcbf1"
+        },
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/missfortune_skin69_q_bullet01.skins_missfortune_skin69.tex",
+          "sha256": "fd3cc36bfa96ced8cd3d7328eb7c75806500af37e68b9bec9ed3b5bc50aa502e"
+        },
+        {
+          "path": "assets/characters/missfortune/skins/skin69/particles/masteryi_skin52_trails_03.skins_missfortune_skin69.tex",
+          "sha256": "df750a819cc536f47b5cd3baf3901346de666dc1b2584a45af614978a467bd8f"
+        }
+      ]
+    }
+  },
+  "rain_trophies": {
+    "effect": "83a848bd",
+    "emitter": "Parent",
+    "source": "recall_effects.provenance.json",
+    "children": {
+      "59761bb0": "RecallTrophy2024",
+      "5c762069": "RecallTrophy2025",
+      "5b761ed6": "RecallTrophyFMVP"
+    }
+  }
+}

@@ -1,0 +1,790 @@
+{
+  "copyright": "MVP T1 Miss Fortune voice and sound effects © Riot Games.",
+  "voice_locale": "en_US",
+  "pcm": {
+    "sample_rate": 44100,
+    "bits_per_sample": 16,
+    "channels": 1
+  },
+  "source_archives": [
+    {
+      "file": "MissFortune.wad.client",
+      "sha256": "ec155cda0e61f3cea58d2fb775746b0143d5c12b9d9da80b60618889f4b4d362",
+      "members": {
+        "assets/sounds/wwise2016/SFX/characters/missfortune/skins/skin69/missfortune_skin69_sfx_audio.bnk": "91497b1fb6bad7d688b8d0996ab293ac14ec4c1d8d35f11876c132f83ad2f895",
+        "assets/sounds/wwise2016/SFX/characters/missfortune/skins/skin69/missfortune_skin69_sfx_audio.wpk": "cf0ae054f1137c2119e04891cd0f99d0659dc94acda1dc660a91222765317ac3",
+        "assets/sounds/wwise2016/SFX/characters/missfortune/skins/skin69/missfortune_skin69_sfx_events.bnk": "cee398d730bcd8f85a64e0b373b7b447e1cdab4c8b51d431f0a45d5e08109332"
+      }
+    },
+    {
+      "file": "MissFortune.en_US.wad.client",
+      "sha256": "12e7749d6831018b8ecb18da9810a0dfe1750d5096017b2f24557e0f381b5912",
+      "members": {
+        "assets/sounds/wwise2016/VO/en_us/characters/missfortune/skins/skin69/missfortune_skin69_vo_audio.bnk": "eb4bc1e1840748f7c3e10f6ff2e29cc4cf846a3997a024aad8d934dd88554f7b",
+        "assets/sounds/wwise2016/VO/en_us/characters/missfortune/skins/skin69/missfortune_skin69_vo_audio.wpk": "2728587453f0763ad70d6c77407b579832ce66dbcbd529a5769d42c8da20c9d9",
+        "assets/sounds/wwise2016/VO/en_us/characters/missfortune/skins/skin69/missfortune_skin69_vo_events.bnk": "51c26a0b325766563eadfbdf3495231a023e396f7dec565c5884af7420d0f3bc"
+      }
+    }
+  ],
+  "tools": {
+    "wwiser.pyz": "f4ba1368895adab285f27fa37b142e5da805bcc6fb77e8daba282dac65d89411",
+    "vgmstream-win64.zip": "692d45070852a35c1fa42726aa3c9de528e44eec925d37d99b1074256b99a229",
+    "ffmpeg": "ffmpeg version n8.0-16-gd8605a6b55-20251007 Copyright (c) 2000-2025 the FFmpeg developers"
+  },
+  "samples": {
+    "Miss Fortune Attack": [
+      {
+        "file": "mf_skin69_attack_1.wav",
+        "frames": 40388,
+        "sha256": "d626eab6b1c03f752e4c7d07d564b9cd52ab82116efabcac67cbda593dc19d43",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_MissFortuneBasicAttack_OnCast {r1}": [
+            "738917368.wem",
+            "884978861.wem",
+            "694116503.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_attack_2.wav",
+        "frames": 36951,
+        "sha256": "0bfacbfd8e5e282d64d51ca27d4d09dfb512042427709f889553fd26c7b49b4f",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_MissFortuneBasicAttack_OnCast {r2}": [
+            "738917368.wem",
+            "884978861.wem",
+            "694116503.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_attack_3.wav",
+        "frames": 44328,
+        "sha256": "1ad5ced51c5ae692364beb9a0ee7e0e11f03c19e4e38e9fc09b0329f7379c4d0",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_MissFortuneBasicAttack_OnCast {r3}": [
+            "738917368.wem",
+            "884978861.wem",
+            "694116503.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune Q": [
+      {
+        "file": "mf_skin69_q_1.wav",
+        "frames": 14696,
+        "sha256": "7ed6f2361cb9ff7c10f3ed5c563ce9bb846dfe0a9714a68ec7f955b2ad5550fe",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_MissFortuneRicochetShot_OnCast {r1}": [
+            "768958863.wem",
+            "1012380819.wem",
+            "721084068.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_q_2.wav",
+        "frames": 15264,
+        "sha256": "784231d73695034930c1c27b81f328659a2fc15b2e00e74aef48074678ec2d41",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_MissFortuneRicochetShot_OnCast {r2}": [
+            "768958863.wem",
+            "1012380819.wem",
+            "721084068.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_q_3.wav",
+        "frames": 15479,
+        "sha256": "546a6736f26472b83e7a294d7e98dc9a8fad7bbace2ee098003a1dc2848f10d3",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_MissFortuneRicochetShot_OnCast {r3}": [
+            "768958863.wem",
+            "1012380819.wem",
+            "721084068.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune Q Hit": [
+      {
+        "file": "mf_skin69_q_hit_1.wav",
+        "frames": 78592,
+        "sha256": "5aa10ed69a06784b6cb9ee13f57af8a4f32f542e9f1c8d474c919b24e587b237",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_MissFortuneRicochetShot_OnHit {r1}": [
+            "369910555.wem",
+            "882505631.wem",
+            "681094406.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_q_hit_2.wav",
+        "frames": 53918,
+        "sha256": "2ec58c9cfbbea10c73734ec88d81273742d4e65627a8c497a83b86409e250e29",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_MissFortuneRicochetShot_OnHit {r2}": [
+            "369910555.wem",
+            "882505631.wem",
+            "681094406.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_q_hit_3.wav",
+        "frames": 57597,
+        "sha256": "9d13d9eadcf93038e623ca88337229d3b0cd12a7b2d1a0b16ebbff7c24ac2339",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_MissFortuneRicochetShot_OnHit {r3}": [
+            "369910555.wem",
+            "882505631.wem",
+            "681094406.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune Q Voice": [
+      {
+        "file": "mf_skin69_q_voice_1.wav",
+        "frames": 20330,
+        "sha256": "de0ebdd8e537b47e38866eca5f481e21c4dfdea06256ecbe084f5041a07364c7",
+        "playlists": {
+          "Play_vo_MissFortuneSkin69_MissFortuneRicochetShot_cast3D {r1}": [
+            "953247762.wem",
+            "1039956282.wem",
+            "95281541.wem",
+            "1067821366.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_q_voice_2.wav",
+        "frames": 21270,
+        "sha256": "9ad79d3816136bbcdb095a510420044e812f03aa5bfa811de6bc5a0fd3ff4bee",
+        "playlists": {
+          "Play_vo_MissFortuneSkin69_MissFortuneRicochetShot_cast3D {r2}": [
+            "953247762.wem",
+            "1039956282.wem",
+            "95281541.wem",
+            "1067821366.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_q_voice_3.wav",
+        "frames": 21858,
+        "sha256": "37332b56888d307fe988baa97462538bd5fbb5c39a747662eefb617532c5c9a1",
+        "playlists": {
+          "Play_vo_MissFortuneSkin69_MissFortuneRicochetShot_cast3D {r3}": [
+            "953247762.wem",
+            "1039956282.wem",
+            "95281541.wem",
+            "1067821366.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_q_voice_4.wav",
+        "frames": 24486,
+        "sha256": "a5297091eb5fd4be366ec22b7225e7b2d2765ad0b6eff27cd873481af2e51009",
+        "playlists": {
+          "Play_vo_MissFortuneSkin69_MissFortuneRicochetShot_cast3D {r4}": [
+            "953247762.wem",
+            "1039956282.wem",
+            "95281541.wem",
+            "1067821366.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune W": [
+      {
+        "file": "mf_skin69_w_1.wav",
+        "frames": 111348,
+        "sha256": "3b6669df42b38de5843caf010625ae853360d01fd5ad9e68a9048068522c79e8",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_MissFortuneViciousStrikes_OnCast [2731286056=1307359308]": [
+            "156829652.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune E": [
+      {
+        "file": "mf_skin69_e_1.wav",
+        "frames": 90168,
+        "sha256": "1d5e619c5a6d60c9ee33c8f2e5202ecdd89207d27c9ce82eeb33df13d9b039e4",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_MissFortuneScattershot_OnCast": [
+            "299716661.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune E Rain": [
+      {
+        "file": "mf_skin69_e_rain_1.wav",
+        "frames": 171322,
+        "sha256": "fa051542bb92b60c6c37cc7a3c5f1f3a9b215c59f30036d9785ba0c15d6a74c6",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_MissFortuneScattershot_ground_buffactivate {r1}": [
+            "33887412.wem",
+            "9127597.wem",
+            "651730473.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_e_rain_2.wav",
+        "frames": 161835,
+        "sha256": "05627ddfee6667596ff74d58a4b6ce25a3a8fff3b6fc0aef6c64016dbf03915a",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_MissFortuneScattershot_ground_buffactivate {r2}": [
+            "33887412.wem",
+            "9127597.wem",
+            "651730473.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_e_rain_3.wav",
+        "frames": 161835,
+        "sha256": "43daf4860bf58636d1a05e1c388e92b0fd104238a4eb6c868bf71ec92aa46511",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_MissFortuneScattershot_ground_buffactivate {r3}": [
+            "33887412.wem",
+            "9127597.wem",
+            "651730473.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune E Voice": [
+      {
+        "file": "mf_skin69_e_voice_1.wav",
+        "frames": 46610,
+        "sha256": "4cc88709654573b01a7f4d87321c138a11d2a31e4897f21d24b29e398477d218",
+        "playlists": {
+          "Play_vo_MissFortuneSkin69_MissFortuneScatterShot_cast3D {r1}": [
+            "660518513.wem",
+            "115474480.wem",
+            "221144004.wem",
+            "568309191.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_e_voice_2.wav",
+        "frames": 69633,
+        "sha256": "67c520e64f86ad45e4b2dad3f4167182b8ed0200588dedd2d15742deaf8b7891",
+        "playlists": {
+          "Play_vo_MissFortuneSkin69_MissFortuneScatterShot_cast3D {r2}": [
+            "660518513.wem",
+            "115474480.wem",
+            "221144004.wem",
+            "568309191.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_e_voice_3.wav",
+        "frames": 74778,
+        "sha256": "39836c02e7f702b827c09f1a295d7452f3991b827fc5c7fcf6a510323483ad77",
+        "playlists": {
+          "Play_vo_MissFortuneSkin69_MissFortuneScatterShot_cast3D {r3}": [
+            "660518513.wem",
+            "115474480.wem",
+            "221144004.wem",
+            "568309191.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_e_voice_4.wav",
+        "frames": 80670,
+        "sha256": "5dfa1491cd5a5887ca0ca340878212173f10392c3fd911fb928c0f09d9414368",
+        "playlists": {
+          "Play_vo_MissFortuneSkin69_MissFortuneScatterShot_cast3D {r4}": [
+            "660518513.wem",
+            "115474480.wem",
+            "221144004.wem",
+            "568309191.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune R": [
+      {
+        "file": "mf_skin69_r_1.wav",
+        "frames": 92034,
+        "sha256": "597db798b510b15e1c7839d18c2ccd64b3404d9cf47ae958cbddbccee9184047",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_MissFortuneBulletTime_OnCast [2731286056=1307359308]": [
+            "763707159.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune R Barrage": [
+      {
+        "file": "mf_skin69_r_barrage_1.wav",
+        "frames": 199019,
+        "sha256": "4e2d9419901207012c5d56ec6b2a3650326a1fcb50b03c47ed34f7e1f6b1d88d",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_MissFortuneBulletTime_Loop [2731286056=1307359308]": [
+            "905533550.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune R Wave": [
+      {
+        "file": "mf_skin69_r_wave_1.wav",
+        "frames": 50785,
+        "sha256": "5e3f8af16e2f5691e2de3125d6161ec02ffd7f4cef05db6fca5a7c60950d549a",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_MissFortuneRShotExtra_OnMissileLaunch {r1}": [
+            "667774852.wem",
+            "803896497.wem",
+            "264316814.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_r_wave_2.wav",
+        "frames": 52403,
+        "sha256": "76e80ca575226416d46604370d392e3fbcd6f3d1db6aff1734d1d1a3de36ae45",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_MissFortuneRShotExtra_OnMissileLaunch {r2}": [
+            "667774852.wem",
+            "803896497.wem",
+            "264316814.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_r_wave_3.wav",
+        "frames": 50926,
+        "sha256": "d4716c27fa7c220f1f293e24957e4039688708d84ad9124baaff1d24b9209408",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_MissFortuneRShotExtra_OnMissileLaunch {r3}": [
+            "667774852.wem",
+            "803896497.wem",
+            "264316814.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune R Voice": [
+      {
+        "file": "mf_skin69_r_voice_1.wav",
+        "frames": 92346,
+        "sha256": "5cab92ae746a76c7417a5dff5c92685558c68f2755678be5bc2520d303b21899",
+        "playlists": {
+          "Play_vo_MissFortuneSkin69_MissFortuneBulletTime_cast3D {r1}": [
+            "256462854.wem",
+            "234630120.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_r_voice_2.wav",
+        "frames": 73821,
+        "sha256": "088a8a4c68e649c8b3827d41a5f941ea141a4f4cecd9bbbb8435d34a64b74f38",
+        "playlists": {
+          "Play_vo_MissFortuneSkin69_MissFortuneBulletTime_cast3D {r2}": [
+            "256462854.wem",
+            "234630120.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune Dance": [
+      {
+        "file": "mf_skin69_dance_1.wav",
+        "frames": 330750,
+        "sha256": "679c9334f3d547176c127a4730734bf1f2807f914071fe6e722c7b8e8ac5f240",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_Dance3D_buffactivate {r} {m}": [
+            "98184993.wem",
+            "665777282.wem",
+            "535190566.wem",
+            "909863477.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune Joke": [
+      {
+        "file": "mf_skin69_joke_1.wav",
+        "frames": 204767,
+        "sha256": "0ecd34bbcc46bf6feb95ff29596fc4dc64d89139912b7f9fb0819dd83ee01714",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_Joke3D_buffactivate": [
+            "991102078.wem"
+          ],
+          "Play_vo_MissFortuneSkin69_Joke3DGeneral": [
+            "60157551.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune Taunt": [
+      {
+        "file": "mf_skin69_taunt_1.wav",
+        "frames": 146814,
+        "sha256": "bd72a30e2a094b6b57456c57c827cb44e2db782757e05abfefde35e928d3d924",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_Taunt3D_buffactivate": [
+            "275118666.wem"
+          ],
+          "Play_vo_MissFortuneSkin69_Taunt3DGeneral": [
+            "521998635.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune Laugh": [
+      {
+        "file": "mf_skin69_laugh_1.wav",
+        "frames": 180417,
+        "sha256": "10b3c5d72477a551183186c3f81442250cd6e2afe001671a9b2298402d77fd51",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_Laugh3D_buffactivate": [
+            "329625947.wem"
+          ],
+          "Play_vo_MissFortuneSkin69_Laugh3DGeneral": [
+            "249995248.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune Recall": [
+      {
+        "file": "mf_skin69_recall_1.wav",
+        "frames": 402949,
+        "sha256": "9281851d7994f83fba3ac7f15788864e892f63ee10bbb51999aa349eb6128178",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_Recall3D_buffactivate": [
+            "831432475.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune Homeguard Start": [
+      {
+        "file": "mf_skin69_homeguard_start_1.wav",
+        "frames": 34099,
+        "sha256": "2b8301d319a9f6ae85ad8677d89fbe8588668b1ba77bbe7642759736b997dace",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_Homeguard3D_buffactivate": [
+            "990923111.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune Homeguard Gun": [
+      {
+        "file": "mf_skin69_homeguard_gun_1.wav",
+        "frames": 21061,
+        "sha256": "931fbd4c9783c2262618fc1c58757aa4aa7bd2937427df71fa9ec065f87a10a0",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_Homeguard3D_gun": [
+            "222184507.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune Homeguard Onboard": [
+      {
+        "file": "mf_skin69_homeguard_onboard_1.wav",
+        "frames": 194132,
+        "sha256": "aaf699c11da0bdc18548724ed1972a8395e40347242ff16adf81f06347e19d0e",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_Homeguard3D_onboard": [
+            "235149186.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune Homeguard Loop": [
+      {
+        "file": "mf_skin69_homeguard_loop_1.wav",
+        "frames": 412393,
+        "sha256": "e84b47107b8b43b4b7827b2626fddd0b01d4b460f5d3b5917cb2b72618c11a40",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_Homeguard3D_loop": [
+            "1000728454.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune Homeguard Exit": [
+      {
+        "file": "mf_skin69_homeguard_exit_1.wav",
+        "frames": 96922,
+        "sha256": "ae2da7e306eaba2f27b6a07ae6b2c3bfeba184c774ec57cd1f3e01d31b03aaf4",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_HomeguardToRun_buffactivate": [
+            "547238028.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune Joke Cast": [
+      {
+        "file": "mf_skin69_joke_cast_1.wav",
+        "frames": 123315,
+        "sha256": "2269fb1d9dcbf9f0ab137aa566f509fb494cf986ee1877e947767b0bcd9a837f",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_Joke3D_cast": [
+            "711042814.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune Joke Loop": [
+      {
+        "file": "mf_skin69_joke_loop_1.wav",
+        "frames": 491622,
+        "sha256": "89d2c860f66d5ed93eba80db58db417b40862afce21f9307fcfcbf517a7e5949",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_Joke3D_loop": [
+            "96019893.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune Death": [
+      {
+        "file": "mf_skin69_death_1.wav",
+        "frames": 191469,
+        "sha256": "8515e45a0f7b7002448ed68b2c340929ca5fcbd9dba7cdf352c6bec8a03e763d",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_Death3D_cast": [
+            "1024581155.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune Death Voice": [
+      {
+        "file": "mf_skin69_death_voice_1.wav",
+        "frames": 127850,
+        "sha256": "a77558fc3f49fe740263091882ee5a6dcddd5ad9ba7ac88ae6495af0331921d9",
+        "playlists": {
+          "Play_vo_MissFortuneSkin69_Death3D {r1}": [
+            "856903322.wem",
+            "1043056079.wem",
+            "184213599.wem",
+            "622950334.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_death_voice_2.wav",
+        "frames": 106912,
+        "sha256": "403d2f38e5cd365601121afbeee472386b2ac78fbe38ada63de0a96cdeb84e17",
+        "playlists": {
+          "Play_vo_MissFortuneSkin69_Death3D {r2}": [
+            "856903322.wem",
+            "1043056079.wem",
+            "184213599.wem",
+            "622950334.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_death_voice_3.wav",
+        "frames": 75486,
+        "sha256": "156ac04577844fa59d2190fd2f153af019cfe0fb7b7fb6207228972f6ec135fb",
+        "playlists": {
+          "Play_vo_MissFortuneSkin69_Death3D {r3}": [
+            "856903322.wem",
+            "1043056079.wem",
+            "184213599.wem",
+            "622950334.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_death_voice_4.wav",
+        "frames": 72731,
+        "sha256": "cfd0a171a66011c527562fccb44760ac5096e54118773da023e75f3a25113e5a",
+        "playlists": {
+          "Play_vo_MissFortuneSkin69_Death3D {r4}": [
+            "856903322.wem",
+            "1043056079.wem",
+            "184213599.wem",
+            "622950334.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune Respawn": [
+      {
+        "file": "mf_skin69_respawn_1.wav",
+        "frames": 172025,
+        "sha256": "1530d3aeebf618f587f765f1c54918df78b2cb4897902016a58b1c5f2510329a",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_Respawn3D_buffactivate": [
+            "824285689.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune Respawn Voice": [
+      {
+        "file": "mf_skin69_respawn_voice_1.wav",
+        "frames": 117322,
+        "sha256": "a4ea2d605ce38740a37593570c49882a957bda0ae5a4eb6b52e58694347bddd1",
+        "playlists": {
+          "Play_vo_MissFortuneSkin69_Respawn2DGeneral {r1}": [
+            "894687645.wem",
+            "663412725.wem",
+            "1047923797.wem",
+            "745520015.wem",
+            "22062147.wem",
+            "434546669.wem",
+            "851341678.wem",
+            "796511268.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_respawn_voice_2.wav",
+        "frames": 62019,
+        "sha256": "bcd09fc5721d4092d2fe25cb7ef362e5613d4d3a962fce85ac1d8c80f9f02bf2",
+        "playlists": {
+          "Play_vo_MissFortuneSkin69_Respawn2DGeneral {r2}": [
+            "894687645.wem",
+            "663412725.wem",
+            "1047923797.wem",
+            "745520015.wem",
+            "22062147.wem",
+            "434546669.wem",
+            "851341678.wem",
+            "796511268.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_respawn_voice_3.wav",
+        "frames": 94648,
+        "sha256": "e208a9c4e63911268e736580de158bca81489a3c9ab6ba6e45bc4b679a90bd8e",
+        "playlists": {
+          "Play_vo_MissFortuneSkin69_Respawn2DGeneral {r3}": [
+            "894687645.wem",
+            "663412725.wem",
+            "1047923797.wem",
+            "745520015.wem",
+            "22062147.wem",
+            "434546669.wem",
+            "851341678.wem",
+            "796511268.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_respawn_voice_4.wav",
+        "frames": 175325,
+        "sha256": "06a4a5fc7ba0934acdf6e233d2d677cdd543e67f70a963aac7b27a563d72cc8d",
+        "playlists": {
+          "Play_vo_MissFortuneSkin69_Respawn2DGeneral {r4}": [
+            "894687645.wem",
+            "663412725.wem",
+            "1047923797.wem",
+            "745520015.wem",
+            "22062147.wem",
+            "434546669.wem",
+            "851341678.wem",
+            "796511268.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_respawn_voice_5.wav",
+        "frames": 157040,
+        "sha256": "59dbb32ce9034805e7726dc8bdf72c07f99c75535bc6fe07c32b101f24e44d1c",
+        "playlists": {
+          "Play_vo_MissFortuneSkin69_Respawn2DGeneral {r5}": [
+            "894687645.wem",
+            "663412725.wem",
+            "1047923797.wem",
+            "745520015.wem",
+            "22062147.wem",
+            "434546669.wem",
+            "851341678.wem",
+            "796511268.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_respawn_voice_6.wav",
+        "frames": 94006,
+        "sha256": "f5d9ab3a9b3ef266f3951ee307dcb6b8ce3fabd23f7d8c6352a3b5993c8541a6",
+        "playlists": {
+          "Play_vo_MissFortuneSkin69_Respawn2DGeneral {r6}": [
+            "894687645.wem",
+            "663412725.wem",
+            "1047923797.wem",
+            "745520015.wem",
+            "22062147.wem",
+            "434546669.wem",
+            "851341678.wem",
+            "796511268.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_respawn_voice_7.wav",
+        "frames": 136295,
+        "sha256": "034b8c35bb56b23ed3730f16cf042962ec6e4dc3b7aa5763127d54a523491cf3",
+        "playlists": {
+          "Play_vo_MissFortuneSkin69_Respawn2DGeneral {r7}": [
+            "894687645.wem",
+            "663412725.wem",
+            "1047923797.wem",
+            "745520015.wem",
+            "22062147.wem",
+            "434546669.wem",
+            "851341678.wem",
+            "796511268.wem"
+          ]
+        }
+      },
+      {
+        "file": "mf_skin69_respawn_voice_8.wav",
+        "frames": 208313,
+        "sha256": "4b21e53c9939098c8acf776519ef734c39b4acae8e01d700269d00fa04d2df40",
+        "playlists": {
+          "Play_vo_MissFortuneSkin69_Respawn2DGeneral {r8}": [
+            "894687645.wem",
+            "663412725.wem",
+            "1047923797.wem",
+            "745520015.wem",
+            "22062147.wem",
+            "434546669.wem",
+            "851341678.wem",
+            "796511268.wem"
+          ]
+        }
+      }
+    ],
+    "Miss Fortune Taunt Intro": [
+      {
+        "file": "mf_skin69_taunt_intro_1.wav",
+        "frames": 17316,
+        "sha256": "c75eedcd12bc740c0008f4c42da2e7797b66f338d4649c533444f29697010ed0",
+        "playlists": {
+          "Play_sfx_MissFortuneSkin69_Taunt3D_cast_anim": [
+            "245848527.wem"
+          ]
+        }
+      }
+    ]
+  }
+}
