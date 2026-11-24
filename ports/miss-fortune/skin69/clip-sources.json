@@ -1,0 +1,470 @@
+[
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin31/animations/atk1torunnojump.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin31/animations/atk1torunnojump.anm",
+    "found": true,
+    "bytes": 34750,
+    "sha256": "c90232f841d0340663ce5f1c0d6e09dd72a9d1a93ea12b9b158594b9e9b290af",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin31/animations/atk2torunnojump.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin31/animations/atk2torunnojump.anm",
+    "found": true,
+    "bytes": 35158,
+    "sha256": "c338ab455d8dd07b47922fc905053468101ad651af97798fe7ed9bce3a71218e",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin31/animations/spell1.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin31/animations/spell1.anm",
+    "found": true,
+    "bytes": 79096,
+    "sha256": "a055976b3de6c0431b85066f833af2198a7293daaf70380178747463d476ed62",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/attack1.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/attack1.anm",
+    "found": true,
+    "bytes": 166674,
+    "sha256": "dec717b29f84bb319dd094f3cdf1e1c7542566a649633af14de45bc2a6219166",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/attack1_to__run.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/attack1_to__run.anm",
+    "found": true,
+    "bytes": 38130,
+    "sha256": "37696a4bf287b6022f6666cf0957e0315842d6425713cb2af20f214044a3b276",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/attack1_to__run2.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/attack1_to__run2.anm",
+    "found": true,
+    "bytes": 38094,
+    "sha256": "923dcd8099c27cb748c6939760fbcb7e5f8ae1e99e025a84ec5a0027c395f798",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/attack1_to_idle.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/attack1_to_idle.anm",
+    "found": true,
+    "bytes": 96828,
+    "sha256": "243ea48c64be7c54e0e37b8f6467b7cb24c4b7f3b3134c85df40e548e0736ec1",
+    "magic": "r3d2canm",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/attack2.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/attack2.anm",
+    "found": true,
+    "bytes": 159198,
+    "sha256": "be40551587c432688f47b002f2155ef998f04a7a8bf481cf924bb854321b6a09",
+    "magic": "r3d2canm",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/attack2_to_idle.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/attack2_to_idle.anm",
+    "found": true,
+    "bytes": 95798,
+    "sha256": "7dee4ac13ea9e422114cf01ad3d57c2b7e37ca69c860680dae01328a0219d811",
+    "magic": "r3d2canm",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/attack2_to_run.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/attack2_to_run.anm",
+    "found": true,
+    "bytes": 38748,
+    "sha256": "673572e11e8fd4491ace310ba3a8c5663cd6224b0f245a5b735637e78340d6e7",
+    "magic": "r3d2anmd",
+    "matches_provided": null
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/attack2_to_run2.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/attack2_to_run2.anm",
+    "found": true,
+    "bytes": 38712,
+    "sha256": "eb7c08a864ac5473e775abf138d3ff2a5b93d70350c7852214d956416fe51c9d",
+    "magic": "r3d2anmd",
+    "matches_provided": null
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/channel_in.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/channel_in.anm",
+    "found": true,
+    "bytes": 89370,
+    "sha256": "2accfa98348f2bb734ec5334290e7d9c64912ef558928f7d16affb3e96bfeee4",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/channel_loop.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/channel_loop.anm",
+    "found": true,
+    "bytes": 78428,
+    "sha256": "7129e44c90992f9ed15f70afb7268e183c625ba2d1e8f1b02dc596d0af1350a1",
+    "magic": "r3d2canm",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/crlt.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/crlt.anm",
+    "found": true,
+    "bytes": 113748,
+    "sha256": "398b6a221816badcefa1e0dd660d028864eaed0522719e0b3313ec10d8a0d005",
+    "magic": "r3d2canm",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/crlt_ldle.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/crlt_ldle.anm",
+    "found": true,
+    "bytes": 75188,
+    "sha256": "ab5ae2ec33c79ffcc5a33173bb0f26c8cc81d6a157e29b7c840857a1fd328514",
+    "magic": "r3d2canm",
+    "matches_provided": null
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/dance.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/dance.anm",
+    "found": true,
+    "bytes": 369870,
+    "sha256": "20667c2c73d3677d932ccdc8c7ec871eac37dc8ba53f38f31a3de86d0c48022b",
+    "magic": "r3d2anmd",
+    "matches_provided": null
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/dance_in.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/dance_in.anm",
+    "found": true,
+    "bytes": 100776,
+    "sha256": "57177985f1931e55d061853c5d92ee7cf4091b431f89aa680f92b27dc6ddd43e",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/death.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/death.anm",
+    "found": true,
+    "bytes": 272322,
+    "sha256": "690578e3153d4e8f26b27fe53f6c53941d8626ec7c39a5bef3734509d471c43b",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/homeguard.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/homeguard.anm",
+    "found": true,
+    "bytes": 181938,
+    "sha256": "c62fc1bc4c609dbe7b0970349f6f445e7794cce4463290d862d43157da61a56d",
+    "magic": "r3d2canm",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/homeguard_in.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/homeguard_in.anm",
+    "found": true,
+    "bytes": 338598,
+    "sha256": "33e4df50e8eecb16f209df9e4c5075f4da99ed9c3884a3927d687de05487e794",
+    "magic": "r3d2canm",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/homeguard_torun.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/homeguard_torun.anm",
+    "found": true,
+    "bytes": 124800,
+    "sha256": "b7398d2a44e53627533ed867c9a9035574a13b2640571420ea22242fec6af718",
+    "magic": "r3d2anmd",
+    "matches_provided": null
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/homeguard_torun02.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/homeguard_torun02.anm",
+    "found": true,
+    "bytes": 135888,
+    "sha256": "2ad091a1129187200c12379e68a41eeee9f628a9c97bfad0bf1b12f9b9f1fd0f",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/idle01.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/idle01.anm",
+    "found": true,
+    "bytes": 128928,
+    "sha256": "9ce6e562f85bcc811d01271b1f145ccccfd296439e6843da0a82bed8fd5296cf",
+    "magic": "r3d2canm",
+    "matches_provided": null
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/idle02.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/idle02.anm",
+    "found": true,
+    "bytes": 527670,
+    "sha256": "2466de61064536700f0cfaca5561ec468250e37b6222fe38043d2cd90324432a",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/idle_in.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/idle_in.anm",
+    "found": true,
+    "bytes": 137178,
+    "sha256": "483c68ff66fe9791e08d783b8f7d5af9e2f9c128b03aaecf0d2e2a69494df941",
+    "magic": "r3d2anmd",
+    "matches_provided": null
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/jokein.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/jokein.anm",
+    "found": true,
+    "bytes": 156876,
+    "sha256": "c054af88ddfec7964cbadd93611b8ce4109c2ee723bdb5e50d77abf288a79df5",
+    "magic": "r3d2anmd",
+    "matches_provided": null
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/jokeloop.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/jokeloop.anm",
+    "found": true,
+    "bytes": 74458,
+    "sha256": "62da90becf1561be667afc890c86663bf1849f0a573e3e73161fe96693eca7aa",
+    "magic": "r3d2canm",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/jokespam.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/jokespam.anm",
+    "found": true,
+    "bytes": 76302,
+    "sha256": "ace2c1240f5ea6d59327bd93b463c66b35260ef50530302f411f48f9be8cf4cb",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/laugh.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/laugh.anm",
+    "found": true,
+    "bytes": 241758,
+    "sha256": "ac2363dfa79d472489493c874ee877fde24ad2d5663d00a76d11c962f5d568c2",
+    "magic": "r3d2canm",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/pentakill_bonus.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/pentakill_bonus.anm",
+    "found": true,
+    "bytes": 191142,
+    "sha256": "61eb689263b22470e2451d5a7d44a8ecabfd3769b11290bc3f5c7f0b7f9dc2e5",
+    "magic": "r3d2anmd",
+    "matches_provided": null
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/pentakill_in.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/pentakill_in.anm",
+    "found": true,
+    "bytes": 41976,
+    "sha256": "25508c22743d542c7fd199498805ed794fa055841e855ce4ab613fbd436e1331",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/recall_real.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/recall_real.anm",
+    "found": true,
+    "bytes": 582450,
+    "sha256": "9297673dac0b34beb9cec6068dcda58723daee26adfdaa56a3c2db18d11e0fec",
+    "magic": "r3d2anmd",
+    "matches_provided": null
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/recall_winddown.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/recall_winddown.anm",
+    "found": true,
+    "bytes": 187842,
+    "sha256": "d09f18e8de0ab255a1ced3a8fe5bbaf2ce6d7f772d64e5eca3e1e6128ebc08ab",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/respawn.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/respawn.anm",
+    "found": true,
+    "bytes": 228714,
+    "sha256": "9ecab3898137b8023411618e48528a155df47f320f1c54df6d0df859c9a22970",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/run.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/run.anm",
+    "found": true,
+    "bytes": 69360,
+    "sha256": "d28431d826aade65aa47cb6fabd4722f241c9f8780c15f12c661add47df63579",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/run2.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/run2.anm",
+    "found": true,
+    "bytes": 67614,
+    "sha256": "37536be24a0acea4961ad0bf7d06d3f083df1686a0e01f4651ab2443a902f30a",
+    "magic": "r3d2anmd",
+    "matches_provided": null
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/run2_in.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/run2_in.anm",
+    "found": true,
+    "bytes": 41208,
+    "sha256": "ac272e6f1b1355357e6868a211d65ca3a1ff6675d3fd33b0ba1b655522ba9c36",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/run_in.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/run_in.anm",
+    "found": true,
+    "bytes": 42852,
+    "sha256": "88197b42ff623674b6577036f5c0192d6efb7b1acb294d6dc1bee272a2edc507",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/spell1.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/spell1.anm",
+    "found": true,
+    "bytes": 73116,
+    "sha256": "6a6ccfad4bfda931df3bba77a4852cbcdc8079c54fa51c48ca9503f9624134f2",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/spell1_in.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/spell1_in.anm",
+    "found": true,
+    "bytes": 8994,
+    "sha256": "4677b58d481a2550ab35f8d9aa2f63cd45cc4a73595f022bce49c638dfd8ce69",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/spell1_toidle.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/spell1_toidle.anm",
+    "found": true,
+    "bytes": 74250,
+    "sha256": "4a71c4a43ce9e950b6796387366e3855097f004e4bb7fb96d12172dbf9f0c6ea",
+    "magic": "r3d2anmd",
+    "matches_provided": null
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/spell1_torun.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/spell1_torun.anm",
+    "found": true,
+    "bytes": 75246,
+    "sha256": "dc74e34b46bac98fdf977c6e90c5466638759ea04986f6321161a411ee42e0a7",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/spell3.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/spell3.anm",
+    "found": true,
+    "bytes": 102912,
+    "sha256": "8209af142317dee6bb93e4719c607635fe13267fb5de9ac5d63e983508c5feeb",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/spell3_toidle.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/spell3_toidle.anm",
+    "found": true,
+    "bytes": 99402,
+    "sha256": "f98f98c980fcb24aef6bda6016eb467e87c37ce866f933c2f3747e8250df1a14",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/spell3_torun.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/spell3_torun.anm",
+    "found": true,
+    "bytes": 217728,
+    "sha256": "50ad19eb0df8906bd3fae2c3b5f174524677c71e49136067e97a2f4f27e2a8c2",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/spell4_loop.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/spell4_loop.anm",
+    "found": true,
+    "bytes": 98758,
+    "sha256": "8fc356084dab57caab2df3561e588918f3a62ac511cbd0349f891cc424a93a48",
+    "magic": "r3d2canm",
+    "matches_provided": null
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/spell4_toidle.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/spell4_toidle.anm",
+    "found": true,
+    "bytes": 121422,
+    "sha256": "bdf5c1ba423be3ea57e6ebf28d21e755631456f7660d0a9c5473605c25711f28",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/spell4_torun.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/spell4_torun.anm",
+    "found": true,
+    "bytes": 115596,
+    "sha256": "45de4ad8efef45f753e69752febfe99bf9b34824b2217f0926d21d169a6f4d05",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/spell4_windup.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/spell4_windup.anm",
+    "found": true,
+    "bytes": 169386,
+    "sha256": "9f3f4f9d813b3c021d3917166047f7709f2ed96f352f1bb80857ce1b6b3e5835",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/taunt_in.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/taunt_in.anm",
+    "found": true,
+    "bytes": 73800,
+    "sha256": "afc440f488ae1a26634e5753c2ca946fb0ac74c86f1e364b552262df76661566",
+    "magic": "r3d2anmd",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/taunt_loop.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/taunt_loop.anm",
+    "found": true,
+    "bytes": 64108,
+    "sha256": "70891834fb35da5fbe86c9d9e0d96009baf298e09869b884e4d6425accf94713",
+    "magic": "r3d2canm",
+    "matches_provided": true
+  },
+  {
+    "canonical_path": "assets/characters/missfortune/skins/skin69/animations/taunt_spam.skins_missfortune_skin69.anm",
+    "lookup_path": "assets/characters/missfortune/skins/skin69/animations/taunt_spam.anm",
+    "found": true,
+    "bytes": 189618,
+    "sha256": "4fdea35d877efa5efc006b39c98f4777f1de13eaeec12bf0864a479966862e3c",
+    "magic": "r3d2canm",
+    "matches_provided": null
+  }
+]

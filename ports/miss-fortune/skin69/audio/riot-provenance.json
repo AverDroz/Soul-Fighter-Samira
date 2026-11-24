@@ -1,0 +1,254 @@
+{
+  "riot_manifest": "https://lol.dyn.riotcdn.net/channels/public/releases/6EDAD6B3C9806CB9.manifest",
+  "manifest_sha256": "ed2ba7e19ddacb18604fd5f61baf87927d4c4514540cec8047cb56d6499cdbcb",
+  "files": [
+    {
+      "wad": "DATA/FINAL/Champions/MissFortune.wad.client",
+      "virtual_path": "assets/sounds/wwise2016/sfx/characters/missfortune/skins/skin69/missfortune_skin69_sfx_audio.bnk",
+      "file": "banks\\missfortune_skin69_sfx_audio.bnk",
+      "sha256": "91497b1fb6bad7d688b8d0996ab293ac14ec4c1d8d35f11876c132f83ad2f895",
+      "size": 2124067,
+      "wad_path_hash": "5fb705229c8c4628",
+      "wad_offset": 134321636,
+      "wad_stored_size": 2124067
+    },
+    {
+      "wad": "DATA/FINAL/Champions/MissFortune.wad.client",
+      "virtual_path": "assets/sounds/wwise2016/sfx/characters/missfortune/skins/skin69/missfortune_skin69_sfx_events.bnk",
+      "file": "banks\\missfortune_skin69_sfx_events.bnk",
+      "sha256": "cee398d730bcd8f85a64e0b373b7b447e1cdab4c8b51d431f0a45d5e08109332",
+      "size": 30231,
+      "wad_path_hash": "7447448b80109c08",
+      "wad_offset": 114521309,
+      "wad_stored_size": 7224
+    },
+    {
+      "wad": "DATA/FINAL/Champions/MissFortune.wad.client",
+      "virtual_path": "assets/sounds/wwise2016/sfx/characters/missfortune/skins/skin69/missfortune_skin69_sfx_audio.wpk",
+      "file": "banks\\missfortune_skin69_sfx_audio.wpk",
+      "sha256": "cf0ae054f1137c2119e04891cd0f99d0659dc94acda1dc660a91222765317ac3",
+      "size": 102752,
+      "wad_path_hash": "be9003517de96985",
+      "wad_offset": 137797665,
+      "wad_stored_size": 102752
+    },
+    {
+      "wad": "DATA/FINAL/Champions/MissFortune.en_US.wad.client",
+      "virtual_path": "assets/sounds/wwise2016/vo/en_us/characters/missfortune/skins/skin69/missfortune_skin69_vo_audio.bnk",
+      "file": "banks\\missfortune_skin69_vo_audio.bnk",
+      "sha256": "eb4bc1e1840748f7c3e10f6ff2e29cc4cf846a3997a024aad8d934dd88554f7b",
+      "size": 48,
+      "wad_path_hash": "8f0dd22ebfc1e7bc",
+      "wad_offset": 848,
+      "wad_stored_size": 48
+    },
+    {
+      "wad": "DATA/FINAL/Champions/MissFortune.en_US.wad.client",
+      "virtual_path": "assets/sounds/wwise2016/vo/en_us/characters/missfortune/skins/skin69/missfortune_skin69_vo_events.bnk",
+      "file": "banks\\missfortune_skin69_vo_events.bnk",
+      "sha256": "f9e40f764085829149a5ebe06a8892851f175647ae732a1d09304b45929ee442",
+      "size": 19649,
+      "wad_path_hash": "ddad46f3c2808126",
+      "wad_offset": 8510947,
+      "wad_stored_size": 4827
+    },
+    {
+      "wad": "DATA/FINAL/Champions/MissFortune.en_US.wad.client",
+      "virtual_path": "assets/sounds/wwise2016/vo/en_us/characters/missfortune/skins/skin69/missfortune_skin69_vo_audio.wpk",
+      "file": "banks\\missfortune_skin69_vo_audio.wpk",
+      "sha256": "2728587453f0763ad70d6c77407b579832ce66dbcbd529a5769d42c8da20c9d9",
+      "size": 3416818,
+      "wad_path_hash": "26cfb419c4a7bc27",
+      "wad_offset": 14420171,
+      "wad_stored_size": 3416818
+    }
+  ],
+  "sfx_downloaded_chunks": [
+    {
+      "index": 0,
+      "sha256": "a1c2e65579d7693ea01fef58a3e382c6f8bee99a88efff2dd20542cd6f43d01c",
+      "bundle": "828F48135B8B51E2",
+      "bundle_offset": 38563818,
+      "compressed_size": 57919,
+      "target_size": 85175
+    },
+    {
+      "index": 1,
+      "sha256": "8c1379da2b9ba2960745f4fc9e14bc3dcec7d2127ffa344e61dd292a17d64bf7",
+      "bundle": "828F48135B8B51E2",
+      "bundle_offset": 38621737,
+      "compressed_size": 48922,
+      "target_size": 70297
+    },
+    {
+      "index": 4216,
+      "sha256": "9546da1937c53f9d9f24661ac832288655ae220827ff7cd0c2d500ece0bd74e7",
+      "bundle": "D641738BA5821E2E",
+      "bundle_offset": 25337170,
+      "compressed_size": 7234,
+      "target_size": 7224
+    },
+    {
+      "index": 4445,
+      "sha256": "2a04acc05a9c6014992be31393bc45a4060ee29f06c074ca2e97a808e7227ad4",
+      "bundle": "D641738BA5821E2E",
+      "bundle_offset": 44243831,
+      "compressed_size": 407407,
+      "target_size": 412378
+    },
+    {
+      "index": 4446,
+      "sha256": "8c5f959c08c4d785098ff411cf1d517562a6c92a6c4a1404071635d073dde5c4",
+      "bundle": "D641738BA5821E2E",
+      "bundle_offset": 44651238,
+      "compressed_size": 127836,
+      "target_size": 129839
+    },
+    {
+      "index": 4447,
+      "sha256": "4494d8fc8b970dcccf5ec2225f512156a0a3238d4a93690ef1a253a8264606ea",
+      "bundle": "D641738BA5821E2E",
+      "bundle_offset": 44779074,
+      "compressed_size": 238660,
+      "target_size": 242817
+    },
+    {
+      "index": 4448,
+      "sha256": "4a028d3973d4804178ad803bcb30f85149901f0d2a56aa3d0b4b2d23c433fe98",
+      "bundle": "D641738BA5821E2E",
+      "bundle_offset": 45017734,
+      "compressed_size": 91004,
+      "target_size": 92915
+    },
+    {
+      "index": 4449,
+      "sha256": "58bdaa9063b51ddf875f3a79f6a3b163012d567f65a16577f41554577f76029a",
+      "bundle": "D641738BA5821E2E",
+      "bundle_offset": 45108738,
+      "compressed_size": 240231,
+      "target_size": 244544
+    },
+    {
+      "index": 4450,
+      "sha256": "a859de95053663822b7a135dd8a9c8648c6c8069eb6bf5608b1884cb830ed91d",
+      "bundle": "D641738BA5821E2E",
+      "bundle_offset": 45348969,
+      "compressed_size": 110193,
+      "target_size": 112403
+    },
+    {
+      "index": 4451,
+      "sha256": "85572204401e2006f138f0c8e0d6f484171cbb6c63b57a6b2e665ab844fba1e4",
+      "bundle": "D641738BA5821E2E",
+      "bundle_offset": 45459162,
+      "compressed_size": 64244,
+      "target_size": 64805
+    },
+    {
+      "index": 4452,
+      "sha256": "b732c62fc11122ad9b52d42e3d8df6c526eecdd22973479c7e95b63ad21a9190",
+      "bundle": "D641738BA5821E2E",
+      "bundle_offset": 45523406,
+      "compressed_size": 107938,
+      "target_size": 110169
+    },
+    {
+      "index": 4453,
+      "sha256": "1f267c4263d4ef7c4ceea9e04dac524e999513efcd52f00ed6cfeecee495e836",
+      "bundle": "D641738BA5821E2E",
+      "bundle_offset": 45631344,
+      "compressed_size": 217365,
+      "target_size": 221873
+    },
+    {
+      "index": 4454,
+      "sha256": "9286514f3f0cfd1597a174677ababaefd07d0b7a3673814f337045b3797e8309",
+      "bundle": "D641738BA5821E2E",
+      "bundle_offset": 45848709,
+      "compressed_size": 159568,
+      "target_size": 161315
+    },
+    {
+      "index": 4455,
+      "sha256": "b65d970e8c4f6a45a0cb891a95947c1e47afab3e568a31125ecafbee919aef51",
+      "bundle": "D641738BA5821E2E",
+      "bundle_offset": 46008277,
+      "compressed_size": 204341,
+      "target_size": 207176
+    },
+    {
+      "index": 4456,
+      "sha256": "b9c6d629ac4eb50dc173b30ca836781c14898223d7bb355c003973f39eb341b7",
+      "bundle": "D641738BA5821E2E",
+      "bundle_offset": 46212618,
+      "compressed_size": 122307,
+      "target_size": 123833
+    },
+    {
+      "index": 4463,
+      "sha256": "cf0ae054f1137c2119e04891cd0f99d0659dc94acda1dc660a91222765317ac3",
+      "bundle": "D641738BA5821E2E",
+      "bundle_offset": 47686980,
+      "compressed_size": 102764,
+      "target_size": 102752
+    }
+  ],
+  "vo_downloaded_chunks": [
+    {
+      "index": 0,
+      "sha256": "b547cc5b730c98c5ca2d9431438a8dad0e2aff6e95fb9eaba0287a7a64f343ca",
+      "bundle": "32F9198F3F754903",
+      "bundle_offset": 10221518,
+      "compressed_size": 670,
+      "target_size": 752
+    },
+    {
+      "index": 3,
+      "sha256": "eb4bc1e1840748f7c3e10f6ff2e29cc4cf846a3997a024aad8d934dd88554f7b",
+      "bundle": "32F9198F3F754903",
+      "bundle_offset": 10222302,
+      "compressed_size": 57,
+      "target_size": 48
+    },
+    {
+      "index": 23,
+      "sha256": "27ddff38c272c1751a749e455d6ed9fa4d336c02b7bcce793d0df63bd1649514",
+      "bundle": "32F9198F3F754903",
+      "bundle_offset": 18644872,
+      "compressed_size": 4837,
+      "target_size": 4827
+    },
+    {
+      "index": 40,
+      "sha256": "b5a4b4c549f9e5e5ebacde57f6c19cab0054aead2b969ba4126380ae63c708ac",
+      "bundle": "32F9198F3F754903",
+      "bundle_offset": 24478832,
+      "compressed_size": 337509,
+      "target_size": 345464
+    },
+    {
+      "index": 41,
+      "sha256": "cc99f3bc2d745e77e987327d9b76e0c4c7b6f5f6352b14f5f34dd9e6e76cdbca",
+      "bundle": "32F9198F3F754903",
+      "bundle_offset": 24816341,
+      "compressed_size": 913755,
+      "target_size": 927164
+    },
+    {
+      "index": 42,
+      "sha256": "3cd4959945d7ed8d42ae438c87c1aed93bc3b4679bbb312392355dad8a1034fc",
+      "bundle": "32F9198F3F754903",
+      "bundle_offset": 25730096,
+      "compressed_size": 1145734,
+      "target_size": 1161477
+    },
+    {
+      "index": 43,
+      "sha256": "008c3c84237959db9914f80b6f5350ecb5d1826409b5bb3b5435590c26655e31",
+      "bundle": "32F9198F3F754903",
+      "bundle_offset": 26875830,
+      "compressed_size": 970149,
+      "target_size": 982713
+    }
+  ]
+}
